@@ -1,114 +1,92 @@
-from fastapi import FastAPI, Query, HTTPException
+# ============================================
+#  trading_dashboard / api.py
+#  API backend simple pour ton dashboard
+# ============================================
+
+from fastapi import FastAPI, Query
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-import yfinance as yf
-import time
 
-app = FastAPI()
+app = FastAPI(
+    title="Trading Dashboard API",
+    description="Backend pour récupérer les données de marché (mockées)",
+    version="1.0",
+)
 
-# ------------------------------------------------------------
-# Instruments supportés
-# ------------------------------------------------------------
-INSTRUMENTS = {
-    "ES":  {"yf_symbol": "ES=F",  "label": "S&P 500 Future"},
-    "NQ":  {"yf_symbol": "NQ=F",  "label": "Nasdaq Future"},
-    "BTC": {"yf_symbol": "BTC-USD", "label": "Bitcoin"},
-    "CL":  {"yf_symbol": "CL=F",  "label": "Crude Oil (WTI)"},
-    "GC":  {"yf_symbol": "GC=F",  "label": "Gold"},
-}
-
-# ------------------------------------------------------------
-# Fonction utilitaire : récupérer le dernier prix + précédent
-# ------------------------------------------------------------
-def get_last_prices(symbol: str):
-    """
-    Retourne (last_price, previous_close)
-    """
-    data = yf.download(symbol, period="2d", interval="1d")
-
-    if data is None or data.empty:
-        raise ValueError(f"Impossible de récupérer les données pour {symbol}")
-
-    last_row = data.iloc[-1]
-    prev_row = data.iloc[-2] if len(data) > 1 else None
-
-    last_price = float(last_row["Close"])
-    prev_price = float(prev_row["Close"]) if prev_row is not None else None
-
-    return last_price, prev_price
+# CORS : on laisse le front (GitHub Pages) interroger l'API Render
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # ok pour dev
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
-# ------------------------------------------------------------
-# Génération d’un commentaire simple selon la variation %
-# ------------------------------------------------------------
-def build_comment(symbol: str, label: str, pct: float) -> str:
-    if pct > 0.4:
-        return f"{label} nettement haussier"
-    if pct > 0.15:
-        return f"{label} en légère hausse"
-    if pct > -0.15:
-        return f"{label} quasi stable"
-    if pct > -0.4:
-        return f"{label} en légère baisse"
-    return f"{label} en forte baisse"
-
-
-# ------------------------------------------------------------
-# Endpoint racine
-# ------------------------------------------------------------
+# ==========================
+# Endpoint de test
+# ==========================
 @app.get("/")
 async def root():
     return {"message": "API Trading Dashboard OK"}
 
 
-# ------------------------------------------------------------
-# Endpoint principal /latest
-# ------------------------------------------------------------
+# ==========================
+# Endpoint multi-actifs
+# ==========================
 @app.get("/latest")
-async def latest(symbol: str = Query("ES", description="ES, NQ, BTC, CL, GC")):
-    symbol = symbol.upper()
+async def latest(symbol: str = Query("ES")):
+    """
+    Renvoie des prix mockés en **USD** pour un actif donné.
+    Le front se charge de convertir en EUR si besoin.
+    """
 
-    if symbol not in INSTRUMENTS:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Symbole inconnu : {symbol}. Utilise ES, NQ, BTC, CL ou GC.",
-        )
-
-    inst = INSTRUMENTS[symbol]
-    yf_symbol = inst["yf_symbol"]
-    label = inst["label"]
-
-    try:
-        last_price, prev_price = get_last_prices(yf_symbol)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur backend : {e}")
-
-    # Variation %
-    if prev_price and prev_price != 0:
-        change_pct = (last_price - prev_price) / prev_price * 100.0
-    else:
-        change_pct = 0.0
-
-    comment = build_comment(symbol, label, change_pct)
-
-    # --------------------------------------------------------
-    # 🔥 IMPORTANT :
-    # Compatibilité totale avec ton frontend actuel :
-    # -> ton HTML attend "price", pas "price_usd"
-    # --------------------------------------------------------
-    payload = {
-        "symbol": symbol,
-        "yf_symbol": yf_symbol,
-        "label": label,
-
-        # Champ utilisé par le frontend 🌟
-        "price": round(last_price, 2),
-
-        # Champ pour ton futur bouton USD/EUR
-        "price_usd": round(last_price, 2),
-
-        "change_pct": round(change_pct, 2),
-        "timestamp": time.time(),
-        "comment": comment,
+    fake_data = {
+        "ES": {
+            "symbol": "ES",
+            "name": "S&P 500 Future",
+            "price": 5290.25,
+            "change_pct": 0.45,
+            "comment": "S&P 500 calme avant l'ouverture",
+        },
+        "NQ": {
+            "symbol": "NQ",
+            "name": "Nasdaq 100 Future",
+            "price": 18880.75,
+            "change_pct": 0.62,
+            "comment": "Nasdaq rebond technique",
+        },
+        "BTC": {
+            "symbol": "BTC",
+            "name": "Bitcoin",
+            "price": 102500.00,
+            "change_pct": -0.95,
+            "comment": "Bitcoin en phase de consolidation",
+        },
+        "CL": {
+            "symbol": "CL",
+            "name": "Crude Oil (WTI)",
+            "price": 78.10,
+            "change_pct": 0.15,
+            "comment": "Pétrole légèrement haussier",
+        },
+        "GC": {
+            "symbol": "GC",
+            "name": "Gold",
+            "price": 2320.00,
+            "change_pct": -0.20,
+            "comment": "Or en léger retracement",
+        },
     }
 
-    return JSONResponse(payload)
+    # symbole en majuscules par sécurité
+    symbol = symbol.upper()
+
+    data = fake_data.get(symbol)
+    if data is None:
+        return JSONResponse(
+            {"error": f"Aucune donnée disponible pour {symbol}"},
+            status_code=404,
+        )
+
+    return JSONResponse(data)
