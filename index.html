@@ -2,602 +2,69 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Stark Trading Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trading Dashboard</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <style>
-    :root {
-      --bg: #050816;
-      --bg-elevated: #0b1020;
-      --accent: #f97316;
-      --accent-soft: rgba(249, 115, 22, 0.15);
-      --text-main: #f9fafb;
-      --text-muted: #9ca3af;
-      --danger: #ef4444;
-      --success: #22c55e;
-      --card-radius: 18px;
-      --transition-fast: 0.15s ease-out;
-      --shadow-soft: 0 18px 35px rgba(0, 0, 0, 0.45);
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
-        "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #111827 0, #020617 45%, #020617 100%);
-      color: var(--text-main);
-      min-height: 100vh;
-      display: flex;
-      align-items: stretch;
-      justify-content: center;
-      padding: 24px;
-    }
-
-    .app-shell {
-      max-width: 1200px;
-      width: 100%;
-      display: grid;
-      grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr);
-      gap: 20px;
-    }
-
-    @media (max-width: 920px) {
-      .app-shell {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-
-    .panel {
-      background: radial-gradient(circle at top left, #111827 0, #020617 50%);
-      border-radius: 24px;
-      box-shadow: var(--shadow-soft);
-      border: 1px solid rgba(148, 163, 184, 0.2);
-      padding: 20px 22px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .panel-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-    }
-
-    .title-block h1 {
-      font-size: 20px;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: var(--text-main);
-    }
-
-    .title-block p {
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-
-    .tag {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      padding: 4px 10px;
-      border-radius: 999px;
-      background: var(--accent-soft);
-      color: var(--accent);
-      border: 1px solid rgba(249, 115, 22, 0.4);
-      white-space: nowrap;
-    }
-
-    /* Toggle devise */
-    .currency-toggle {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 12px;
-      background: rgba(15, 23, 42, 0.8);
-      border-radius: 999px;
-      padding: 4px 10px;
-      border: 1px solid rgba(148, 163, 184, 0.35);
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .currency-toggle-pill {
-      width: 38px;
-      height: 18px;
-      border-radius: 999px;
-      background: #020617;
-      border: 1px solid rgba(148, 163, 184, 0.6);
-      position: relative;
-      transition: background var(--transition-fast), border var(--transition-fast);
-    }
-
-    .currency-toggle-knob {
-      position: absolute;
-      top: 1px;
-      left: 1px;
-      width: 14px;
-      height: 14px;
-      border-radius: 999px;
-      background: #e5e7eb;
-      transition: transform var(--transition-fast);
-    }
-
-    .currency-toggle[data-currency="EUR"] .currency-toggle-knob {
-      transform: translateX(18px);
-    }
-
-    .currency-toggle[data-currency="EUR"] .currency-toggle-pill {
-      background: rgba(34, 197, 94, 0.12);
-      border-color: rgba(34, 197, 94, 0.7);
-    }
-
-    .main-price {
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-      margin-top: 6px;
-    }
-
-    .main-price-row {
-      display: flex;
-      align-items: baseline;
-      gap: 10px;
-    }
-
-    .main-symbol {
-      font-size: 14px;
-      text-transform: uppercase;
-      letter-spacing: 0.16em;
-      color: var(--text-muted);
-    }
-
-    .main-value {
-      font-size: 34px;
-      font-weight: 600;
-    }
-
-    .main-change {
-      font-size: 14px;
-      font-weight: 500;
-      padding: 2px 10px;
-      border-radius: 999px;
-      background: rgba(34, 197, 94, 0.08);
-      color: var(--success);
-    }
-
-    .main-change.negative {
-      background: rgba(239, 68, 68, 0.12);
-      color: var(--danger);
-    }
-
-    .main-comment {
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 10px;
-    }
-
-    .mini-card {
-      position: relative;
-      background: linear-gradient(135deg, #020617, #020617);
-      border-radius: var(--card-radius);
-      border: 1px solid rgba(148, 163, 184, 0.22);
-      padding: 10px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      overflow: hidden;
-    }
-
-    .mini-card::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(
-        circle at top right,
-        rgba(249, 115, 22, 0.25),
-        transparent 55%
-      );
-      opacity: 0;
-      transition: opacity var(--transition-fast);
-      pointer-events: none;
-    }
-
-    .mini-card:hover::before {
-      opacity: 1;
-    }
-
-    .mini-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.15em;
-      color: var(--text-muted);
-      margin-bottom: 4px;
-    }
-
-    .mini-price {
-      font-size: 16px;
-      font-weight: 600;
-    }
-
-    .mini-change {
-      font-size: 13px;
-      font-weight: 500;
-    }
-
-    .mini-change.positive {
-      color: var(--success);
-    }
-
-    .mini-change.negative {
-      color: var(--danger);
-    }
-
-    .mini-comment {
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-top: 2px;
-    }
-
-    .footer-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 6px;
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: #22c55e;
-      margin-right: 6px;
-      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.18);
-    }
-
-    .status {
-      display: inline-flex;
-      align-items: center;
-    }
-
-    .error {
-      color: var(--danger);
-      font-size: 12px;
-      margin-top: 10px;
-    }
-
-    /* Panneau de droite : placeholder plan de trade */
-    .panel-right-title {
-      font-size: 16px;
-      font-weight: 600;
-    }
-
-    .panel-right-sub {
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-bottom: 8px;
-    }
-
-    .bullet-list {
-      font-size: 13px;
-      color: var(--text-muted);
-      padding-left: 18px;
-    }
-
-    .bullet-list li {
-      margin-bottom: 4px;
-    }
-
-    .badge-soon {
-      font-size: 11px;
-      padding: 3px 8px;
-      border-radius: 999px;
-      border: 1px dashed rgba(148, 163, 184, 0.7);
-      color: var(--text-muted);
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 12px;
-    }
+    body { background:#0b0f19; color:white; font-family:Arial; padding:20px; }
+    .card { border:1px solid #444; border-radius:12px; padding:15px; margin:10px 0; }
+    .symbol { font-size:24px; }
+    .price { font-size:32px; font-weight:bold; }
+    .green { color:#22c55e; }
+    .red { color:#ef4444; }
   </style>
 </head>
 <body>
-  <div class="app-shell">
-    <!-- PANEL GAUCHE -->
-    <section class="panel">
-      <header class="panel-header">
-        <div class="title-block">
-          <h1>Stark Trading Dashboard</h1>
-          <p>Vue synthétique des marchés – ES, NQ, BTC, CL, GC</p>
-        </div>
-        <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
-          <div class="tag">Bêta – backend Render</div>
-          <!-- Toggle devise -->
-          <div id="currency-toggle" class="currency-toggle" data-currency="USD">
-            <span id="currency-label">Devise : USD</span>
-            <div class="currency-toggle-pill">
-              <div class="currency-toggle-knob"></div>
-            </div>
-            <span style="font-variant-numeric:tabular-nums;">$ → €</span>
-          </div>
-        </div>
-      </header>
 
-      <div class="main-price">
-        <div class="main-price-row">
-          <div>
-            <div class="main-symbol" id="main-symbol-label">
-              Contrat principal – ES S&P 500 future
-            </div>
-            <div class="main-value" id="main-price-value">–</div>
-          </div>
-          <div id="main-price-change" class="main-change">–</div>
-        </div>
-        <p class="main-comment" id="main-price-comment">
-          Chargement des données…
-        </p>
-      </div>
+<h1>Stark Trading Dashboard</h1>
+<p>Données temps réel via Render + yFinance</p>
 
-      <div class="grid" id="instruments-grid">
-        <!-- Rempli en JS -->
-      </div>
+<div id="container"></div>
 
-      <div class="footer-row">
-        <span class="status">
-          <span class="dot"></span>
-          <span id="status-text">Backend Render en ligne – actualisation auto toutes les 15 s</span>
-        </span>
-        <span id="last-update">Dernière mise à jour : —</span>
-      </div>
+<script>
+const API = "https://trading-dashboard-d3ao.onrender.com/latest";
 
-      <div id="error-box" class="error" style="display:none;"></div>
-    </section>
+const SYMBOLS = ["ES", "NQ", "BTC", "CL", "GC"];
+const container = document.getElementById("container");
 
-    <!-- PANEL DROIT -->
-    <section class="panel">
-      <div class="panel-right-title">Plan de trade (bientôt)</div>
-      <p class="panel-right-sub">
-        Cette zone affichera les analyses & plans générés par l'assistant
-        (Delta Trading + Rithmic).
-      </p>
+async function fetchSymbol(sym) {
+  try {
+    const res = await fetch(API + "?symbol=" + sym);
+    return await res.json();
+  } catch(e) {
+    return { error: true };
+  }
+}
 
-      <div class="badge-soon">
-        <span>⚙️</span> Intégration en cours avec FastAPI & OpenAI
-      </div>
+function renderCard(data) {
+  if (data.error) {
+    return `
+      <div class="card">
+        <div class="symbol">Erreur</div>
+        <div class="price red">Impossible de charger</div>
+      </div>`;
+  }
 
-      <p class="panel-right-sub">
-        Backend actuel :
-        <code>https://trading-dashboard-d3ao.onrender.com</code><br />
-        Endpoint utilisé :
-        <code>/latest?symbol=ES|NQ|BTC|CL|GC</code>
-      </p>
+  const color = data.change_pct >= 0 ? "green" : "red";
 
-      <p class="panel-right-sub">
-        Pour l’instant, ce dashboard GitHub Pages est purement
-        <strong>front-end</strong> : il interroge ton API FastAPI hébergée sur Render
-        pour récupérer les prix et les variations, mais la génération du plan de
-        trade n’est pas encore branchée.
-      </p>
+  return `
+    <div class="card">
+      <div class="symbol">${data.symbol}</div>
+      <div class="price">${data.price.toLocaleString("fr-FR", {minimumFractionDigits:2})}</div>
+      <div class="${color}">${data.change_pct}%</div>
+    </div>`;
+}
 
-      <ul class="bullet-list">
-        <li>🟢 ES (S&P 500) – contrat futur</li>
-        <li>🟣 NQ (Nasdaq) – tech US</li>
-        <li>🟠 BTC – Bitcoin en USD</li>
-        <li>🛢️ CL – pétrole brut</li>
-        <li>🥇 GC – or</li>
-      </ul>
+async function update() {
+  container.innerHTML = "";
+  for (const sym of SYMBOLS) {
+    const data = await fetchSymbol(sym);
+    container.innerHTML += renderCard(data);
+  }
+}
 
-      <p class="panel-right-sub" style="margin-top: 10px;">
-        Étapes à venir :
-      </p>
-      <ul class="bullet-list">
-        <li>Branches <code>/analyze</code> et <code>/tradeplan</code> de ton API.</li>
-        <li>Affichage temps réel + coloration dynamique côté carte principale.</li>
-        <li>Bloc “Plan de trade” généré à la demande via l’assistant.</li>
-      </ul>
-    </section>
-  </div>
+update();
+setInterval(update, 15000);
+</script>
 
-  <script>
-    // ============= CONFIG =============
-    const API_BASE = "https://trading-dashboard-d3ao.onrender.com";
-    const REFRESH_MS = 15000;
-
-    // taux USD -> EUR (simple, on pourra automatiser plus tard)
-    const USD_TO_EUR = 0.92;
-
-    const INSTRUMENTS = [
-      { symbol: "ES", name: "S&P 500 future" },
-      { symbol: "NQ", name: "Nasdaq 100 future" },
-      { symbol: "BTC", name: "Bitcoin" },
-      { symbol: "CL", name: "Crude Oil (WTI)" },
-      { symbol: "GC", name: "Gold" },
-    ];
-
-    let currency = "USD"; // "USD" ou "EUR"
-    const marketCache = {}; // on garde les réponses brutes en USD
-
-    const gridEl = document.getElementById("instruments-grid");
-    const mainPriceEl = document.getElementById("main-price-value");
-    const mainChangeEl = document.getElementById("main-price-change");
-    const mainCommentEl = document.getElementById("main-price-comment");
-    const lastUpdateEl = document.getElementById("last-update");
-    const errorBox = document.getElementById("error-box");
-    const currencyToggle = document.getElementById("currency-toggle");
-    const currencyLabel = document.getElementById("currency-label");
-
-    // ================== Helpers ==================
-    function convertPrice(valueUsd) {
-      if (currency === "EUR") {
-        return valueUsd * USD_TO_EUR;
-      }
-      return valueUsd;
-    }
-
-    function formatPrice(value) {
-      return value.toLocaleString("fr-FR", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
-    }
-
-    function formatChange(changePct) {
-      const sign = changePct > 0 ? "+" : "";
-      return sign + changePct.toFixed(2) + " %";
-    }
-
-    function updateCurrencyLabel() {
-      if (currency === "USD") {
-        currencyLabel.textContent = "Devise : USD";
-        currencyToggle.dataset.currency = "USD";
-      } else {
-        currencyLabel.textContent = "Devise : EUR (approx.)";
-        currencyToggle.dataset.currency = "EUR";
-      }
-    }
-
-    // ================== Rendu UI ==================
-    function renderFromCache() {
-      try {
-        errorBox.style.display = "none";
-        errorBox.textContent = "";
-
-        gridEl.innerHTML = "";
-
-        INSTRUMENTS.forEach((inst, idx) => {
-          const data = marketCache[inst.symbol];
-          const card = document.createElement("div");
-          card.className = "mini-card";
-
-          const header = document.createElement("div");
-          header.className = "mini-header";
-          header.innerHTML = `
-            <span>${inst.symbol}</span>
-            <span>${inst.name.toUpperCase()}</span>
-          `;
-          card.appendChild(header);
-
-          const priceRow = document.createElement("div");
-          priceRow.style.display = "flex";
-          priceRow.style.alignItems = "baseline";
-          priceRow.style.justifyContent = "space-between";
-
-          const priceEl = document.createElement("div");
-          priceEl.className = "mini-price";
-
-          const changeEl = document.createElement("div");
-          changeEl.className = "mini-change";
-
-          const commentEl = document.createElement("div");
-          commentEl.className = "mini-comment";
-
-          if (data && typeof data.price === "number") {
-            const converted = convertPrice(data.price);
-            priceEl.textContent =
-              formatPrice(converted) + " " + (currency === "USD" ? "$" : "€");
-
-            changeEl.textContent = formatChange(data.change_pct || 0);
-            changeEl.classList.add(
-              (data.change_pct || 0) >= 0 ? "positive" : "negative"
-            );
-
-            commentEl.textContent = data.comment || "";
-          } else {
-            priceEl.textContent = "—";
-            changeEl.textContent = "—";
-            commentEl.textContent = "En attente de données…";
-          }
-
-          priceRow.appendChild(priceEl);
-          priceRow.appendChild(changeEl);
-
-          card.appendChild(priceRow);
-          card.appendChild(commentEl);
-
-          gridEl.appendChild(card);
-
-          // On utilise ES comme contrat principal (1er de la liste)
-          if (idx === 0 && data && typeof data.price === "number") {
-            const converted = convertPrice(data.price);
-            mainPriceEl.textContent =
-              formatPrice(converted) + " " + (currency === "USD" ? "$" : "€");
-            mainChangeEl.textContent = formatChange(data.change_pct || 0);
-            mainChangeEl.classList.toggle(
-              "negative",
-              (data.change_pct || 0) < 0
-            );
-            mainCommentEl.textContent = data.comment || "";
-          }
-        });
-
-        const now = new Date();
-        lastUpdateEl.textContent =
-          "Dernière mise à jour : " +
-          now.toLocaleTimeString("fr-FR", {
-            hour: "2-digit",
-            minute: "2-digit",
-          });
-      } catch (e) {
-        errorBox.style.display = "block";
-        errorBox.textContent = "Erreur d'affichage : " + e.message;
-      }
-    }
-
-    // ================== Fetch backend ==================
-    async function fetchOne(symbol) {
-      const url = `${API_BASE}/latest?symbol=${encodeURIComponent(symbol)}`;
-      const res = await fetch(url);
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status} pour ${symbol}`);
-      }
-      const data = await res.json();
-      return data;
-    }
-
-    async function refreshMarket() {
-      try {
-        const promises = INSTRUMENTS.map((inst) => fetchOne(inst.symbol));
-        const results = await Promise.all(promises);
-
-        results.forEach((data, idx) => {
-          const sym = INSTRUMENTS[idx].symbol;
-          marketCache[sym] = data;
-        });
-
-        renderFromCache();
-      } catch (e) {
-        errorBox.style.display = "block";
-        errorBox.textContent = "Erreur de chargement : " + e.message;
-      }
-    }
-
-    // ================== Events ==================
-    document.addEventListener("DOMContentLoaded", () => {
-      updateCurrencyLabel();
-      refreshMarket();
-      setInterval(refreshMarket, REFRESH_MS);
-
-      currencyToggle.addEventListener("click", () => {
-        currency = currency === "USD" ? "EUR" : "USD";
-        updateCurrencyLabel();
-        renderFromCache(); // on re-render à partir du cache USD
-      });
-    });
-  </script>
 </body>
 </html>
