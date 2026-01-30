@@ -275,14 +275,14 @@
 </head>
 <body>
   <div class="app-shell">
-    <!-- PANEL GAUCHE : PRIX TEMPS RÉEL (mocké) -->
+    <!-- PANEL GAUCHE : PRIX TEMPS RÉEL (via API Render, fallback mock) -->
     <section class="panel">
       <header class="panel-header">
         <div class="title-block">
           <h1>Stark Trading Dashboard</h1>
           <p>Vue synthétique des marchés – ES, NQ, BTC, CL, GC</p>
         </div>
-        <div class="tag">Bêta – données mockées</div>
+        <div class="tag">Bêta – données API mockées</div>
       </header>
 
       <div class="main-price">
@@ -305,7 +305,9 @@
       <div class="footer-row">
         <span class="status">
           <span class="dot"></span>
-          <span id="status-text">Mock data – aucune connexion broker</span>
+          <span id="status-text">
+            Données via API Render (/latest) – fallback mock local si erreur
+          </span>
         </span>
         <span id="last-update">Dernière mise à jour : —</span>
       </div>
@@ -327,8 +329,8 @@
 
       <p class="panel-right-sub">
         Pour l’instant, ce dashboard GitHub Pages est purement <strong>front-end</strong> :
-        les données sont simulées côté navigateur. Sur ta machine, tu pourras
-        connecter ce même frontend à ton API FastAPI (<code>/latest</code>, <code>/analyze</code>, <code>/tradeplan</code>).
+        les données viennent de ton API FastAPI <code>/latest</code> hébergée sur Render,
+        avec des valeurs mockées côté serveur.
       </p>
 
       <ul class="bullet-list">
@@ -343,7 +345,7 @@
         Étapes à venir :
       </p>
       <ul class="bullet-list">
-        <li>Connexion à ton backend FastAPI (Rithmic + indicateurs).</li>
+        <li>Connexion à ton backend Rithmic + indicateurs avancés.</li>
         <li>Affichage temps réel + coloration dynamique.</li>
         <li>Bloc “Plan de trade” généré à la demande via l’assistant.</li>
       </ul>
@@ -352,9 +354,14 @@
 
   <script>
     // ============================
-    // Données mockées (client-side)
+    // Config : URL de ton API Render
     // ============================
-    const FAKE_MARKET_DATA = {
+    const API_BASE = "https://trading-dashboard-d3ao.onrender.com";
+
+    // ============================
+    // Données mockées locales (fallback)
+    // ============================
+    let MARKET_DATA = {
       ES:  { symbol: "ES",  name: "S&P 500 Future",     price: 5290.25,  change_pct: +0.45,  comment: "S&P 500 calme avant l'ouverture" },
       NQ:  { symbol: "NQ",  name: "Nasdaq Future",      price: 18880.75, change_pct: +0.62,  comment: "Nasdaq rebond technique" },
       BTC: { symbol: "BTC", name: "Bitcoin",            price: 102500,   change_pct: -0.95,  comment: "Bitcoin en phase de consolidation" },
@@ -362,23 +369,61 @@
       GC:  { symbol: "GC",  name: "Gold",               price: 2320.0,   change_pct: -0.20,  comment: "Or en léger retracement" }
     };
 
+    const SYMBOLS = ["ES", "NQ", "BTC", "CL", "GC"];
+
     function formatChange(change) {
       const sign = change > 0 ? "+" : "";
       return sign + change.toFixed(2) + " %";
     }
 
-    function updateDashboard() {
-      try {
-        const symbols = Object.keys(FAKE_MARKET_DATA);
+    // ============================
+    // Récupération des données via API Render
+    // ============================
+    async function fetchRealData() {
+      const result = {};
 
-        // Symbol principal = ES
-        const main = FAKE_MARKET_DATA["ES"] || FAKE_MARKET_DATA[symbols[0]];
-        const mainPriceEl = document.getElementById("main-price-value");
-        const mainChangeEl = document.getElementById("main-price-change");
-        const mainCommentEl = document.getElementById("main-price-comment");
-        const lastUpdateEl = document.getElementById("last-update");
-        const gridEl = document.getElementById("instruments-grid");
-        const errorBox = document.getElementById("error-box");
+      for (const sym of SYMBOLS) {
+        try {
+          const response = await fetch(`${API_BASE}/latest?symbol=${sym}`);
+          const data = await response.json();
+
+          if (!response.ok || data.error) {
+            throw new Error(data.error || `Réponse invalide pour ${sym}`);
+          }
+
+          result[sym] = {
+            symbol: sym,
+            name: MARKET_DATA[sym]?.name || sym,
+            price: data.price,
+            change_pct: data.change_pct,
+            comment: data.comment
+          };
+        } catch (err) {
+          console.warn("Erreur API pour", sym, "→ fallback mock :", err.message);
+          result[sym] = MARKET_DATA[sym]; // fallback local
+        }
+      }
+
+      return result;
+    }
+
+    // ============================
+    // Affichage du dashboard
+    // ============================
+    async function updateDashboard() {
+      const mainPriceEl = document.getElementById("main-price-value");
+      const mainChangeEl = document.getElementById("main-price-change");
+      const mainCommentEl = document.getElementById("main-price-comment");
+      const lastUpdateEl = document.getElementById("last-update");
+      const gridEl = document.getElementById("instruments-grid");
+      const errorBox = document.getElementById("error-box");
+
+      try {
+        // On tente d’abord de récupérer les vraies données via Render
+        MARKET_DATA = await fetchRealData();
+
+        const symbols = Object.keys(MARKET_DATA);
+        const main = MARKET_DATA["ES"] || MARKET_DATA[symbols[0]];
 
         // Reset erreur
         errorBox.style.display = "none";
@@ -388,6 +433,7 @@
           throw new Error("Aucune donnée principale disponible.");
         }
 
+        // Prix principal
         mainPriceEl.textContent = main.price.toLocaleString("fr-FR", {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
@@ -401,7 +447,7 @@
         // Mini-cartes
         gridEl.innerHTML = "";
         symbols.forEach((sym) => {
-          const d = FAKE_MARKET_DATA[sym];
+          const d = MARKET_DATA[sym];
           const card = document.createElement("div");
           card.className = "mini-card";
 
@@ -446,7 +492,6 @@
           now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 
       } catch (err) {
-        const errorBox = document.getElementById("error-box");
         errorBox.style.display = "block";
         errorBox.textContent = "Erreur d'affichage : " + err.message;
       }
