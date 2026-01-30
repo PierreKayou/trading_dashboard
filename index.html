@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Trading Dashboard – Multi-actifs</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #050816;
+      --bg-elevated: #0b1020;
+      --accent: #f97316;
+      --accent-soft: rgba(249, 115, 22, 0.15);
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
+      --danger: #ef4444;
+      --success: #22c55e;
+      --card-radius: 18px;
+      --transition-fast: 0.15s ease-out;
+      --shadow-soft: 0 18px 35px rgba(0, 0, 0, 0.45);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #111827 0, #020617 45%, #020617 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .app-shell {
+      max-width: 1200px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr);
+      gap: 20px;
+    }
+
+    @media (max-width: 920px) {
+      .app-shell {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .panel {
+      background: radial-gradient(circle at top left, #111827 0, #020617 50%);
+      border-radius: 24px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      padding: 20px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .title-block h1 {
+      font-size: 20px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-main);
+    }
+
+    .title-block p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .tag {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid rgba(249, 115, 22, 0.4);
+      white-space: nowrap;
+    }
+
+    .main-price {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      margin-top: 6px;
+    }
+
+    .main-price-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .main-symbol {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-muted);
+    }
+
+    .main-value {
+      font-size: 34px;
+      font-weight: 600;
+    }
+
+    .main-change {
+      font-size: 14px;
+      font-weight: 500;
+      padding: 2px 10px;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.08);
+      color: var(--success);
+    }
+
+    .main-change.negative {
+      background: rgba(239, 68, 68, 0.12);
+      color: var(--danger);
+    }
+
+    .main-comment {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+    }
+
+    .mini-card {
+      position: relative;
+      background: linear-gradient(135deg, #020617, #020617);
+      border-radius: var(--card-radius);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      cursor: default;
+      overflow: hidden;
+    }
+
+    .mini-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(
+        circle at top right,
+        rgba(249, 115, 22, 0.25),
+        transparent 55%
+      );
+      opacity: 0;
+      transition: opacity var(--transition-fast);
+      pointer-events: none;
+    }
+
+    .mini-card:hover::before {
+      opacity: 1;
+    }
+
+    .mini-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .mini-price {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .mini-change {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .mini-change.positive {
+      color: var(--success);
+    }
+
+    .mini-change.negative {
+      color: var(--danger);
+    }
+
+    .mini-comment {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .footer-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #22c55e;
+      margin-right: 6px;
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.18);
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .error {
+      color: var(--danger);
+      font-size: 12px;
+      margin-top: 10px;
+    }
+
+    /* Panneau de droite : placeholder plan de trade */
+    .panel-right-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .panel-right-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .bullet-list {
+      font-size: 13px;
+      color: var(--text-muted);
+      padding-left: 18px;
+    }
+
+    .bullet-list li {
+      margin-bottom: 4px;
+    }
+
+    .badge-soon {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px dashed rgba(148, 163, 184, 0.7);
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- PANEL GAUCHE : PRIX TEMPS RÉEL (mocké) -->
+    <section class="panel">
+      <header class="panel-header">
+        <div class="title-block">
+          <h1>Stark Trading Dashboard</h1>
+          <p>Vue synthétique des marchés – ES, NQ, BTC, CL, GC</p>
+        </div>
+        <div class="tag">Bêta – données mockées</div>
+      </header>
+
+      <div class="main-price">
+        <div class="main-price-row">
+          <div>
+            <div class="main-symbol">Contrat principal</div>
+            <div class="main-value" id="main-price-value">–</div>
+          </div>
+          <div id="main-price-change" class="main-change">–</div>
+        </div>
+        <p class="main-comment" id="main-price-comment">
+          Chargement des données…
+        </p>
+      </div>
+
+      <div class="grid" id="instruments-grid">
+        <!-- Mini-cartes remplies en JS -->
+      </div>
+
+      <div class="footer-row">
+        <span class="status">
+          <span class="dot"></span>
+          <span id="status-text">Mock data – aucune connexion broker</span>
+        </span>
+        <span id="last-update">Dernière mise à jour : —</span>
+      </div>
+
+      <div id="error-box" class="error" style="display: none;"></div>
+    </section>
+
+    <!-- PANEL DROIT : FUTUR PLAN DE TRADE -->
+    <section class="panel">
+      <div class="panel-right-title">Plan de trade (bientôt)</div>
+      <p class="panel-right-sub">
+        Cette zone affichera les analyses & plans générés par l'assistant
+        (Delta Trading + Rithmic).
+      </p>
+
+      <div class="badge-soon">
+        <span>⚙️</span> Intégration en cours avec FastAPI & OpenAI
+      </div>
+
+      <p class="panel-right-sub">
+        Pour l’instant, ce dashboard GitHub Pages est purement <strong>front-end</strong> :
+        les données sont simulées côté navigateur. Sur ta machine, tu pourras
+        connecter ce même frontend à ton API FastAPI (<code>/latest</code>, <code>/analyze</code>, <code>/tradeplan</code>).
+      </p>
+
+      <ul class="bullet-list">
+        <li>🟢 ES (S&P 500) – contrat futur</li>
+        <li>🟣 NQ (Nasdaq) – tech US</li>
+        <li>🟠 BTC – Bitcoin en USD</li>
+        <li>🛢️ CL – pétrole brut</li>
+        <li>🥇 GC – or</li>
+      </ul>
+
+      <p class="panel-right-sub" style="margin-top: 10px;">
+        Étapes à venir :
+      </p>
+      <ul class="bullet-list">
+        <li>Connexion à ton backend FastAPI (Rithmic + indicateurs).</li>
+        <li>Affichage temps réel + coloration dynamique.</li>
+        <li>Bloc “Plan de trade” généré à la demande via l’assistant.</li>
+      </ul>
+    </section>
+  </div>
+
+  <script>
+    // ============================
+    // Données mockées (client-side)
+    // ============================
+    const FAKE_MARKET_DATA = {
+      ES:  { symbol: "ES",  name: "S&P 500 Future",     price: 5290.25,  change_pct: +0.45,  comment: "S&P 500 calme avant l'ouverture" },
+      NQ:  { symbol: "NQ",  name: "Nasdaq Future",      price: 18880.75, change_pct: +0.62,  comment: "Nasdaq rebond technique" },
+      BTC: { symbol: "BTC", name: "Bitcoin",            price: 102500,   change_pct: -0.95,  comment: "Bitcoin en phase de consolidation" },
+      CL:  { symbol: "CL",  name: "Crude Oil (WTI)",    price: 78.10,    change_pct: +0.15,  comment: "Pétrole légèrement haussier" },
+      GC:  { symbol: "GC",  name: "Gold",               price: 2320.0,   change_pct: -0.20,  comment: "Or en léger retracement" }
+    };
+
+    function formatChange(change) {
+      const sign = change > 0 ? "+" : "";
+      return sign + change.toFixed(2) + " %";
+    }
+
+    function updateDashboard() {
+      try {
+        const symbols = Object.keys(FAKE_MARKET_DATA);
+
+        // Symbol principal = ES
+        const main = FAKE_MARKET_DATA["ES"] || FAKE_MARKET_DATA[symbols[0]];
+        const mainPriceEl = document.getElementById("main-price-value");
+        const mainChangeEl = document.getElementById("main-price-change");
+        const mainCommentEl = document.getElementById("main-price-comment");
+        const lastUpdateEl = document.getElementById("last-update");
+        const gridEl = document.getElementById("instruments-grid");
+        const errorBox = document.getElementById("error-box");
+
+        // Reset erreur
+        errorBox.style.display = "none";
+        errorBox.textContent = "";
+
+        if (!main) {
+          throw new Error("Aucune donnée principale disponible.");
+        }
+
+        mainPriceEl.textContent = main.price.toLocaleString("fr-FR", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+
+        const changeText = formatChange(main.change_pct);
+        mainChangeEl.textContent = changeText;
+        mainChangeEl.classList.toggle("negative", main.change_pct < 0);
+        mainCommentEl.textContent = main.comment;
+
+        // Mini-cartes
+        gridEl.innerHTML = "";
+        symbols.forEach((sym) => {
+          const d = FAKE_MARKET_DATA[sym];
+          const card = document.createElement("div");
+          card.className = "mini-card";
+
+          const header = document.createElement("div");
+          header.className = "mini-header";
+          header.innerHTML = `
+            <span>${d.symbol}</span>
+            <span>${d.name}</span>
+          `;
+
+          const priceRow = document.createElement("div");
+          const priceEl = document.createElement("div");
+          priceEl.className = "mini-price";
+          priceEl.textContent = d.price.toLocaleString("fr-FR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          });
+
+          const changeEl = document.createElement("div");
+          changeEl.className = "mini-change " + (d.change_pct >= 0 ? "positive" : "negative");
+          changeEl.textContent = formatChange(d.change_pct);
+
+          priceRow.style.display = "flex";
+          priceRow.style.alignItems = "baseline";
+          priceRow.style.justifyContent = "space-between";
+          priceRow.appendChild(priceEl);
+          priceRow.appendChild(changeEl);
+
+          const commentEl = document.createElement("div");
+          commentEl.className = "mini-comment";
+          commentEl.textContent = d.comment;
+
+          card.appendChild(header);
+          card.appendChild(priceRow);
+          card.appendChild(commentEl);
+          gridEl.appendChild(card);
+        });
+
+        const now = new Date();
+        lastUpdateEl.textContent =
+          "Dernière mise à jour : " +
+          now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+
+      } catch (err) {
+        const errorBox = document.getElementById("error-box");
+        errorBox.style.display = "block";
+        errorBox.textContent = "Erreur d'affichage : " + err.message;
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", updateDashboard);
+  </script>
+</body>
+</html>
