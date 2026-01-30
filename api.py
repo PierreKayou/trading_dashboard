@@ -1,92 +1,59 @@
-# ============================================
-#  trading_dashboard / api.py
-#  API backend simple pour ton dashboard
-# ============================================
-
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+import yfinance as yf
 
-app = FastAPI(
-    title="Trading Dashboard API",
-    description="Backend pour récupérer les données de marché (mockées)",
-    version="1.0",
-)
+app = FastAPI(title="Trading Dashboard API")
 
-# CORS : on laisse le front (GitHub Pages) interroger l'API Render
+# Autoriser GitHub Pages à appeler Render
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # ok pour dev
-    allow_credentials=True,
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
+    allow_credentials=True
 )
 
-
-# ==========================
-# Endpoint de test
-# ==========================
 @app.get("/")
 async def root():
     return {"message": "API Trading Dashboard OK"}
 
-
-# ==========================
-# Endpoint multi-actifs
-# ==========================
 @app.get("/latest")
 async def latest(symbol: str = Query("ES")):
     """
-    Renvoie des prix mockés en **USD** pour un actif donné.
-    Le front se charge de convertir en EUR si besoin.
+    Petite API simple : récupère les derniers prix via yfinance.
+    Les données sont retournées en USD.
     """
 
-    fake_data = {
-        "ES": {
-            "symbol": "ES",
-            "name": "S&P 500 Future",
-            "price": 5290.25,
-            "change_pct": 0.45,
-            "comment": "S&P 500 calme avant l'ouverture",
-        },
-        "NQ": {
-            "symbol": "NQ",
-            "name": "Nasdaq 100 Future",
-            "price": 18880.75,
-            "change_pct": 0.62,
-            "comment": "Nasdaq rebond technique",
-        },
-        "BTC": {
-            "symbol": "BTC",
-            "name": "Bitcoin",
-            "price": 102500.00,
-            "change_pct": -0.95,
-            "comment": "Bitcoin en phase de consolidation",
-        },
-        "CL": {
-            "symbol": "CL",
-            "name": "Crude Oil (WTI)",
-            "price": 78.10,
-            "change_pct": 0.15,
-            "comment": "Pétrole légèrement haussier",
-        },
-        "GC": {
-            "symbol": "GC",
-            "name": "Gold",
-            "price": 2320.00,
-            "change_pct": -0.20,
-            "comment": "Or en léger retracement",
-        },
+    symbol = symbol.upper()
+    yf_symbols = {
+        "ES": "ES=F",
+        "NQ": "NQ=F",
+        "BTC": "BTC-USD",
+        "CL": "CL=F",
+        "GC": "GC=F",
     }
 
-    # symbole en majuscules par sécurité
-    symbol = symbol.upper()
+    if symbol not in yf_symbols:
+        return JSONResponse({"error": f"Symbole invalide : {symbol}"}, status_code=400)
 
-    data = fake_data.get(symbol)
-    if data is None:
-        return JSONResponse(
-            {"error": f"Aucune donnée disponible pour {symbol}"},
-            status_code=404,
-        )
+    try:
+        ticker = yf.Ticker(yf_symbols[symbol])
+        data = ticker.history(period="1d", interval="1m")
 
-    return JSONResponse(data)
+        if data.empty:
+            return JSONResponse({"error": f"Aucune donnée pour {symbol}"}, status_code=404)
+
+        last = data.iloc[-1]["Close"]
+        prev = data.iloc[0]["Close"]
+        change_pct = (last - prev) / prev * 100
+
+        return {
+            "symbol": symbol,
+            "price": float(last),
+            "change_pct": round(change_pct, 2),
+            "comment": "OK"
+        }
+
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
