@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Stark Trading Dashboard – Multi-actifs</title>
+  <title>Stark Trading Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
@@ -93,6 +93,50 @@
       white-space: nowrap;
     }
 
+    /* Toggle devise */
+    .currency-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      background: rgba(15, 23, 42, 0.8);
+      border-radius: 999px;
+      padding: 4px 10px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .currency-toggle-pill {
+      width: 38px;
+      height: 18px;
+      border-radius: 999px;
+      background: #020617;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      position: relative;
+      transition: background var(--transition-fast), border var(--transition-fast);
+    }
+
+    .currency-toggle-knob {
+      position: absolute;
+      top: 1px;
+      left: 1px;
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      transition: transform var(--transition-fast);
+    }
+
+    .currency-toggle[data-currency="EUR"] .currency-toggle-knob {
+      transform: translateX(18px);
+    }
+
+    .currency-toggle[data-currency="EUR"] .currency-toggle-pill {
+      background: rgba(34, 197, 94, 0.12);
+      border-color: rgba(34, 197, 94, 0.7);
+    }
+
     .main-price {
       display: flex;
       flex-direction: column;
@@ -104,7 +148,6 @@
       display: flex;
       align-items: baseline;
       gap: 10px;
-      justify-content: space-between;
     }
 
     .main-symbol {
@@ -126,7 +169,6 @@
       border-radius: 999px;
       background: rgba(34, 197, 94, 0.08);
       color: var(--success);
-      white-space: nowrap;
     }
 
     .main-change.negative {
@@ -154,7 +196,6 @@
       display: flex;
       flex-direction: column;
       gap: 4px;
-      cursor: default;
       overflow: hidden;
     }
 
@@ -185,15 +226,6 @@
       letter-spacing: 0.15em;
       color: var(--text-muted);
       margin-bottom: 4px;
-      gap: 6px;
-    }
-
-    .mini-symbol {
-      font-weight: 600;
-    }
-
-    .mini-name {
-      opacity: 0.85;
     }
 
     .mini-price {
@@ -227,8 +259,6 @@
       margin-top: 6px;
       font-size: 11px;
       color: var(--text-muted);
-      gap: 8px;
-      flex-wrap: wrap;
     }
 
     .dot {
@@ -238,11 +268,6 @@
       background: #22c55e;
       margin-right: 6px;
       box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.18);
-    }
-
-    .dot.error {
-      background: var(--danger);
-      box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.25);
     }
 
     .status {
@@ -289,60 +314,61 @@
       gap: 6px;
       margin-bottom: 12px;
     }
-
-    code {
-      background: rgba(148, 163, 184, 0.15);
-      border-radius: 4px;
-      padding: 2px 4px;
-      font-size: 12px;
-    }
   </style>
 </head>
 <body>
   <div class="app-shell">
-    <!-- PANEL GAUCHE : PRIX LIVE VIA BACKEND RENDER -->
+    <!-- PANEL GAUCHE -->
     <section class="panel">
       <header class="panel-header">
         <div class="title-block">
           <h1>Stark Trading Dashboard</h1>
           <p>Vue synthétique des marchés – ES, NQ, BTC, CL, GC</p>
         </div>
-        <div class="tag">Bêta – backend Render</div>
+        <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
+          <div class="tag">Bêta – backend Render</div>
+          <!-- Toggle devise -->
+          <div id="currency-toggle" class="currency-toggle" data-currency="USD">
+            <span id="currency-label">Devise : USD</span>
+            <div class="currency-toggle-pill">
+              <div class="currency-toggle-knob"></div>
+            </div>
+            <span style="font-variant-numeric:tabular-nums;">$ → €</span>
+          </div>
+        </div>
       </header>
 
       <div class="main-price">
         <div class="main-price-row">
           <div>
             <div class="main-symbol" id="main-symbol-label">
-              Contrat principal – ES
+              Contrat principal – ES S&P 500 future
             </div>
             <div class="main-value" id="main-price-value">–</div>
           </div>
           <div id="main-price-change" class="main-change">–</div>
         </div>
         <p class="main-comment" id="main-price-comment">
-          Chargement des données depuis Render…
+          Chargement des données…
         </p>
       </div>
 
       <div class="grid" id="instruments-grid">
-        <!-- Mini-cartes remplies en JS -->
+        <!-- Rempli en JS -->
       </div>
 
       <div class="footer-row">
         <span class="status">
-          <span class="dot" id="status-dot"></span>
-          <span id="status-text">
-            Connexion à l’API Render…
-          </span>
+          <span class="dot"></span>
+          <span id="status-text">Backend Render en ligne – actualisation auto toutes les 15 s</span>
         </span>
         <span id="last-update">Dernière mise à jour : —</span>
       </div>
 
-      <div id="error-box" class="error" style="display: none;"></div>
+      <div id="error-box" class="error" style="display:none;"></div>
     </section>
 
-    <!-- PANEL DROIT : FUTUR PLAN DE TRADE / ASSISTANT -->
+    <!-- PANEL DROIT -->
     <section class="panel">
       <div class="panel-right-title">Plan de trade (bientôt)</div>
       <p class="panel-right-sub">
@@ -351,12 +377,14 @@
       </p>
 
       <div class="badge-soon">
-        <span>⚙️</span> Intégration en cours avec FastAPI &amp; OpenAI
+        <span>⚙️</span> Intégration en cours avec FastAPI & OpenAI
       </div>
 
       <p class="panel-right-sub">
-        Backend actuel : <code>https://trading-dashboard-d3ao.onrender.com</code><br />
-        Endpoint utilisé : <code>/latest?symbol=ES|NQ|BTC|CL|GC</code>
+        Backend actuel :
+        <code>https://trading-dashboard-d3ao.onrender.com</code><br />
+        Endpoint utilisé :
+        <code>/latest?symbol=ES|NQ|BTC|CL|GC</code>
       </p>
 
       <p class="panel-right-sub">
@@ -367,7 +395,7 @@
       </p>
 
       <ul class="bullet-list">
-        <li>🟢 ES (S&amp;P 500) – contrat futur</li>
+        <li>🟢 ES (S&P 500) – contrat futur</li>
         <li>🟣 NQ (Nasdaq) – tech US</li>
         <li>🟠 BTC – Bitcoin en USD</li>
         <li>🛢️ CL – pétrole brut</li>
@@ -386,162 +414,83 @@
   </div>
 
   <script>
-    // ============================
-    // CONFIG
-    // ============================
+    // ============= CONFIG =============
     const API_BASE = "https://trading-dashboard-d3ao.onrender.com";
+    const REFRESH_MS = 15000;
+
+    // taux USD -> EUR (simple, on pourra automatiser plus tard)
+    const USD_TO_EUR = 0.92;
 
     const INSTRUMENTS = [
-      {
-        symbol: "ES",
-        longName: "S&P 500 Future",
-        subtitle: "Contrat E-mini S&P 500",
-      },
-      {
-        symbol: "NQ",
-        longName: "Nasdaq Future",
-        subtitle: "Nasdaq 100 – tech US",
-      },
-      {
-        symbol: "BTC",
-        longName: "Bitcoin",
-        subtitle: "Bitcoin en USD",
-      },
-      {
-        symbol: "CL",
-        longName: "Crude Oil (WTI)",
-        subtitle: "Pétrole brut",
-      },
-      {
-        symbol: "GC",
-        longName: "Gold",
-        subtitle: "Or en USD",
-      },
+      { symbol: "ES", name: "S&P 500 future" },
+      { symbol: "NQ", name: "Nasdaq 100 future" },
+      { symbol: "BTC", name: "Bitcoin" },
+      { symbol: "CL", name: "Crude Oil (WTI)" },
+      { symbol: "GC", name: "Gold" },
     ];
 
-    const MAIN_SYMBOL = "ES"; // contrat principal affiché en haut
-    const REFRESH_MS = 15000; // auto-refresh
+    let currency = "USD"; // "USD" ou "EUR"
+    const marketCache = {}; // on garde les réponses brutes en USD
 
-    // ============================
-    // HELPERS
-    // ============================
+    const gridEl = document.getElementById("instruments-grid");
+    const mainPriceEl = document.getElementById("main-price-value");
+    const mainChangeEl = document.getElementById("main-price-change");
+    const mainCommentEl = document.getElementById("main-price-comment");
+    const lastUpdateEl = document.getElementById("last-update");
+    const errorBox = document.getElementById("error-box");
+    const currencyToggle = document.getElementById("currency-toggle");
+    const currencyLabel = document.getElementById("currency-label");
 
-    function formatChange(change) {
-      if (typeof change !== "number" || isNaN(change)) {
-        return "– %";
+    // ================== Helpers ==================
+    function convertPrice(valueUsd) {
+      if (currency === "EUR") {
+        return valueUsd * USD_TO_EUR;
       }
-      const sign = change > 0 ? "+" : "";
-      return sign + change.toFixed(2) + " %";
+      return valueUsd;
     }
 
-    function formatPrice(price) {
-      if (typeof price !== "number" || isNaN(price)) {
-        return "–";
-      }
-      return price.toLocaleString("fr-FR", {
+    function formatPrice(value) {
+      return value.toLocaleString("fr-FR", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       });
     }
 
-    async function fetchInstrument(symbol) {
-      const url = `${API_BASE}/latest?symbol=${encodeURIComponent(symbol)}`;
-      const res = await fetch(url, { cache: "no-store" });
-
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
-      }
-      const data = await res.json();
-      // On s'attend à { price, change_pct, comment }
-      return data;
+    function formatChange(changePct) {
+      const sign = changePct > 0 ? "+" : "";
+      return sign + changePct.toFixed(2) + " %";
     }
 
-    // ============================
-    // RENDER LOGIC
-    // ============================
+    function updateCurrencyLabel() {
+      if (currency === "USD") {
+        currencyLabel.textContent = "Devise : USD";
+        currencyToggle.dataset.currency = "USD";
+      } else {
+        currencyLabel.textContent = "Devise : EUR (approx.)";
+        currencyToggle.dataset.currency = "EUR";
+      }
+    }
 
-    async function updateDashboard() {
-      const mainPriceEl = document.getElementById("main-price-value");
-      const mainChangeEl = document.getElementById("main-price-change");
-      const mainCommentEl = document.getElementById("main-price-comment");
-      const mainSymbolLabelEl = document.getElementById("main-symbol-label");
-      const lastUpdateEl = document.getElementById("last-update");
-      const gridEl = document.getElementById("instruments-grid");
-      const errorBox = document.getElementById("error-box");
-      const statusDot = document.getElementById("status-dot");
-      const statusText = document.getElementById("status-text");
-
-      // Reset message d'erreur
-      errorBox.style.display = "none";
-      errorBox.textContent = "";
-
-      // Petit texte "chargement" pendant la requête
-      statusText.textContent = "Rafraîchissement des données…";
-
+    // ================== Rendu UI ==================
+    function renderFromCache() {
       try {
-        // On interroge tous les instruments en parallèle
-        const results = await Promise.all(
-          INSTRUMENTS.map(async (inst) => {
-            try {
-              const data = await fetchInstrument(inst.symbol);
-              return {
-                ...inst,
-                ok: true,
-                price: data.price,
-                change_pct: data.change_pct,
-                comment: data.comment,
-              };
-            } catch (err) {
-              console.error("Erreur pour", inst.symbol, err);
-              return {
-                ...inst,
-                ok: false,
-                error: err.message || "Erreur inconnue",
-              };
-            }
-          })
-        );
+        errorBox.style.display = "none";
+        errorBox.textContent = "";
 
-        // Déterminer le contrat principal
-        let mainData = results.find(
-          (r) => r.symbol === MAIN_SYMBOL && r.ok
-        );
-        if (!mainData) {
-          // fallback : premier qui marche
-          mainData = results.find((r) => r.ok);
-        }
-
-        if (!mainData) {
-          throw new Error(
-            "Impossible de récupérer les données pour tous les actifs."
-          );
-        }
-
-        // Mise à jour carte principale
-        mainSymbolLabelEl.textContent =
-          "Contrat principal – " + mainData.symbol + " " + mainData.longName;
-
-        mainPriceEl.textContent = formatPrice(mainData.price);
-        mainChangeEl.textContent = formatChange(mainData.change_pct);
-        mainChangeEl.classList.toggle(
-          "negative",
-          typeof mainData.change_pct === "number" && mainData.change_pct < 0
-        );
-        mainCommentEl.textContent =
-          mainData.comment || "Aucun commentaire disponible.";
-
-        // Mini-cartes
         gridEl.innerHTML = "";
-        results.forEach((d) => {
+
+        INSTRUMENTS.forEach((inst, idx) => {
+          const data = marketCache[inst.symbol];
           const card = document.createElement("div");
           card.className = "mini-card";
 
           const header = document.createElement("div");
           header.className = "mini-header";
           header.innerHTML = `
-            <span class="mini-symbol">${d.symbol}</span>
-            <span class="mini-name">${d.longName}</span>
+            <span>${inst.symbol}</span>
+            <span>${inst.name.toUpperCase()}</span>
           `;
+          card.appendChild(header);
 
           const priceRow = document.createElement("div");
           priceRow.style.display = "flex";
@@ -557,41 +506,45 @@
           const commentEl = document.createElement("div");
           commentEl.className = "mini-comment";
 
-          if (d.ok) {
-            priceEl.textContent = formatPrice(d.price);
-            changeEl.textContent = formatChange(d.change_pct);
+          if (data && typeof data.price === "number") {
+            const converted = convertPrice(data.price);
+            priceEl.textContent =
+              formatPrice(converted) + " " + (currency === "USD" ? "$" : "€");
+
+            changeEl.textContent = formatChange(data.change_pct || 0);
             changeEl.classList.add(
-              typeof d.change_pct === "number" && d.change_pct < 0
-                ? "negative"
-                : "positive"
+              (data.change_pct || 0) >= 0 ? "positive" : "negative"
             );
-            commentEl.textContent = d.comment || d.subtitle;
+
+            commentEl.textContent = data.comment || "";
           } else {
-            priceEl.textContent = "–";
-            changeEl.textContent = "Erreur";
-            changeEl.classList.add("negative");
-            commentEl.textContent =
-              d.subtitle + " – erreur : " + (d.error || "inconnue");
+            priceEl.textContent = "—";
+            changeEl.textContent = "—";
+            commentEl.textContent = "En attente de données…";
           }
 
           priceRow.appendChild(priceEl);
           priceRow.appendChild(changeEl);
 
-          card.appendChild(header);
           card.appendChild(priceRow);
           card.appendChild(commentEl);
 
           gridEl.appendChild(card);
+
+          // On utilise ES comme contrat principal (1er de la liste)
+          if (idx === 0 && data && typeof data.price === "number") {
+            const converted = convertPrice(data.price);
+            mainPriceEl.textContent =
+              formatPrice(converted) + " " + (currency === "USD" ? "$" : "€");
+            mainChangeEl.textContent = formatChange(data.change_pct || 0);
+            mainChangeEl.classList.toggle(
+              "negative",
+              (data.change_pct || 0) < 0
+            );
+            mainCommentEl.textContent = data.comment || "";
+          }
         });
 
-        // Statut général : au moins un actif OK
-        const hasOk = results.some((r) => r.ok);
-        statusDot.classList.toggle("error", !hasOk);
-        statusText.textContent = hasOk
-          ? "Backend Render en ligne – actualisation auto toutes les 15 s"
-          : "Erreur de connexion à l’API Render";
-
-        // Timestamp
         const now = new Date();
         lastUpdateEl.textContent =
           "Dernière mise à jour : " +
@@ -599,21 +552,51 @@
             hour: "2-digit",
             minute: "2-digit",
           });
-      } catch (err) {
-        console.error("Erreur globale dashboard :", err);
-        statusDot.classList.add("error");
-        statusText.textContent = "Erreur backend Render";
-
+      } catch (e) {
         errorBox.style.display = "block";
-        errorBox.textContent =
-          "Erreur de chargement des données : " + (err.message || err);
+        errorBox.textContent = "Erreur d'affichage : " + e.message;
       }
     }
 
+    // ================== Fetch backend ==================
+    async function fetchOne(symbol) {
+      const url = `${API_BASE}/latest?symbol=${encodeURIComponent(symbol)}`;
+      const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status} pour ${symbol}`);
+      }
+      const data = await res.json();
+      return data;
+    }
+
+    async function refreshMarket() {
+      try {
+        const promises = INSTRUMENTS.map((inst) => fetchOne(inst.symbol));
+        const results = await Promise.all(promises);
+
+        results.forEach((data, idx) => {
+          const sym = INSTRUMENTS[idx].symbol;
+          marketCache[sym] = data;
+        });
+
+        renderFromCache();
+      } catch (e) {
+        errorBox.style.display = "block";
+        errorBox.textContent = "Erreur de chargement : " + e.message;
+      }
+    }
+
+    // ================== Events ==================
     document.addEventListener("DOMContentLoaded", () => {
-      updateDashboard();
-      // Auto-refresh
-      setInterval(updateDashboard, REFRESH_MS);
+      updateCurrencyLabel();
+      refreshMarket();
+      setInterval(refreshMarket, REFRESH_MS);
+
+      currencyToggle.addEventListener("click", () => {
+        currency = currency === "USD" ? "EUR" : "USD";
+        updateCurrencyLabel();
+        renderFromCache(); // on re-render à partir du cache USD
+      });
     });
   </script>
 </body>
