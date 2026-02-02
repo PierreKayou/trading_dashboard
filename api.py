@@ -4,11 +4,12 @@
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
-import os
+
 import yfinance as yf
 import json
 import time
 import numpy as np
+import os
 
 from openai import OpenAI
 
@@ -219,6 +220,7 @@ def build_market_overview() -> dict:
 ###############################
 @app.get("/")
 async def root():
+    # Petit ping JSON si besoin
     return {"message": "API Trading Dashboard OK"}
 
 
@@ -312,7 +314,20 @@ produis une analyse en français structurée, lisible dans un dashboard.
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@app.get("/index.html")
+async def index_page():
+    """
+    Sert la page principale du dashboard trading.
+    """
+    file_path = os.path.join(os.getcwd(), "index.html")
+    return FileResponse(file_path)
+
+
 @app.get("/macro.html")
 async def macro_page():
+    """
+    Sert la page front de la vue macro hebdomadaire.
+    """
     file_path = os.path.join(os.getcwd(), "macro.html")
     return FileResponse(file_path)
