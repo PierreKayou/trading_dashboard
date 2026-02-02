@@ -4,18 +4,15 @@
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 
 import yfinance as yf
 import json
 import time
-import os
 import numpy as np
 
 from openai import OpenAI
 
-# 👉 NEW : import du router macro
+# Router macro (backend analyse macro)
 from macro.router import router as macro_router
 
 
@@ -24,12 +21,9 @@ from macro.router import router as macro_router
 ###############################
 app = FastAPI(
     title="Trading Dashboard API",
-    description="Backend pour ton Stark Trading Dashboard (yfinance + OpenAI)",
-    version="1.0.0",
+    description="Backend pour ton Stark Trading Dashboard (yfinance + OpenAI + macro)",
+    version="1.1.0",
 )
-# Servir les fichiers statiques (HTML)
-app.mount("/", StaticFiles(directory=".", html=True), name="static")
-
 
 app.add_middleware(
     CORSMiddleware,
@@ -39,7 +33,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 👉 NEW : on branche le router macro sous le préfixe /api
+# On branche le router macro sous /api
 app.include_router(macro_router, prefix="/api")
 
 
@@ -265,22 +259,14 @@ async def latest(symbol: str = Query("ES")):
 @app.get("/analyze")
 async def analyze(symbol: str = Query("ES")):
     """
-    Analyse IA "tout-en-un" pour un actif :
-    - Analyse globale du marché (tous les actifs du dashboard)
-    - Analyse swing de l'actif sélectionné
-    - Plan de trade swing (théorique)
-    - Analyse intraday
-    - Plan de trade intraday
-    - Synthèse & risques
+    Analyse IA "tout-en-un" pour un actif.
     """
     try:
         symbol = symbol.upper()
         if symbol not in SYMBOLS:
             raise HTTPException(status_code=400, detail=f"Symbole inconnu : {symbol}")
 
-        # Snapshot détaillé pour l'actif sélectionné
         snapshot = build_snapshot(symbol)
-        # Vue synthétique du reste du marché
         market_overview = build_market_overview()
 
         snapshot_json = json.dumps(snapshot, ensure_ascii=False)
@@ -305,41 +291,15 @@ Voici une VUE SYNTHÉTIQUE du reste du marché surveillé (ES, NQ, BTC, CL, GC) 
 produis une analyse en français structurée comme suit (format Markdown) :
 
 1) Analyse globale du marché
-   - Sentiment général (risk-on / risk-off, dynamique actions / matières premières / crypto…)
-   - Comment l'actif {symbol} s'inscrit dans ce contexte
-
-2) Analyse SWING sur {label} (horizon quelques jours)
-   - Lecture des indicateurs (RSI, MACD, Bollinger, niveaux mensuels / précédents jours)
-   - Zones clés de support / résistance pour du swing
-
-3) PLAN DE TRADE SWING (THÉORIQUE, PAS UN CONSEIL)
-   - Scénario haussier (déclencheur, zone d'invalidation, zones d'objectifs)
-   - Scénario baissier (déclencheur, zone d'invalidation, zones d'objectifs)
-
-4) Analyse INTRADAY sur {label}
-   - Lecture des niveaux intraday (open du jour, high/low du jour, volatilité, volume)
-   - Contexte possible pour la session en cours
-
-5) PLAN DE TRADE INTRADAY (THÉORIQUE, PAS UN CONSEIL)
-   - Scénario haussier intraday (déclencheur, invalidation, zones de prise de profit)
-   - Scénario baissier intraday (déclencheur, invalidation, zones de prise de profit)
-
-6) Synthèse & risques
-   - Rappel clair que ce n'est PAS un conseil en investissement
-   - Principaux risques / pièges à éviter (news, volatilité, liquidité…)
-
-Réponds de façon structurée, lisible directement dans une interface de dashboard.
-Sois concret mais raisonnablement concis (pas plus de 400–600 mots).
+2) Analyse SWING
+3) Plan de trade SWING (théorique, pas un conseil)
+4) Analyse intraday
+5) Plan de trade intraday (théorique, pas un conseil)
+6) Synthèse & risques (rappel clair que ce n'est PAS un conseil en investissement)
 """
 
-        # Création du thread + run sur ton assistant Stark
         thread = client.beta.threads.create(
-            messages=[
-                {
-                    "role": "user",
-                    "content": user_prompt,
-                }
-            ]
+            messages=[{"role": "user", "content": user_prompt}]
         )
 
         run = client.beta.threads.runs.create(
@@ -347,7 +307,6 @@ Sois concret mais raisonnablement concis (pas plus de 400–600 mots).
             assistant_id=ASSISTANT_ID,
         )
 
-        # Polling simple jusqu'à complétion
         while run.status not in ("completed", "failed", "cancelled", "expired"):
             time.sleep(1)
             run = client.beta.threads.runs.retrieve(
@@ -385,9 +344,3 @@ Sois concret mais raisonnablement concis (pas plus de 400–600 mots).
         raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-# TOUT À LA FIN
-app.mount("/", StaticFiles(directory=".", html=True), name="static")
-
-# On laisse éventuellement /tradeplan pour plus tard,
-# mais aujourd'hui le bouton du dashboard utilise uniquement /analyze.
