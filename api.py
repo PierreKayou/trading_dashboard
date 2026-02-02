@@ -27,6 +27,9 @@ app = FastAPI(
     description="Backend pour ton Stark Trading Dashboard (yfinance + OpenAI)",
     version="1.0.0",
 )
+# Servir les fichiers statiques (HTML)
+app.mount("/", StaticFiles(directory=".", html=True), name="static")
+
 
 app.add_middleware(
     CORSMiddleware,
