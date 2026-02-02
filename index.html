@@ -408,6 +408,20 @@
       margin-top: 3px;
     }
 
+    .market-macro-bias {
+      font-size: 11px;
+      margin-top: 1px;
+      color: var(--text-muted);
+    }
+
+    .market-macro-bias.positive {
+      color: #bbf7d0;
+    }
+
+    .market-macro-bias.negative {
+      color: #fecaca;
+    }
+
     .status-row {
       display: flex;
       align-items: center;
@@ -760,10 +774,15 @@
       comment.className = "market-comment";
       comment.textContent = "Chargement…";
 
+      const macroBias = document.createElement("div");
+      macroBias.className = "market-macro-bias";
+      macroBias.textContent = ""; // rempli après appel /api/macro/bias
+
       card.appendChild(sym);
       card.appendChild(name);
       card.appendChild(line);
       card.appendChild(comment);
+      card.appendChild(macroBias);
 
       card.addEventListener("click", () => {
         document
@@ -792,6 +811,86 @@
         throw new Error(`Erreur backend pour ${symbol} : ${res.status}`);
       }
       return res.json();
+    }
+
+    async function fetchMacroBiasGlobal() {
+      const pill = document.getElementById("macro-bias-pill");
+      const label = document.getElementById("macro-bias-label");
+      const comment = document.getElementById("macro-bias-comment");
+
+      pill.classList.remove("pill-positive", "pill-negative", "pill-neutral");
+      pill.classList.add("pill-neutral");
+      label.textContent = "Lecture neutre";
+      comment.textContent = "Chargement de la vue macro globale…";
+
+      try {
+        const res = await fetch(`${API_BASE}/api/macro/week/summary`);
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+        const summary = await res.json();
+
+        pill.classList.remove("pill-positive", "pill-negative", "pill-neutral");
+        if (summary.risk_on === true) {
+          pill.classList.add("pill-positive");
+          label.textContent = "Biais risk-on";
+        } else if (summary.risk_on === false) {
+          pill.classList.add("pill-negative");
+          label.textContent = "Biais risk-off";
+        } else {
+          pill.classList.add("pill-neutral");
+          label.textContent = "Lecture neutre";
+        }
+
+        comment.textContent =
+          summary.risk_comment ||
+          "Vue macro hebdo chargée. Aucun commentaire détaillé disponible.";
+      } catch (err) {
+        console.error("Erreur fetchMacroBiasGlobal:", err);
+        pill.classList.remove("pill-positive", "pill-negative");
+        pill.classList.add("pill-neutral");
+        label.textContent = "Indisponible";
+        comment.textContent =
+          "Impossible de récupérer la vue macro globale pour le moment.";
+      }
+    }
+
+    async function fetchMacroBiasAssets() {
+      try {
+        const res = await fetch(`${API_BASE}/api/macro/bias`);
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+        const data = await res.json();
+        const assets = data.assets || {};
+        const grid = document.getElementById("markets-grid");
+
+        Object.entries(assets).forEach(([symbol, info]) => {
+          const card = grid.querySelector(`.market-card[data-symbol="${symbol}"]`);
+          if (!card) return;
+          const biasEl = card.querySelector(".market-macro-bias");
+          if (!biasEl) return;
+
+          let text = "Biais macro neutre";
+          let cls = "";
+          if (info.bias === "bullish") {
+            text = "Biais macro haussier";
+            cls = "positive";
+          } else if (info.bias === "bearish") {
+            text = "Biais macro baissier";
+            cls = "negative";
+          }
+
+          biasEl.textContent = text;
+          biasEl.classList.remove("positive", "negative");
+          if (cls) biasEl.classList.add(cls);
+          if (info.reason) {
+            biasEl.title = info.reason;
+          }
+        });
+      } catch (err) {
+        console.error("Erreur fetchMacroBiasAssets:", err);
+      }
     }
 
     async function refreshMarkets() {
@@ -855,52 +954,12 @@
             hour: "2-digit",
             minute: "2-digit",
           });
+
+        // Rafraîchit aussi le biais macro par actif
+        await fetchMacroBiasAssets();
       } catch (err) {
         console.error("Erreur refreshMarkets:", err);
         statusError.textContent = "Erreur globale de chargement des marchés.";
-      }
-    }
-
-    async function fetchMacroBias() {
-      const pill = document.getElementById("macro-bias-pill");
-      const label = document.getElementById("macro-bias-label");
-      const comment = document.getElementById("macro-bias-comment");
-
-      pill.classList.remove("pill-positive", "pill-negative", "pill-neutral");
-      pill.classList.add("pill-neutral");
-      label.textContent = "Lecture neutre";
-      comment.textContent = "Chargement de la vue macro globale…";
-
-      try {
-        const res = await fetch(`${API_BASE}/api/macro/week/summary`);
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
-        const summary = await res.json();
-
-        // risk_on : true / false / null
-        pill.classList.remove("pill-positive", "pill-negative", "pill-neutral");
-        if (summary.risk_on === true) {
-          pill.classList.add("pill-positive");
-          label.textContent = "Biais risk-on";
-        } else if (summary.risk_on === false) {
-          pill.classList.add("pill-negative");
-          label.textContent = "Biais risk-off";
-        } else {
-          pill.classList.add("pill-neutral");
-          label.textContent = "Lecture neutre";
-        }
-
-        comment.textContent =
-          summary.risk_comment ||
-          "Vue macro hebdo chargée. Aucun commentaire détaillé disponible.";
-      } catch (err) {
-        console.error("Erreur fetchMacroBias:", err);
-        pill.classList.remove("pill-positive", "pill-negative");
-        pill.classList.add("pill-neutral");
-        label.textContent = "Indisponible";
-        comment.textContent =
-          "Impossible de récupérer la vue macro globale pour le moment.";
       }
     }
 
@@ -945,7 +1004,7 @@
 
     window.addEventListener("DOMContentLoaded", () => {
       refreshMarkets();
-      fetchMacroBias();
+      fetchMacroBiasGlobal();
 
       // Rafraîchissement périodique des marchés
       setInterval(refreshMarkets, 15000);
