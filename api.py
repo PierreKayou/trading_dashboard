@@ -13,6 +13,10 @@ import numpy as np
 
 from openai import OpenAI
 
+# 👉 NEW : import du router macro
+from macro.router import router as macro_router
+
+
 ###############################
 # CONFIG GLOBALE
 ###############################
@@ -29,6 +33,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# 👉 NEW : on branche le router macro sous le préfixe /api
+app.include_router(macro_router, prefix="/api")
+
 
 # Mapping symbol ↔ yfinance
 SYMBOLS = {
