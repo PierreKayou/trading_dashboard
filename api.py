@@ -4,7 +4,7 @@
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
-
+from econ_calendar.router import router as calendar_router
 
 import yfinance as yf
 import json
@@ -44,6 +44,7 @@ app.include_router(macro_router, prefix="/api")
 # On branche le router news sous /api
 app.include_router(news_router, prefix="/api")
 
+app.include_router(calendar_router, prefix="/api")
 
 # Mapping symbol ↔ yfinance
 SYMBOLS = {
