@@ -237,38 +237,21 @@ async def generate_macro_state(req: MacroRequest):
     }
 
 def generate_macro_state_from_text(context_text: str) -> Dict[str, Any]:
-    user_msg = MACRO_USER_TEMPLATE.format(context_text=context_text)
+    # On remplace juste le placeholder {context_text} dans le template,
+    # sans interpréter les autres accolades du JSON.
+    user_msg = MACRO_USER_TEMPLATE.replace("{context_text}", context_text)
 
-    try:
-        resp = client.responses.create(
-            model=MACRO_MODEL,
-            input=[
-                {
-                    "role": "system",
-                    "content": MACRO_SYSTEM_PROMPT,
-                },
-                {
-                    "role": "user",
-                    "content": user_msg,
-                },
-            ],
-            response_format={"type": "json_object"},
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Erreur OpenAI (macro/generate) : {e}",
-        )
+    resp = client.chat.completions.create(
+        model=MACRO_MODEL,
+        response_format={"type": "json_object"},
+        messages=[
+            {"role": "system", "content": MACRO_SYSTEM_PROMPT},
+            {"role": "user",  "content": user_msg},
+        ],
+    )
 
-    # Récupération du texte généré
-    try:
-        content = resp.output_text
-        data = json.loads(content)
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Réponse IA invalide : {e}",
-        )
+    content = resp.choices[0].message.content
+    data = json.loads(content)
 
     if not data.get("timestamp"):
         data["timestamp"] = date.today().strftime("%Y-%m-%d")
