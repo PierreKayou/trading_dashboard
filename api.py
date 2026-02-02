@@ -3,7 +3,7 @@
 ###############################
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 
 import yfinance as yf
 import json
@@ -311,3 +311,10 @@ produis une analyse en français structurée, lisible dans un dashboard.
         raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/macro.html")
+async def macro_page():
+    """
+    Sert la page front de la vue macro hebdomadaire.
+    """
+    return FileResponse("macro.html")
