@@ -17,6 +17,8 @@ from openai import OpenAI
 # Router macro (backend analyse macro)
 from macro.router import router as macro_router
 
+# : router news
+from news.router import router as news_router
 
 ###############################
 # CONFIG GLOBALE
@@ -37,6 +39,8 @@ app.add_middleware(
 
 # On branche le router macro sous /api
 app.include_router(macro_router, prefix="/api")
+# On branche le router news sous /api
+app.include_router(news_router, prefix="/api")
 
 
 # Mapping symbol ↔ yfinance
