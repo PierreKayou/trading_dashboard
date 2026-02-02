@@ -236,6 +236,78 @@ async def generate_macro_state(req: MacroRequest):
         "macro_state": new_state,
     }
 
+def _derive_risk_mode(macro: Dict[str, Any]) -> str:
+    label = (macro.get("macro_regime", {}).get("label") or "").lower()
+    sentiment = (macro.get("macro_factors", {}).get("risk_sentiment") or "").lower()
+
+    if "risk-off" in label or "risk off" in label or "risk-off" in sentiment:
+        return "risk_off"
+    if "risk-on" in label or "risk on" in label or "risk-on" in sentiment:
+        return "risk_on"
+    return "neutral"
+
+
+def _derive_equity_bias(macro: Dict[str, Any]) -> str:
+    equities = (macro.get("market_bias", {}).get("equities") or "").lower()
+    indices = (macro.get("market_bias", {}).get("indices_us") or "").lower()
+    text = equities + " " + indices
+
+    if "haussier" in text or "appétit" in text or "risk-on" in text:
+        return "bullish"
+    if "baissier" in text or "pression" in text or "dégagement" in text or "risk-off" in text:
+        return "bearish"
+    return "neutral"
+
+
+def _derive_volatility_bias(macro: Dict[str, Any]) -> str:
+    # On regarde le commentaire + les mots-clés
+    comment = (macro.get("commentary") or "").lower()
+    crypto = (macro.get("macro_factors", {}).get("crypto") or "").lower()
+
+    text = comment + " " + crypto
+    if "volatilité élevée" in text or "forte volatilité" in text:
+        return "high"
+    if "volatilité faible" in text or "calme" in text:
+        return "low"
+    return "normal"
+
+
+def _derive_crypto_bias(macro: Dict[str, Any]) -> str:
+    crypto = (macro.get("macro_factors", {}).get("crypto") or "").lower()
+    if not crypto:
+        return "neutre"
+
+    if "haussier" in crypto or "appétit" in crypto:
+        return "haussier"
+    if "baissier" in crypto or "pression" in crypto:
+        return "baissier"
+    if "incertaine" in crypto or "incertain" in crypto or "volatile" in crypto:
+        return "incertain"
+    return "neutre"
+
+
+@router.get("/macro/flags")
+def get_macro_flags() -> Dict[str, Any]:
+    """
+    Vue ultra-synthétique pour les bots : aucun automatisme,
+    simplement des flags lisibles dérivés du macro_state courant.
+    """
+    state = load_macro_state()  # ta fonction existante qui lit macro_state.json
+    if state is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Aucun macro_state disponible. Appelle /api/macro/generate d'abord."
+        )
+
+    return {
+        "timestamp": state.get("timestamp"),
+        "risk_mode": _derive_risk_mode(state),
+        "equity_bias": _derive_equity_bias(state),
+        "volatility_bias": _derive_volatility_bias(state),
+        "crypto_bias": _derive_crypto_bias(state),
+    }
+
+
 def generate_macro_state_from_text(context_text: str) -> Dict[str, Any]:
     # On remplace juste le placeholder {context_text} dans le template,
     # sans interpréter les autres accolades du JSON.
