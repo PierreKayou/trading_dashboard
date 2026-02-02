@@ -286,7 +286,7 @@ def _derive_crypto_bias(macro: Dict[str, Any]) -> str:
     return "neutre"
 
 
-@router.get("/macro/flags")
+@router.get("/flags")
 def get_macro_flags() -> Dict[str, Any]:
     """
     Vue ultra-synthétique pour les bots : aucun automatisme,
