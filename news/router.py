@@ -1,17 +1,27 @@
 # news/router.py
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Dict, Any
-import yfinance as yf
+import os
 import time
 import json
 
+import yfinance as yf
+import httpx
 from openai import OpenAI
 
 router = APIRouter(prefix="/news", tags=["news"])
 
-# On utilise yfinance comme source de news (Yahoo Finance)
-# pour rester simple et éviter une nouvelle API payante.
+# ------------------------------------------------------------------
+# CONFIG : NewsAPI (https://newsapi.org) pour compléter yfinance
+# ------------------------------------------------------------------
+NEWS_API_KEY = os.getenv("NEWS_API_KEY")
+NEWS_API_URL = "https://newsapi.org/v2/top-headlines"
+
+client = OpenAI()
+
+# Symbols utilisés pour les news yfinance (comme avant)
 NEWS_SYMBOLS = [
     "^GSPC",    # S&P 500
     "^NDX",     # Nasdaq 100
@@ -20,15 +30,13 @@ NEWS_SYMBOLS = [
     "BTC-USD",  # Bitcoin
 ]
 
-client = OpenAI()
 
-
-def fetch_raw_news(max_articles: int = 30) -> Dict[str, Any]:
+def fetch_yfinance_news(max_articles: int = 30) -> List[Dict[str, Any]]:
     """
-    Récupère des news récentes via yfinance pour un set d'indices/actifs.
-    Retourne un dict normalisé : { source, fetched_at, articles: [...] }.
+    Récupère les news via yfinance (Ticker.news) sur quelques symboles clés.
+    Même logique que ce qu'on avait, mais isolé dans une fonction.
     """
-    all_articles: List[Dict[str, Any]] = []
+    articles: List[Dict[str, Any]] = []
     seen_titles = set()
 
     for sym in NEWS_SYMBOLS:
@@ -36,7 +44,6 @@ def fetch_raw_news(max_articles: int = 30) -> Dict[str, Any]:
             ticker = yf.Ticker(sym)
             items = ticker.news or []
         except Exception:
-            # On ignore les erreurs individuelles
             continue
 
         for item in items:
@@ -45,7 +52,7 @@ def fetch_raw_news(max_articles: int = 30) -> Dict[str, Any]:
                 continue
 
             seen_titles.add(title)
-            all_articles.append(
+            articles.append(
                 {
                     "symbol": sym,
                     "title": title,
@@ -55,14 +62,95 @@ def fetch_raw_news(max_articles: int = 30) -> Dict[str, Any]:
                 }
             )
 
-    # Tri par date de publication décroissante
-    all_articles.sort(
-        key=lambda a: a.get("providerPublishTime") or 0,
-        reverse=True,
-    )
+    # On ne coupe pas ici, l'agrégateur le fera
+    return articles
 
+
+def fetch_newsapi_news(max_articles: int = 30) -> List[Dict[str, Any]]:
+    """
+    Récupère des news business / macro via NewsAPI.
+    Si NEWS_API_KEY n'est pas définie, on renvoie une liste vide
+    (dans ce cas, seule yfinance sera utilisée).
+    """
+    if not NEWS_API_KEY:
+        return []
+
+    params = {
+        "category": "business",
+        "language": "en",
+        "pageSize": max_articles,
+    }
+
+    try:
+        with httpx.Client(timeout=8.0) as http_client:
+            resp = http_client.get(
+                NEWS_API_URL,
+                params=params,
+                headers={"X-Api-Key": NEWS_API_KEY},
+            )
+    except Exception:
+        # En cas de souci réseau, on ne casse pas tout, on renvoie juste rien
+        return []
+
+    if resp.status_code != 200:
+        return []
+
+    data = resp.json()
+    raw_articles = data.get("articles", []) or []
+
+    articles: List[Dict[str, Any]] = []
+    for art in raw_articles:
+        title = art.get("title")
+        if not title:
+            continue
+
+        src = art.get("source") or {}
+        publisher = src.get("name") or "?"
+
+        articles.append(
+            {
+                "symbol": "global",   # NewsAPI ne donne pas de symbole, on marque 'global'
+                "title": title,
+                "publisher": publisher,
+                "link": art.get("url"),
+                "providerPublishTime": None,
+            }
+        )
+
+    return articles
+
+
+def fetch_raw_news(max_articles: int = 30) -> Dict[str, Any]:
+    """
+    Agrégateur de news :
+    - yfinance (par symboles)
+    - + NewsAPI (global business)
+    Fusionne, dédoublonne, tronque.
+    """
+    all_articles: List[Dict[str, Any]] = []
+    seen_titles = set()
+
+    # 1) yfinance
+    yf_articles = fetch_yfinance_news(max_articles=max_articles * 2)
+    for a in yf_articles:
+        title = a.get("title")
+        if not title or title in seen_titles:
+            continue
+        seen_titles.add(title)
+        all_articles.append(a)
+
+    # 2) NewsAPI (si dispo)
+    api_articles = fetch_newsapi_news(max_articles=max_articles * 2)
+    for a in api_articles:
+        title = a.get("title")
+        if not title or title in seen_titles:
+            continue
+        seen_titles.add(title)
+        all_articles.append(a)
+
+    # On laisse l'ordre d'arrivée, on tronque
     return {
-        "source": "yfinance",
+        "source": "yfinance+newsapi",
         "fetched_at": time.time(),
         "articles": all_articles[:max_articles],
     }
@@ -71,7 +159,7 @@ def fetch_raw_news(max_articles: int = 30) -> Dict[str, Any]:
 @router.get("/raw")
 def get_raw_news(limit: int = 20) -> Dict[str, Any]:
     """
-    Récupération brute des news (liste d'articles) depuis yfinance.
+    Récupération brute des news (liste d'articles) depuis yfinance + NewsAPI.
     Utilisable telle quelle par ton dash ou par l'IA.
     """
     if limit <= 0:
@@ -83,7 +171,7 @@ def get_raw_news(limit: int = 20) -> Dict[str, Any]:
 class NewsAnalyzeRequest(BaseModel):
     """
     Si articles est fourni, on analyse ceux-ci.
-    Sinon, on va chercher les news brutes (yfinance) côté backend.
+    Sinon, on va chercher les news brutes côté backend.
     """
     max_articles: int = 15
     articles: List[Dict[str, Any]] | None = None
@@ -107,17 +195,63 @@ def analyze_news(req: NewsAnalyzeRequest) -> Dict[str, Any]:
     else:
         raw = fetch_raw_news(max_articles=req.max_articles)
         articles = raw.get("articles", [])
-        source = raw.get("source", "yfinance")
+        source = raw.get("source", "yfinance+newsapi")
 
+    # Si malgré tout aucune news (problème de flux / quotas), on renvoie une analyse neutre
     if not articles:
-        raise HTTPException(status_code=500, detail="Aucun article disponible pour l'analyse.")
+        neutral_analysis = {
+            "macro_sentiment": {
+                "label": "Neutre",
+                "comment": "Aucune news exploitable remontée par les sources actuelles. "
+                           "On considère le contexte informationnel comme neutre par défaut."
+            },
+            "risk_tone": "neutral",
+            "volatility_outlook": "normal",
+            "key_points": [
+                "Pas de news macro/financières majeures détectées via les sources configurées.",
+                "Le flux d'information ne remet pas en cause le biais technique ou macro en place.",
+                "Rester attentif à l'agenda économique et aux prochaines publications."
+            ],
+            "by_asset": {
+                "ES": {
+                    "bias": "neutral",
+                    "comment": "Sans news particulières, aucun biais directionnel spécifique "
+                               "lié au flux d'information pour l'ES."
+                },
+                "NQ": {
+                    "bias": "neutral",
+                    "comment": "Pas de news marquantes orientant clairement le Nasdaq à court terme."
+                },
+                "BTC": {
+                    "bias": "neutral",
+                    "comment": "Aucune information spécifique ne modifie le biais de fond sur Bitcoin."
+                },
+                "CL": {
+                    "bias": "neutral",
+                    "comment": "Pas de catalyseur d'actualité identifié sur le pétrole WTI via les sources utilisées."
+                },
+                "GC": {
+                    "bias": "neutral",
+                    "comment": "Sans news majeures, l'or conserve un rôle neutre dans le contexte actuel."
+                }
+            }
+        }
+
+        return {
+            "source": "ia",
+            "news_source": source,
+            "created_at": time.time(),
+            "article_count": 0,
+            "articles_used": [],
+            "analysis": neutral_analysis,
+        }
 
     # 2) Construction d'un résumé texte pour l'IA
     lines = []
     for art in articles:
         publisher = art.get("publisher") or "?"
         title = art.get("title") or "Sans titre"
-        sym = art.get("symbol") or "?"
+        sym = art.get("symbol") or "global"
         lines.append(f"- [{publisher}] ({sym}) {title}")
 
     news_block = "\n".join(lines)
@@ -195,7 +329,6 @@ Respecte cette structure au maximum.
     try:
         analysis = json.loads(content)
     except Exception:
-        # Si jamais le JSON est mal formé, on renvoie le texte brut
         analysis = {"raw_text": content}
 
     return {
