@@ -263,6 +263,7 @@
       box-shadow: var(--shadow-soft);
       position: relative;
       overflow: hidden;
+      margin-bottom: 14px;
     }
 
     .card::before {
@@ -536,12 +537,6 @@
       transform: none;
     }
 
-    .btn-compact {
-      padding: 5px 10px;
-      font-size: 12px;
-      box-shadow: 0 6px 14px rgba(37, 99, 235, 0.4);
-    }
-
     .assistant-body {
       margin-top: 10px;
       border-radius: 16px;
@@ -580,91 +575,73 @@
       color: var(--danger);
     }
 
-    /* Bloc Performance des indices */
-
-    .perf-section {
-      margin-top: 18px;
-      padding-top: 10px;
-      border-top: 1px solid rgba(31, 41, 55, 0.9);
-    }
+    /* === Performance des indices === */
 
     .perf-header {
       display: flex;
-      align-items: baseline;
+      align-items: center;
       justify-content: space-between;
-      gap: 8px;
-      font-size: 11px;
-      color: var(--text-muted);
+      gap: 10px;
+      margin-top: 10px;
       margin-bottom: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
       flex-wrap: wrap;
     }
 
     .perf-title {
       font-size: 13px;
-      font-weight: 500;
+      font-weight: 600;
       color: var(--text-main);
-    }
-
-    .perf-date {
-      font-size: 11px;
     }
 
     .perf-table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 6px;
       font-size: 12px;
+      margin-top: 4px;
     }
 
     .perf-table th,
     .perf-table td {
-      padding: 4px 6px;
-      text-align: right;
-      border-bottom: 1px solid rgba(15, 23, 42, 0.9);
-    }
-
-    .perf-table th:first-child,
-    .perf-table td:first-child {
-      text-align: left;
-      width: 45%;
+      padding: 6px 6px;
+      border-bottom: 1px solid rgba(31, 41, 55, 0.85);
     }
 
     .perf-table th {
-      color: var(--text-muted);
+      text-align: left;
       font-weight: 500;
+      color: var(--text-muted);
+      font-size: 11px;
     }
 
-    .perf-pos {
+    .perf-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .perf-change-positive {
       color: var(--success);
     }
 
-    .perf-neg {
+    .perf-change-negative {
       color: var(--danger);
     }
 
-    .perf-flat {
+    .perf-empty {
+      text-align: center;
       color: var(--text-muted);
+      font-style: italic;
     }
 
-    .perf-error {
-      margin-top: 4px;
-      font-size: 11px;
-      color: var(--danger);
-    }
+    /* === News & Sentiment IA === */
 
-    /* Carte News & Sentiment IA */
-
-    .news-card {
-      margin-top: 18px;
-    }
-
-    .news-header {
+    .news-header-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      margin-bottom: 8px;
       flex-wrap: wrap;
+      margin-bottom: 8px;
     }
 
     .news-title-block {
@@ -674,7 +651,7 @@
     }
 
     .news-title {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 600;
     }
 
@@ -683,77 +660,102 @@
       color: var(--text-muted);
     }
 
-    .news-top-row {
+    .news-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    .news-top-pills {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 10px;
+      gap: 8px;
       flex-wrap: wrap;
-      margin-bottom: 10px;
+      margin-top: 6px;
       font-size: 11px;
     }
 
-    .news-pill-group {
-      display: flex;
+    .news-pill {
+      display: inline-flex;
       align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      background: rgba(15, 23, 42, 0.96);
+      font-size: 11px;
     }
 
-    .news-last-update {
+    .news-pill-label {
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 10px;
       color: var(--text-muted);
     }
 
-    .news-body {
-      border-radius: 16px;
-      background: rgba(15, 23, 42, 0.98);
-      border: 1px solid rgba(31, 41, 55, 0.96);
-      padding: 10px 12px 10px;
-      font-size: 12px;
+    .news-pill-value {
+      font-weight: 500;
     }
 
-    .news-macro-comment {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-bottom: 8px;
+    .news-pill-positive .news-pill-value {
+      color: var(--success);
+    }
+
+    .news-pill-negative .news-pill-value {
+      color: var(--danger);
     }
 
     .news-keypoints {
-      margin-bottom: 8px;
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
     }
 
     .news-keypoints ul {
-      padding-left: 16px;
-      list-style: disc;
-      color: var(--text-main);
+      margin-top: 4px;
+      padding-left: 18px;
     }
 
     .news-keypoints li {
-      margin-bottom: 4px;
-      font-size: 12px;
+      margin-bottom: 2px;
     }
 
-    .news-assets {
+    .news-assets-grid {
       display: grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 8px;
-      margin-top: 4px;
+      margin-top: 10px;
     }
 
-    @media (max-width: 900px) {
-      .news-assets {
+    @media (max-width: 980px) {
+      .news-assets-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 720px) {
+      .news-assets-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
 
-    .news-asset {
-      border-radius: 10px;
-      border: 1px solid rgba(31, 41, 55, 0.96);
-      padding: 6px 8px;
+    .news-asset-card {
       background: rgba(15, 23, 42, 0.96);
+      border-radius: 12px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      padding: 8px 8px 9px;
+      font-size: 11px;
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 3px;
+    }
+
+    .news-asset-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
     }
 
     .news-asset-symbol {
@@ -764,8 +766,16 @@
     }
 
     .news-asset-bias {
-      font-size: 12px;
-      font-weight: 500;
+      font-weight: 550;
+      font-size: 11px;
+    }
+
+    .news-asset-bias.bullish {
+      color: var(--success);
+    }
+
+    .news-asset-bias.bearish {
+      color: var(--danger);
     }
 
     .news-asset-comment {
@@ -773,727 +783,36 @@
       color: var(--text-muted);
     }
 
-    .news-error {
+    .news-refresh-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 8px;
       font-size: 11px;
-      color: var(--danger);
-      margin-bottom: 4px;
-    }
-  </style>
-</head>
-<body>
-  <div class="page">
-    <header>
-      <div class="header-row">
-        <div class="brand">
-          <div class="brand-logo">Δ</div>
-          <div class="brand-text">
-            <div class="brand-title">STARK TRADING DASHBOARD</div>
-            <div class="brand-subtitle">
-              Vue synthétique des marchés — ES, NQ, BTC, CL, GC
-            </div>
-          </div>
-        </div>
-        <div class="header-right">
-          <div class="beta-pill">
-            <span>βêta – backend render</span>
-          </div>
-          <div class="currency-selector">
-            <span>Devise :</span>
-            <button class="active" type="button">USD $</button>
-            <button type="button">€</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="header-row-bottom">
-        <div class="main-title-block">
-          <div>
-            <span>Contrat principal – ES S&P 500 Future</span>
-          </div>
-          <small>Lecture globale du marché et biais macro.</small>
-
-          <!-- Biais macro global -->
-          <div class="macro-bias-wrapper" style="margin-top: 6px;">
-            <span class="macro-bias-label">Biais macro global</span>
-            <div id="macro-bias-pill" class="pill pill-neutral">
-              <span class="pill-dot"></span>
-              <span id="macro-bias-label">Lecture neutre</span>
-            </div>
-            <div id="macro-bias-comment" class="macro-bias-comment">
-              Chargement de la vue macro globale…
-            </div>
-          </div>
-        </div>
-      </div>
-    </header>
-
-    <div class="content-grid">
-      <!-- Colonne gauche : marchés + perf -->
-      <section class="card">
-        <div class="card-inner">
-          <div class="card-header">
-            <div>
-              <div class="card-title" id="main-price-title">ES — S&P 500 Future</div>
-              <div class="card-subtitle">Prix spot & variation depuis la dernière bougie.</div>
-            </div>
-            <div id="main-price-change" class="price-change">0.00 %</div>
-          </div>
-          <div class="price-main" id="main-price">—</div>
-          <div class="price-comment" id="main-price-comment">
-            Lecture globale en cours…
-          </div>
-
-          <div class="markets-grid" id="markets-grid">
-            <!-- Cartes marchés injectées par JS -->
-          </div>
-
-          <div class="status-row">
-            <div class="status-left">
-              <div class="status-dot"></div>
-              <span id="status-text">Backend Render en ligne – actualisation auto toutes les 15 s</span>
-            </div>
-            <div id="last-update">Dernière mise à jour : —</div>
-          </div>
-          <div id="status-error" class="status-error"></div>
-
-          <!-- Performance des indices -->
-          <div id="perf-section" class="perf-section">
-            <div class="perf-header">
-              <div class="perf-title">Performance des indices</div>
-              <div id="perf-date" class="perf-date">Données en cours de chargement…</div>
-            </div>
-            <table class="perf-table">
-              <thead>
-                <tr>
-                  <th>Indice</th>
-                  <th>Jour</th>
-                  <th>Semaine</th>
-                  <th>Mois</th>
-                </tr>
-              </thead>
-              <tbody id="perf-tbody">
-                <tr>
-                  <td colspan="4">Chargement…</td>
-                </tr>
-              </tbody>
-            </table>
-            <div id="perf-error" class="perf-error"></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Colonne droite : assistant IA -->
-      <section class="card">
-        <div class="card-inner">
-          <div class="assistant-header">
-            <div class="assistant-title-row">
-              <div class="assistant-title">Assistant Stark – Analyse IA (pas un conseil)</div>
-              <div class="assistant-badge">
-                🔗 Intégration en cours avec FastAPI & OpenAI
-              </div>
-            </div>
-            <div class="assistant-subtitle">
-              Génère une analyse synthétique pour l’actif sélectionné à partir des données temps réel (yfinance) récupérées par ton backend FastAPI.
-            </div>
-            <div class="assistant-controls">
-              <select id="ia-asset-select" class="select-asset">
-                <option value="ES">ES – S&P 500 Future</option>
-                <option value="NQ">NQ – Nasdaq 100 Future</option>
-                <option value="BTC">BTC – Bitcoin</option>
-                <option value="CL">CL – Crude Oil (WTI)</option>
-                <option value="GC">GC – Gold</option>
-              </select>
-              <button id="ia-run-btn" class="btn-primary" type="button">
-                🧠 Analyser avec l’IA
-              </button>
-            </div>
-          </div>
-
-          <div class="assistant-body">
-            <div id="assistant-error" class="assistant-error"></div>
-            <div id="assistant-result" class="assistant-result">
-              <div class="assistant-placeholder">
-                Sélectionne un actif puis clique sur « Analyser avec l’IA » pour générer une analyse de marché structurée (global, swing, intraday, scénarios).<br /><br />
-                Rappel : tout ce qui est affiché ici reste purement informatif et ne constitue en aucun cas un conseil en investissement.
-              </div>
-            </div>
-            <div class="assistant-footer">
-              L’assistant IA combine les données techniques (RSI, MACD, Bollinger…) avec le contexte global du marché. Utilisation à des fins d’analyse uniquement.
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-
-    <!-- Carte News & Sentiment IA (pleine largeur) -->
-    <section class="card news-card">
-      <div class="card-inner">
-        <div class="news-header">
-          <div class="news-title-block">
-            <div class="news-title">News & Sentiment IA</div>
-            <div class="news-subtitle">
-              Lecture synthétique des dernières news macro / marché. Ne remplace pas l’analyse personnelle.
-            </div>
-          </div>
-          <button id="news-refresh-btn" class="btn-primary btn-compact" type="button">
-            🔄 Rafraîchir l’analyse
-          </button>
-        </div>
-
-        <div class="news-body">
-          <div id="news-error" class="news-error"></div>
-
-          <div class="news-top-row">
-            <div class="news-pill-group">
-              <div id="news-risk-pill" class="pill pill-neutral">
-                <span class="pill-dot"></span>
-                <span id="news-risk-label">Tonalité neutre</span>
-              </div>
-              <div id="news-vol-pill" class="pill pill-neutral">
-                <span class="pill-dot"></span>
-                <span id="news-vol-label">Volatilité normale</span>
-              </div>
-            </div>
-            <div id="news-last-update" class="news-last-update">
-              Dernière analyse : —
-            </div>
-          </div>
-
-          <div id="news-macro-comment" class="news-macro-comment">
-            Chargement de l’analyse IA des news…
-          </div>
-
-          <div class="news-keypoints">
-            <ul id="news-keypoints-list">
-              <li>Analyse des news en cours…</li>
-            </ul>
-          </div>
-
-          <div class="news-assets">
-            <div class="news-asset">
-              <div class="news-asset-symbol">ES</div>
-              <div id="news-asset-bias-ES" class="news-asset-bias perf-flat">Biais neutre</div>
-              <div id="news-asset-comment-ES" class="news-asset-comment">
-                En attente de l’analyse IA.
-              </div>
-            </div>
-            <div class="news-asset">
-              <div class="news-asset-symbol">NQ</div>
-              <div id="news-asset-bias-NQ" class="news-asset-bias perf-flat">Biais neutre</div>
-              <div id="news-asset-comment-NQ" class="news-asset-comment">
-                En attente de l’analyse IA.
-              </div>
-            </div>
-            <div class="news-asset">
-              <div class="news-asset-symbol">BTC</div>
-              <div id="news-asset-bias-BTC" class="news-asset-bias perf-flat">Biais neutre</div>
-              <div id="news-asset-comment-BTC" class="news-asset-comment">
-                En attente de l’analyse IA.
-              </div>
-            </div>
-            <div class="news-asset">
-              <div class="news-asset-symbol">CL</div>
-              <div id="news-asset-bias-CL" class="news-asset-bias perf-flat">Biais neutre</div>
-              <div id="news-asset-comment-CL" class="news-asset-comment">
-                En attente de l’analyse IA.
-              </div>
-            </div>
-            <div class="news-asset">
-              <div class="news-asset-symbol">GC</div>
-              <div id="news-asset-bias-GC" class="news-asset-bias perf-flat">Biais neutre</div>
-              <div id="news-asset-comment-GC" class="news-asset-comment">
-                En attente de l’analyse IA.
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  </div>
-
-  <script>
-    const API_BASE = ""; // même origine
-
-    const SYMBOL_CONFIG = {
-      ES: { label: "S&P 500 Future", yf: "ES=F" },
-      NQ: { label: "Nasdaq 100 Future", yf: "NQ=F" },
-      BTC: { label: "Bitcoin", yf: "BTC-USD" },
-      CL: { label: "Crude Oil (WTI)", yf: "CL=F" },
-      GC: { label: "Gold", yf: "GC=F" },
-    };
-
-    const SYMBOL_ORDER = ["ES", "NQ", "BTC", "CL", "GC"];
-
-    function formatPrice(value) {
-      if (value === null || value === undefined || isNaN(value)) return "—";
-      if (value > 1000) return value.toLocaleString("fr-FR", { maximumFractionDigits: 2 });
-      return value.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      color: var(--text-muted);
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
-    function formatPct(value) {
-      if (value === null || value === undefined || isNaN(value)) return "0.00 %";
-      const sign = value > 0 ? "+" : "";
-      return sign + value.toFixed(2) + " %";
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.8);
+      background: rgba(15, 23, 42, 0.96);
+      color: var(--text-main);
+      font-size: 11px;
+      cursor: pointer;
     }
 
-    function setMainMarket(symbol, snapshot) {
-      const titleEl = document.getElementById("main-price-title");
-      const priceEl = document.getElementById("main-price");
-      const changeEl = document.getElementById("main-price-change");
-      const commentEl = document.getElementById("main-price-comment");
-
-      const cfg = SYMBOL_CONFIG[symbol];
-      titleEl.textContent = `${symbol} — ${cfg.label}`;
-      priceEl.textContent = formatPrice(snapshot.price);
-
-      const pct = snapshot.change_pct || 0;
-      changeEl.textContent = formatPct(pct);
-      changeEl.classList.remove("positive", "negative");
-      if (pct > 0.01) changeEl.classList.add("positive");
-      else if (pct < -0.01) changeEl.classList.add("negative");
-
-      commentEl.textContent = snapshot.comment || "Lecture indisponible.";
+    .btn-secondary:disabled {
+      opacity: 0.6;
+      cursor: wait;
     }
 
-    function createMarketCard(symbol) {
-      const cfg = SYMBOL_CONFIG[symbol];
-      const card = document.createElement("button");
-      card.className = "market-card";
-      card.type = "button";
-      card.dataset.symbol = symbol;
-
-      const sym = document.createElement("div");
-      sym.className = "market-symbol";
-      sym.textContent = symbol;
-
-      const name = document.createElement("div");
-      name.className = "market-name";
-      name.textContent = cfg.label;
-
-      const line = document.createElement("div");
-      line.className = "market-line";
-
-      const price = document.createElement("div");
-      price.className = "market-price";
-      price.textContent = "—";
-
-      const change = document.createElement("div");
-      change.className = "market-change";
-      change.textContent = "0.00 %";
-
-      line.appendChild(price);
-      line.appendChild(change);
-
-      const comment = document.createElement("div");
-      comment.className = "market-comment";
-      comment.textContent = "Chargement…";
-
-      const macroBias = document.createElement("div");
-      macroBias.className = "market-macro-bias";
-      macroBias.textContent = ""; // rempli après appel /api/macro/bias
-
-      card.appendChild(sym);
-      card.appendChild(name);
-      card.appendChild(line);
-      card.appendChild(comment);
-      card.appendChild(macroBias);
-
-      card.addEventListener("click", () => {
-        document
-          .querySelectorAll(".market-card")
-          .forEach((c) => c.classList.remove("active"));
-        card.classList.add("active");
-        if (card.dataset.snapshot) {
-          try {
-            const snap = JSON.parse(card.dataset.snapshot);
-            setMainMarket(symbol, snap);
-          } catch (e) {
-            console.error("Erreur parse snapshot:", e);
-          }
-        }
-        const select = document.getElementById("ia-asset-select");
-        select.value = symbol;
-      });
-
-      return card;
-    }
-
-    async function fetchSnapshot(symbol) {
-      const url = `${API_BASE}/latest?symbol=${encodeURIComponent(symbol)}`;
-      const res = await fetch(url);
-      if (!res.ok) {
-        throw new Error(`Erreur backend pour ${symbol} : ${res.status}`);
-      }
-      return res.json();
-    }
-
-    async function fetchMacroBiasGlobal() {
-      const pill = document.getElementById("macro-bias-pill");
-      const label = document.getElementById("macro-bias-label");
-      const comment = document.getElementById("macro-bias-comment");
-
-      pill.classList.remove("pill-positive", "pill-negative", "pill-neutral");
-      pill.classList.add("pill-neutral");
-      label.textContent = "Lecture neutre";
-      comment.textContent = "Chargement de la vue macro globale…";
-
-      try {
-        const res = await fetch(`${API_BASE}/api/macro/week/summary`);
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
-        const summary = await res.json();
-
-        pill.classList.remove("pill-positive", "pill-negative", "pill-neutral");
-        if (summary.risk_on === true) {
-          pill.classList.add("pill-positive");
-          label.textContent = "Biais risk-on";
-        } else if (summary.risk_on === false) {
-          pill.classList.add("pill-negative");
-          label.textContent = "Biais risk-off";
-        } else {
-          pill.classList.add("pill-neutral");
-          label.textContent = "Lecture neutre";
-        }
-
-        comment.textContent =
-          summary.risk_comment ||
-          "Vue macro hebdo chargée. Aucun commentaire détaillé disponible.";
-      } catch (err) {
-        console.error("Erreur fetchMacroBiasGlobal:", err);
-        pill.classList.remove("pill-positive", "pill-negative");
-        pill.classList.add("pill-neutral");
-        label.textContent = "Indisponible";
-        comment.textContent =
-          "Impossible de récupérer la vue macro globale pour le moment.";
-      }
-    }
-
-    async function fetchMacroBiasAssets() {
-      try {
-        const res = await fetch(`${API_BASE}/api/macro/bias`);
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
-        const data = await res.json();
-        const assets = data.assets || {};
-        const grid = document.getElementById("markets-grid");
-
-        Object.entries(assets).forEach(([symbol, info]) => {
-          const card = grid.querySelector(`.market-card[data-symbol="${symbol}"]`);
-          if (!card) return;
-          const biasEl = card.querySelector(".market-macro-bias");
-          if (!biasEl) return;
-
-          let text = "Biais macro neutre";
-          let cls = "";
-          if (info.bias === "bullish") {
-            text = "Biais macro haussier";
-            cls = "positive";
-          } else if (info.bias === "bearish") {
-            text = "Biais macro baissier";
-            cls = "negative";
-          }
-
-          biasEl.textContent = text;
-          biasEl.classList.remove("positive", "negative");
-          if (cls) biasEl.classList.add(cls);
-          if (info.reason) {
-            biasEl.title = info.reason;
-          }
-        });
-      } catch (err) {
-        console.error("Erreur fetchMacroBiasAssets:", err);
-      }
-    }
-
-    async function refreshMarkets() {
-      const statusError = document.getElementById("status-error");
-      statusError.textContent = "";
-
-      try {
-        const grid = document.getElementById("markets-grid");
-        if (!grid.dataset.initialized) {
-          SYMBOL_ORDER.forEach((sym) => {
-            const card = createMarketCard(sym);
-            grid.appendChild(card);
-          });
-          grid.dataset.initialized = "1";
-        }
-
-        const snapshots = {};
-        for (const sym of SYMBOL_ORDER) {
-          try {
-            const snap = await fetchSnapshot(sym);
-            snapshots[sym] = snap;
-
-            const card = grid.querySelector(`.market-card[data-symbol="${sym}"]`);
-            if (!card) continue;
-            const priceEl = card.querySelector(".market-price");
-            const changeEl = card.querySelector(".market-change");
-            const commentEl = card.querySelector(".market-comment");
-
-            priceEl.textContent = formatPrice(snap.price);
-            const pct = snap.change_pct || 0;
-            changeEl.textContent = formatPct(pct);
-            changeEl.classList.remove("positive", "negative");
-            if (pct > 0.01) changeEl.classList.add("positive");
-            else if (pct < -0.01) changeEl.classList.add("negative");
-
-            commentEl.textContent = snap.comment || "Lecture indisponible.";
-            card.dataset.snapshot = JSON.stringify(snap);
-          } catch (err) {
-            console.error("Erreur snapshot pour", sym, err);
-            statusError.textContent = `Erreur de chargement : ${err.message}`;
-          }
-        }
-
-        // Si aucun actif n'est actif, on met ES par défaut
-        const active = document.querySelector(".market-card.active");
-        if (!active && grid.firstChild) {
-          grid.firstChild.classList.add("active");
-          const sym = grid.firstChild.dataset.symbol;
-          const snap = snapshots[sym];
-          if (snap) setMainMarket(sym, snap);
-        } else if (active) {
-          const sym = active.dataset.symbol;
-          const snap = snapshots[sym];
-          if (snap) setMainMarket(sym, snap);
-        }
-
-        const now = new Date();
-        document.getElementById("last-update").textContent =
-          "Dernière mise à jour : " +
-          now.toLocaleTimeString("fr-FR", {
-            hour: "2-digit",
-            minute: "2-digit",
-          });
-
-        // Rafraîchit aussi le biais macro par actif
-        await fetchMacroBiasAssets();
-      } catch (err) {
-        console.error("Erreur refreshMarkets:", err);
-        statusError.textContent = "Erreur globale de chargement des marchés.";
-      }
-    }
-
-    async function fetchPerfSummary() {
-      const section = document.getElementById("perf-section");
-      const tbody = document.getElementById("perf-tbody");
-      const dateEl = document.getElementById("perf-date");
-      const errorEl = document.getElementById("perf-error");
-
-      if (!section) return;
-
-      errorEl.textContent = "";
-      tbody.innerHTML = "<tr><td colspan='4'>Chargement…</td></tr>";
-
-      try {
-        const res = await fetch(`${API_BASE}/perf/summary`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        const asOf = data.as_of || "";
-        const assets = data.assets || [];
-
-        if (asOf) {
-          dateEl.textContent = "Données au " + asOf;
-        } else {
-          dateEl.textContent = "";
-        }
-
-        if (!assets.length) {
-          tbody.innerHTML = "<tr><td colspan='4'>Aucune donnée disponible.</td></tr>";
-          return;
-        }
-
-        tbody.innerHTML = "";
-        for (const asset of assets) {
-          const tr = document.createElement("tr");
-
-          const tdName = document.createElement("td");
-          tdName.textContent = `${asset.symbol} — ${asset.label || ""}`;
-
-          const tdD = document.createElement("td");
-          tdD.textContent = formatPct(asset.d ?? 0);
-
-          const tdW = document.createElement("td");
-          tdW.textContent = formatPct(asset.w ?? 0);
-
-          const tdM = document.createElement("td");
-          tdM.textContent = formatPct(asset.m ?? 0);
-
-          [tdD, tdW, tdM].forEach((td) => {
-            const value = parseFloat(
-              td.textContent.replace("%", "").replace(",", ".")
-            );
-            td.classList.remove("perf-pos", "perf-neg", "perf-flat");
-            if (value > 0.01) td.classList.add("perf-pos");
-            else if (value < -0.01) td.classList.add("perf-neg");
-            else td.classList.add("perf-flat");
-          });
-
-          tr.appendChild(tdName);
-          tr.appendChild(tdD);
-          tr.appendChild(tdW);
-          tr.appendChild(tdM);
-          tbody.appendChild(tr);
-        }
-      } catch (err) {
-        console.error("Erreur fetchPerfSummary:", err);
-        errorEl.textContent =
-          "Impossible de récupérer les performances pour le moment.";
-        tbody.innerHTML = "<tr><td colspan='4'>—</td></tr>";
-      }
-    }
-
-    async function runIAAnalysis() {
-      const select = document.getElementById("ia-asset-select");
-      const symbol = select.value || "ES";
-      const btn = document.getElementById("ia-run-btn");
-      const result = document.getElementById("assistant-result");
-      const errorEl = document.getElementById("assistant-error");
-
-      errorEl.textContent = "";
-      btn.disabled = true;
-      const oldText = btn.textContent;
-      btn.textContent = "Analyse en cours…";
-
-      result.innerHTML =
-        '<div class="assistant-placeholder">Analyse IA en cours pour ' +
-        symbol +
-        "…</div>";
-
-      try {
-        const res = await fetch(
-          `${API_BASE}/analyze?symbol=${encodeURIComponent(symbol)}`
-        );
-        if (!res.ok) {
-          throw new Error(`Erreur backend IA : ${res.status}`);
-        }
-        const data = await res.json();
-        const analysis = data.analysis || "Aucune analyse retournée.";
-        result.textContent = analysis;
-      } catch (err) {
-        console.error("Erreur runIAAnalysis:", err);
-        errorEl.textContent =
-          "Erreur lors de l’appel IA. Vérifie le backend ou réessaie dans quelques instants. (" +
-          err.message +
-          ")";
-      } finally {
-        btn.disabled = false;
-        btn.textContent = oldText;
-      }
-    }
-
-    async function fetchNewsSentiment() {
-      const errorEl = document.getElementById("news-error");
-      const riskPill = document.getElementById("news-risk-pill");
-      const riskLabel = document.getElementById("news-risk-label");
-      const volPill = document.getElementById("news-vol-pill");
-      const volLabel = document.getElementById("news-vol-label");
-      const lastUpdate = document.getElementById("news-last-update");
-      const keypointsList = document.getElementById("news-keypoints-list");
-      const commentEl = document.getElementById("news-macro-comment");
-      const btn = document.getElementById("news-refresh-btn");
-
-      if (!riskPill) return;
-
-      errorEl.textContent = "";
-      if (btn) {
-        btn.disabled = true;
-        btn.dataset.oldText = btn.textContent;
-        btn.textContent = "Analyse en cours…";
-      }
-
-      keypointsList.innerHTML = "<li>Analyse des news en cours…</li>";
-      commentEl.textContent = "";
-
-      try {
-        const res = await fetch(`${API_BASE}/api/news/analyze`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ max_articles: 10 }),
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        const analysis = data.analysis || {};
-        const macro = analysis.macro_sentiment || {};
-        const riskTone = analysis.risk_tone || "neutral";
-        const volOutlook = analysis.volatility_outlook || "normal";
-        const keyPoints = analysis.key_points || [];
-        const byAsset = analysis.by_asset || {};
-
-        // Risk tone
-        riskPill.classList.remove("pill-positive", "pill-negative", "pill-neutral");
-        let riskText = "Neutre";
-        let riskClass = "pill-neutral";
-        if (riskTone === "risk_on") {
-          riskText = "Risk-on";
-          riskClass = "pill-positive";
-        } else if (riskTone === "risk_off") {
-          riskText = "Risk-off";
-          riskClass = "pill-negative";
-        }
-        riskPill.classList.add(riskClass);
-        riskLabel.textContent = "Tonalité " + riskText.toLowerCase();
-
-        // Volatilité
-        volPill.classList.remove("pill-positive", "pill-negative", "pill-neutral");
-        let volText = "Volatilité normale";
-        let volClass = "pill-neutral";
-        if (volOutlook === "high") {
-          volText = "Volatilité élevée";
-          volClass = "pill-negative";
-        } else if (volOutlook === "low") {
-          volText = "Volatilité faible";
-          volClass = "pill-positive";
-        }
-        volPill.classList.add(volClass);
-        volLabel.textContent = volText;
-
-        // Commentaire macro + points clés
-        commentEl.textContent =
-          macro.comment ||
-          "Lecture macro issue du flux de news (aucun commentaire détaillé fourni).";
-
-        keypointsList.innerHTML = "";
-        if (keyPoints.length === 0) {
-          const li = document.createElement("li");
-          li.textContent = "Aucun point clé identifié.";
-          keypointsList.appendChild(li);
-        } else {
-          keyPoints.forEach((pt) => {
-            const li = document.createElement("li");
-            li.textContent = pt;
-            keypointsList.appendChild(li);
-          });
-        }
-
-        // Biais par actif
-        const assetSymbols = ["ES", "NQ", "BTC", "CL", "GC"];
-        assetSymbols.forEach((sym) => {
-          const info = byAsset[sym] || {};
-          const bias = info.bias || "neutral";
-          const biasEl = document.getElementById(`news-asset-bias-${sym}`);
-          const cmtEl = document.getElementById(`news-asset-comment-${sym}`);
-          if (!biasEl || !cmtEl) return;
-
-          let text = "Biais neutre";
-          let cls = "perf-flat";
-          if (bias === "bullish") {
-            text = "Biais haussier";
-            cls = "perf-pos";
-          } else if (bias === "bearish") {
-            text = "Biais baissier";
-            cls = "perf-neg";
-          }
-          biasEl.textContent = text;
-          biasEl.classList.remove("perf-pos", "perf-neg", "perf-flat");
-          biasEl.classList.add(cls);
-          cmtEl.textContent = info.comment || "";
-        });
-
-            /* === Calendrier économique === */
+    /* === Calendrier économique === */
 
     .calendar-header {
       display: flex;
@@ -1603,44 +922,916 @@
       color: var(--text-muted);
       white-space: nowrap;
     }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div class="header-row">
+        <div class="brand">
+          <div class="brand-logo">Δ</div>
+          <div class="brand-text">
+            <div class="brand-title">STARK TRADING DASHBOARD</div>
+            <div class="brand-subtitle">
+              Vue synthétique des marchés — ES, NQ, BTC, CL, GC
+            </div>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="beta-pill">
+            <span>βêta – backend render</span>
+          </div>
+          <div class="currency-selector">
+            <span>Devise :</span>
+            <button class="active" type="button">USD $</button>
+            <button type="button">€</button>
+          </div>
+        </div>
+      </div>
 
+      <div class="header-row-bottom">
+        <div class="main-title-block">
+          <div>
+            <span>Contrat principal – ES S&P 500 Future</span>
+          </div>
+          <small>Lecture globale du marché et biais macro.</small>
 
-        
-        // Timestamp
+          <!-- Biais macro global -->
+          <div class="macro-bias-wrapper" style="margin-top: 6px;">
+            <span class="macro-bias-label">Biais macro global</span>
+            <div id="macro-bias-pill" class="pill pill-neutral">
+              <span class="pill-dot"></span>
+              <span id="macro-bias-label">Lecture neutre</span>
+            </div>
+            <div id="macro-bias-comment" class="macro-bias-comment">
+              Chargement de la vue macro globale…
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="content-grid">
+      <!-- Colonne gauche : marchés + perfs + news + calendrier -->
+      <div>
+        <section class="card">
+          <div class="card-inner">
+            <div class="card-header">
+              <div>
+                <div class="card-title" id="main-price-title">ES — S&P 500 Future</div>
+                <div class="card-subtitle">Prix spot & variation depuis la dernière bougie.</div>
+              </div>
+              <div id="main-price-change" class="price-change">0.00 %</div>
+            </div>
+            <div class="price-main" id="main-price">—</div>
+            <div class="price-comment" id="main-price-comment">
+              Lecture globale en cours…
+            </div>
+
+            <div class="markets-grid" id="markets-grid">
+              <!-- Cartes marchés injectées par JS -->
+            </div>
+
+            <div class="status-row">
+              <div class="status-left">
+                <div class="status-dot"></div>
+                <span id="status-text">Backend Render en ligne – actualisation auto toutes les 15 s</span>
+              </div>
+              <div id="last-update">Dernière mise à jour : —</div>
+            </div>
+            <div id="status-error" class="status-error"></div>
+          </div>
+        </section>
+
+        <!-- Performance des indices -->
+        <section class="card">
+          <div class="card-inner">
+            <div class="perf-header">
+              <div class="perf-title">Performance des indices</div>
+              <div id="perf-date">Données : —</div>
+            </div>
+            <table class="perf-table">
+              <thead>
+                <tr>
+                  <th>Indice</th>
+                  <th>Jour</th>
+                  <th>Semaine</th>
+                  <th>Mois</th>
+                </tr>
+              </thead>
+              <tbody id="perf-table-body">
+                <tr>
+                  <td colspan="4" class="perf-empty">
+                    Impossible de récupérer les performances pour le moment.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- News & Sentiment IA -->
+        <section class="card">
+          <div class="card-inner">
+            <div class="news-header-row">
+              <div class="news-title-block">
+                <div class="news-title">News & Sentiment IA</div>
+                <div class="news-subtitle">
+                  Lecture synthétique des dernières news macro / marché. Ne remplace pas l’analyse personnelle.
+                </div>
+              </div>
+              <div class="news-meta">
+                <div id="news-last-update">Dernière analyse : —</div>
+              </div>
+            </div>
+
+            <div class="news-top-pills">
+              <div id="news-tone-pill" class="news-pill">
+                <div class="news-pill-label">Tonalité risque</div>
+                <div class="news-pill-value">—</div>
+              </div>
+              <div id="news-vol-pill" class="news-pill">
+                <div class="news-pill-label">Volatilité</div>
+                <div class="news-pill-value">—</div>
+              </div>
+            </div>
+
+            <div class="news-keypoints" id="news-keypoints">
+              Analyse des news en cours…
+            </div>
+
+            <div class="news-assets-grid" id="news-assets-grid">
+              <!-- cartes par actif (ES / NQ / BTC / CL / GC) -->
+            </div>
+
+            <div class="news-refresh-row">
+              <button id="news-refresh-btn" class="btn-secondary" type="button">
+                🔄 Rafraîchir l’analyse
+              </button>
+              <div id="news-source-label">Source : —</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Calendrier économique -->
+        <section class="card">
+          <div class="card-inner">
+            <div class="calendar-header">
+              <div class="calendar-title-block">
+                <div class="calendar-title">Calendrier économique</div>
+                <div class="calendar-subtitle">
+                  Principales publications macro du jour et des prochains jours (UTC).
+                </div>
+              </div>
+              <div class="calendar-meta">
+                <div id="calendar-status">Chargement du calendrier économique…</div>
+                <div id="calendar-last-update">Dernière mise à jour : —</div>
+              </div>
+            </div>
+
+            <div class="calendar-columns">
+              <div>
+                <div class="calendar-column-title">Aujourd’hui</div>
+                <table class="calendar-table">
+                  <thead>
+                    <tr>
+                      <th>Heure</th>
+                      <th>Pays</th>
+                      <th>Évènement</th>
+                      <th>Impact</th>
+                    </tr>
+                  </thead>
+                  <tbody id="calendar-today-body">
+                    <!-- lignes injectées en JS -->
+                  </tbody>
+                </table>
+              </div>
+              <div>
+                <div class="calendar-column-title">Prochains jours</div>
+                <table class="calendar-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Pays</th>
+                      <th>Évènement</th>
+                      <th>Impact</th>
+                    </tr>
+                  </thead>
+                  <tbody id="calendar-week-body">
+                    <!-- lignes injectées en JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Colonne droite : assistant IA -->
+      <section class="card">
+        <div class="card-inner">
+          <div class="assistant-header">
+            <div class="assistant-title-row">
+              <div class="assistant-title">Assistant Stark – Analyse IA (pas un conseil)</div>
+              <div class="assistant-badge">
+                🔗 Intégration en cours avec FastAPI & OpenAI
+              </div>
+            </div>
+            <div class="assistant-subtitle">
+              Génère une analyse synthétique pour l’actif sélectionné à partir des données temps réel (yfinance) récupérées par ton backend FastAPI.
+            </div>
+            <div class="assistant-controls">
+              <select id="ia-asset-select" class="select-asset">
+                <option value="ES">ES – S&P 500 Future</option>
+                <option value="NQ">NQ – Nasdaq 100 Future</option>
+                <option value="BTC">BTC – Bitcoin</option>
+                <option value="CL">CL – Crude Oil (WTI)</option>
+                <option value="GC">GC – Gold</option>
+              </select>
+              <button id="ia-run-btn" class="btn-primary" type="button">
+                🧠 Analyser avec l’IA
+              </button>
+            </div>
+          </div>
+
+          <div class="assistant-body">
+            <div id="assistant-error" class="assistant-error"></div>
+            <div id="assistant-result" class="assistant-result">
+              <div class="assistant-placeholder">
+                Sélectionne un actif puis clique sur « Analyser avec l’IA » pour générer une analyse de marché structurée (global, swing, intraday, scénarios).<br /><br />
+                Rappel : tout ce qui est affiché ici reste purement informatif et ne constitue en aucun cas un conseil en investissement.
+              </div>
+            </div>
+            <div class="assistant-footer">
+              L’assistant IA combine les données techniques (RSI, MACD, Bollinger…) avec le contexte global du marché. Utilisation à des fins d’analyse uniquement.
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = ""; // même origine
+
+    const SYMBOL_CONFIG = {
+      ES: { label: "S&P 500 Future", yf: "ES=F" },
+      NQ: { label: "Nasdaq 100 Future", yf: "NQ=F" },
+      BTC: { label: "Bitcoin", yf: "BTC-USD" },
+      CL: { label: "Crude Oil (WTI)", yf: "CL=F" },
+      GC: { label: "Gold", yf: "GC=F" },
+    };
+
+    const SYMBOL_ORDER = ["ES", "NQ", "BTC", "CL", "GC"];
+
+    function formatPrice(value) {
+      if (value === null || value === undefined || isNaN(value)) return "—";
+      if (value > 1000) return value.toLocaleString("fr-FR", { maximumFractionDigits: 2 });
+      return value.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function formatPct(value) {
+      if (value === null || value === undefined || isNaN(value)) return "0.00 %";
+      const sign = value > 0 ? "+" : "";
+      return sign + value.toFixed(2) + " %";
+    }
+
+    function setMainMarket(symbol, snapshot) {
+      const titleEl = document.getElementById("main-price-title");
+      const priceEl = document.getElementById("main-price");
+      const changeEl = document.getElementById("main-price-change");
+      const commentEl = document.getElementById("main-price-comment");
+
+      const cfg = SYMBOL_CONFIG[symbol];
+      titleEl.textContent = `${symbol} — ${cfg.label}`;
+      priceEl.textContent = formatPrice(snapshot.price);
+
+      const pct = snapshot.change_pct || 0;
+      changeEl.textContent = formatPct(pct);
+      changeEl.classList.remove("positive", "negative");
+      if (pct > 0.01) changeEl.classList.add("positive");
+      else if (pct < -0.01) changeEl.classList.add("negative");
+
+      commentEl.textContent = snapshot.comment || "Lecture indisponible.";
+    }
+
+    function createMarketCard(symbol) {
+      const cfg = SYMBOL_CONFIG[symbol];
+      const card = document.createElement("button");
+      card.className = "market-card";
+      card.type = "button";
+      card.dataset.symbol = symbol;
+
+      const sym = document.createElement("div");
+      sym.className = "market-symbol";
+      sym.textContent = symbol;
+
+      const name = document.createElement("div");
+      name.className = "market-name";
+      name.textContent = cfg.label;
+
+      const line = document.createElement("div");
+      line.className = "market-line";
+
+      const price = document.createElement("div");
+      price.className = "market-price";
+      price.textContent = "—";
+
+      const change = document.createElement("div");
+      change.className = "market-change";
+      change.textContent = "0.00 %";
+
+      line.appendChild(price);
+      line.appendChild(change);
+
+      const comment = document.createElement("div");
+      comment.className = "market-comment";
+      comment.textContent = "Chargement…";
+
+      const macroBias = document.createElement("div");
+      macroBias.className = "market-macro-bias";
+      macroBias.textContent = "";
+
+      card.appendChild(sym);
+      card.appendChild(name);
+      card.appendChild(line);
+      card.appendChild(comment);
+      card.appendChild(macroBias);
+
+      card.addEventListener("click", () => {
+        document
+          .querySelectorAll(".market-card")
+          .forEach((c) => c.classList.remove("active"));
+        card.classList.add("active");
+        if (card.dataset.snapshot) {
+          try {
+            const snap = JSON.parse(card.dataset.snapshot);
+            setMainMarket(symbol, snap);
+          } catch (e) {
+            console.error("Erreur parse snapshot:", e);
+          }
+        }
+        const select = document.getElementById("ia-asset-select");
+        select.value = symbol;
+      });
+
+      return card;
+    }
+
+    async function fetchSnapshot(symbol) {
+      const url = `${API_BASE}/latest?symbol=${encodeURIComponent(symbol)}`;
+      const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error(`Erreur backend pour ${symbol} : ${res.status}`);
+      }
+      return res.json();
+    }
+
+    async function fetchMacroBiasGlobal() {
+      const pill = document.getElementById("macro-bias-pill");
+      const label = document.getElementById("macro-bias-label");
+      const comment = document.getElementById("macro-bias-comment");
+
+      pill.classList.remove("pill-positive", "pill-negative", "pill-neutral");
+      pill.classList.add("pill-neutral");
+      label.textContent = "Lecture neutre";
+      comment.textContent = "Chargement de la vue macro globale…";
+
+      try {
+        const res = await fetch(`${API_BASE}/api/macro/state`);
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+        const data = await res.json();
+        const regime = data.macro_regime || {};
+        const labelTxt = regime.label || "Neutre";
+        const confidence = regime.confidence || 0;
+
+        pill.classList.remove("pill-positive", "pill-negative", "pill-neutral");
+
+        const tone = (data.risk_sentiment || "neutral").toLowerCase();
+
+        if (tone.includes("on")) {
+          pill.classList.add("pill-positive");
+        } else if (tone.includes("off")) {
+          pill.classList.add("pill-negative");
+        } else {
+          pill.classList.add("pill-neutral");
+        }
+
+        document.getElementById("macro-bias-label").textContent = labelTxt;
+        const commentTxt =
+          data.commentary ||
+          "Aucun contexte macro explicite disponible, régime neutre par défaut.";
+        comment.textContent = commentTxt;
+      } catch (err) {
+        console.error("Erreur fetchMacroBiasGlobal:", err);
+        pill.classList.remove("pill-positive", "pill-negative");
+        pill.classList.add("pill-neutral");
+        label.textContent = "Indisponible";
+        comment.textContent =
+          "Impossible de récupérer la vue macro globale pour le moment.";
+      }
+    }
+
+    async function fetchMacroBiasAssets() {
+      try {
+        const res = await fetch(`${API_BASE}/api/macro/bias`);
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+        const data = await res.json();
+        const assets = data.assets || {};
+        const grid = document.getElementById("markets-grid");
+
+        Object.entries(assets).forEach(([symbol, info]) => {
+          const card = grid.querySelector(`.market-card[data-symbol="${symbol}"]`);
+          if (!card) return;
+          const biasEl = card.querySelector(".market-macro-bias");
+          if (!biasEl) return;
+
+          let text = "Biais macro neutre";
+          let cls = "";
+          if (info.bias === "bullish") {
+            text = "Biais macro haussier";
+            cls = "positive";
+          } else if (info.bias === "bearish") {
+            text = "Biais macro baissier";
+            cls = "negative";
+          }
+
+          biasEl.textContent = text;
+          biasEl.classList.remove("positive", "negative");
+          if (cls) biasEl.classList.add(cls);
+          if (info.reason) {
+            biasEl.title = info.reason;
+          }
+        });
+      } catch (err) {
+        console.error("Erreur fetchMacroBiasAssets:", err);
+      }
+    }
+
+    async function refreshMarkets() {
+      const statusError = document.getElementById("status-error");
+      statusError.textContent = "";
+
+      try {
+        const grid = document.getElementById("markets-grid");
+        if (!grid.dataset.initialized) {
+          SYMBOL_ORDER.forEach((sym) => {
+            const card = createMarketCard(sym);
+            grid.appendChild(card);
+          });
+          grid.dataset.initialized = "1";
+        }
+
+        const snapshots = {};
+        for (const sym of SYMBOL_ORDER) {
+          try {
+            const snap = await fetchSnapshot(sym);
+            snapshots[sym] = snap;
+
+            const card = grid.querySelector(`.market-card[data-symbol="${sym}"]`);
+            if (!card) continue;
+            const priceEl = card.querySelector(".market-price");
+            const changeEl = card.querySelector(".market-change");
+            const commentEl = card.querySelector(".market-comment");
+
+            priceEl.textContent = formatPrice(snap.price);
+            const pct = snap.change_pct || 0;
+            changeEl.textContent = formatPct(pct);
+            changeEl.classList.remove("positive", "negative");
+            if (pct > 0.01) changeEl.classList.add("positive");
+            else if (pct < -0.01) changeEl.classList.add("negative");
+
+            commentEl.textContent = snap.comment || "Lecture indisponible.";
+            card.dataset.snapshot = JSON.stringify(snap);
+          } catch (err) {
+            console.error("Erreur snapshot pour", sym, err);
+            statusError.textContent = `Erreur de chargement : ${err.message}`;
+          }
+        }
+
+        const active = document.querySelector(".market-card.active");
+        const grid = document.getElementById("markets-grid");
+
+        if (!active && grid.firstChild) {
+          grid.firstChild.classList.add("active");
+          const sym = grid.firstChild.dataset.symbol;
+          const snap = snapshots[sym];
+          if (snap) setMainMarket(sym, snap);
+        } else if (active) {
+          const sym = active.dataset.symbol;
+          const snap = snapshots[sym];
+          if (snap) setMainMarket(sym, snap);
+        }
+
         const now = new Date();
-        lastUpdate.textContent =
+        document.getElementById("last-update").textContent =
+          "Dernière mise à jour : " +
+          now.toLocaleTimeString("fr-FR", {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+      } catch (err) {
+        console.error("Erreur refreshMarkets:", err);
+        statusError.textContent = "Erreur globale de chargement des marchés.";
+      }
+    }
+
+    async function runIAAnalysis() {
+      const select = document.getElementById("ia-asset-select");
+      const symbol = select.value || "ES";
+      const btn = document.getElementById("ia-run-btn");
+      const result = document.getElementById("assistant-result");
+      const errorEl = document.getElementById("assistant-error");
+
+      errorEl.textContent = "";
+      btn.disabled = true;
+      const oldText = btn.textContent;
+      btn.textContent = "Analyse en cours…";
+
+      result.innerHTML =
+        '<div class="assistant-placeholder">Analyse IA en cours pour ' +
+        symbol +
+        "…</div>";
+
+      try {
+        const res = await fetch(
+          `${API_BASE}/analyze?symbol=${encodeURIComponent(symbol)}`
+        );
+        if (!res.ok) {
+          throw new Error(`Erreur backend IA : ${res.status}`);
+        }
+        const data = await res.json();
+        const analysis = data.analysis || "Aucune analyse retournée.";
+        result.textContent = analysis;
+      } catch (err) {
+        console.error("Erreur runIAAnalysis:", err);
+        errorEl.textContent =
+          "Erreur lors de l’appel IA. Vérifie le backend ou réessaie dans quelques instants. (" +
+          err.message +
+          ")";
+      } finally {
+        btn.disabled = false;
+        btn.textContent = oldText;
+      }
+    }
+
+    async function fetchPerfSummary() {
+      const tbody = document.getElementById("perf-table-body");
+      const dateEl = document.getElementById("perf-date");
+      if (!tbody) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/perf/summary`);
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+        const data = await res.json();
+        const rows = data.rows || [];
+        const asOf = data.as_of || null;
+
+        tbody.innerHTML = "";
+
+        if (rows.length === 0) {
+          const tr = document.createElement("tr");
+          const td = document.createElement("td");
+          td.colSpan = 4;
+          td.className = "perf-empty";
+          td.textContent =
+            "Impossible de récupérer les performances pour le moment.";
+          tr.appendChild(td);
+          tbody.appendChild(tr);
+        } else {
+          rows.forEach((row) => {
+            const tr = document.createElement("tr");
+
+            const nameCell = document.createElement("td");
+            nameCell.textContent = row.label || row.symbol || "—";
+
+            const dayCell = document.createElement("td");
+            const weekCell = document.createElement("td");
+            const monthCell = document.createElement("td");
+
+            const fields = [
+              { value: row.day, cell: dayCell },
+              { value: row.week, cell: weekCell },
+              { value: row.month, cell: monthCell },
+            ];
+
+            fields.forEach(({ value, cell }) => {
+              if (value === null || value === undefined || isNaN(value)) {
+                cell.textContent = "—";
+              } else {
+                cell.textContent = formatPct(value);
+                if (value > 0) cell.classList.add("perf-change-positive");
+                else if (value < 0) cell.classList.add("perf-change-negative");
+              }
+            });
+
+            tr.appendChild(nameCell);
+            tr.appendChild(dayCell);
+            tr.appendChild(weekCell);
+            tr.appendChild(monthCell);
+            tbody.appendChild(tr);
+          });
+        }
+
+        if (asOf) {
+          dateEl.textContent = "Données au " + asOf;
+        } else {
+          dateEl.textContent = "Données : —";
+        }
+      } catch (err) {
+        console.error("Erreur fetchPerfSummary:", err);
+        tbody.innerHTML = "";
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 4;
+        td.className = "perf-empty";
+        td.textContent =
+          "Impossible de récupérer les performances pour le moment.";
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+      }
+    }
+
+    function renderNewsAssets(byAsset) {
+      const grid = document.getElementById("news-assets-grid");
+      if (!grid) return;
+      grid.innerHTML = "";
+
+      const order = ["ES", "NQ", "BTC", "CL", "GC"];
+
+      order.forEach((sym) => {
+        const info = (byAsset && byAsset[sym]) || null;
+        const card = document.createElement("div");
+        card.className = "news-asset-card";
+
+        const header = document.createElement("div");
+        header.className = "news-asset-header";
+
+        const symbolEl = document.createElement("div");
+        symbolEl.className = "news-asset-symbol";
+        symbolEl.textContent = sym;
+
+        const biasEl = document.createElement("div");
+        biasEl.className = "news-asset-bias";
+
+        if (!info) {
+          biasEl.textContent = "Biais neutre";
+        } else {
+          const bias = (info.bias || "neutral").toLowerCase();
+          if (bias === "bullish") {
+            biasEl.textContent = "Biais haussier";
+            biasEl.classList.add("bullish");
+          } else if (bias === "bearish") {
+            biasEl.textContent = "Biais baissier";
+            biasEl.classList.add("bearish");
+          } else {
+            biasEl.textContent = "Biais neutre";
+          }
+        }
+
+        header.appendChild(symbolEl);
+        header.appendChild(biasEl);
+
+        const commentEl = document.createElement("div");
+        commentEl.className = "news-asset-comment";
+        commentEl.textContent =
+          (info && info.comment) ||
+          "Aucun signal spécifique ressortant des news récentes.";
+
+        card.appendChild(header);
+        card.appendChild(commentEl);
+        grid.appendChild(card);
+      });
+    }
+
+    async function fetchNewsAndSentimentIA(forceRefresh = false) {
+      const btn = document.getElementById("news-refresh-btn");
+      const tonePill = document.getElementById("news-tone-pill");
+      const volPill = document.getElementById("news-vol-pill");
+      const keypointsEl = document.getElementById("news-keypoints");
+      const sourceEl = document.getElementById("news-source-label");
+      const lastEl = document.getElementById("news-last-update");
+
+      if (!keypointsEl) return;
+
+      if (btn) {
+        btn.disabled = true;
+      }
+      keypointsEl.textContent = "Analyse des news en cours…";
+
+      try {
+        const res = await fetch(`${API_BASE}/api/news/analyze`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            max_articles: 20,
+            force_refresh: !!forceRefresh,
+          }),
+        });
+
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+
+        const analysis = data.analysis || {};
+        const macroSentiment = analysis.macro_sentiment || {};
+        const riskTone = analysis.risk_tone || "neutral";
+        const volOutlook = analysis.volatility_outlook || "normal";
+        const keyPoints = analysis.key_points || [];
+        const byAsset = analysis.by_asset || {};
+        const src = data.news_source || data.source || "—";
+
+        // Tonalité risque
+        const toneValueEl = tonePill.querySelector(".news-pill-value");
+        tonePill.classList.remove("news-pill-positive", "news-pill-negative");
+        let toneLabel = "Neutre";
+        if (riskTone === "risk_on") {
+          toneLabel = "Risk-on";
+          tonePill.classList.add("news-pill-positive");
+        } else if (riskTone === "risk_off") {
+          toneLabel = "Risk-off";
+          tonePill.classList.add("news-pill-negative");
+        }
+        toneValueEl.textContent = toneLabel;
+
+        // Volatilité
+        const volValueEl = volPill.querySelector(".news-pill-value");
+        let volLabel = "Normale";
+        if (volOutlook === "calm") volLabel = "Calme";
+        else if (volOutlook === "elevated") volLabel = "Élevée";
+        else if (volOutlook === "high") volLabel = "Très élevée";
+        volValueEl.textContent = volLabel;
+
+        // Commentaire global + points clés
+        const macroComment =
+          macroSentiment.comment ||
+          "Les news ne dégagent pas de biais macro clair pour le moment.";
+        let html =
+          "<strong>Biais global :</strong> " + macroComment + "<br/><br/>";
+
+        if (keyPoints.length > 0) {
+          html += "<strong>Points clés :</strong><ul>";
+          keyPoints.forEach((pt) => {
+            html += "<li>" + pt + "</li>";
+          });
+          html += "</ul>";
+        }
+
+        keypointsEl.innerHTML = html;
+
+        // Biais par actif
+        renderNewsAssets(byAsset);
+
+        // Source + horodatage
+        sourceEl.textContent = "Source : " + src;
+        const now = new Date();
+        lastEl.textContent =
           "Dernière analyse : " +
           now.toLocaleTimeString("fr-FR", {
             hour: "2-digit",
             minute: "2-digit",
           });
       } catch (err) {
-        console.error("Erreur fetchNewsSentiment:", err);
-        errorEl.textContent =
-          "Impossible de récupérer l'analyse des news pour le moment.";
+        console.error("Erreur fetchNewsAndSentimentIA:", err);
+        keypointsEl.textContent =
+          "Impossible de récupérer l’analyse des news pour le moment.";
       } finally {
-        if (btn) {
-          btn.disabled = false;
-          btn.textContent = btn.dataset.oldText || "🔄 Rafraîchir l’analyse";
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    function renderCalendarTable(tbody, events, withDate) {
+      tbody.innerHTML = "";
+
+      if (!events || events.length === 0) {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 4;
+        td.className = "calendar-empty";
+        td.textContent = "Aucun évènement économique.";
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+
+      events.forEach((ev) => {
+        const tr = document.createElement("tr");
+
+        const dateCell = document.createElement("td");
+        const timeCell = document.createElement("td");
+        const countryCell = document.createElement("td");
+        const eventCell = document.createElement("td");
+        const impactCell = document.createElement("td");
+
+        const country = ev.country || "";
+        const impact = (ev.impact || "").toLowerCase();
+
+        if (withDate) {
+          dateCell.textContent = ev.date || "—";
+          tr.appendChild(dateCell);
+        } else {
+          timeCell.textContent = ev.time || "—";
+          tr.appendChild(timeCell);
         }
+
+        countryCell.textContent = country || "—";
+        countryCell.className = "calendar-country";
+
+        eventCell.textContent = ev.event || "—";
+
+        let impactLabel = "—";
+        if (impact.includes("high")) impactLabel = "Fort";
+        else if (impact.includes("medium")) impactLabel = "Modéré";
+        else if (impact.includes("low")) impactLabel = "Faible";
+
+        impactCell.textContent = impactLabel;
+        impactCell.classList.add("calendar-impact");
+        if (impact.includes("high")) impactCell.classList.add("high");
+        else if (impact.includes("medium")) impactCell.classList.add("medium");
+        else if (impact.includes("low")) impactCell.classList.add("low");
+
+        tr.appendChild(countryCell);
+        tr.appendChild(eventCell);
+        tr.appendChild(impactCell);
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function fetchCalendarSummary() {
+      const statusEl = document.getElementById("calendar-status");
+      const lastEl = document.getElementById("calendar-last-update");
+      const todayBody = document.getElementById("calendar-today-body");
+      const weekBody = document.getElementById("calendar-week-body");
+
+      if (!statusEl || !todayBody || !weekBody) return;
+
+      statusEl.textContent = "Chargement du calendrier économique…";
+
+      try {
+        const res = await fetch(`${API_BASE}/api/calendar/summary`);
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+        const today = data.today || [];
+        const week = data.week || [];
+
+        renderCalendarTable(todayBody, today, false);
+        renderCalendarTable(weekBody, week, true);
+
+        const now = new Date();
+        lastEl.textContent =
+          "Dernière mise à jour : " +
+          now.toLocaleTimeString("fr-FR", {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+
+        if (today.length === 0 && week.length === 0) {
+          statusEl.textContent =
+            "Aucun évènement économique majeur détecté sur la période.";
+        } else {
+          statusEl.textContent = "Évènements économiques chargés.";
+        }
+      } catch (err) {
+        console.error("Erreur fetchCalendarSummary:", err);
+        statusEl.textContent =
+          "Impossible de récupérer le calendrier économique pour le moment.";
       }
     }
 
     window.addEventListener("DOMContentLoaded", () => {
       refreshMarkets();
       fetchMacroBiasGlobal();
+      fetchMacroBiasAssets();
       fetchPerfSummary();
-      fetchNewsSentiment();
+      fetchNewsAndSentimentIA(false);
+      fetchCalendarSummary();
 
       // Rafraîchissement périodique des marchés
       setInterval(refreshMarkets, 15000);
+
+      // Rafraîchissement périodique du calendrier (toutes les 5 min)
+      setInterval(fetchCalendarSummary, 5 * 60 * 1000);
 
       const iaBtn = document.getElementById("ia-run-btn");
       iaBtn.addEventListener("click", runIAAnalysis);
 
       const newsBtn = document.getElementById("news-refresh-btn");
       if (newsBtn) {
-        newsBtn.addEventListener("click", fetchNewsSentiment);
+        newsBtn.addEventListener("click", () => fetchNewsAndSentimentIA(true));
       }
     });
   </script>
