@@ -235,3 +235,22 @@ async def generate_macro_state(req: MacroRequest):
         "source": "ia",
         "macro_state": new_state,
     }
+
+def generate_macro_state_from_text(context_text: str) -> Dict[str, Any]:
+    user_msg = MACRO_USER_TEMPLATE.format(context_text=context_text)
+
+    try:
+        resp = client.chat.completions.create(
+            model=MACRO_MODEL,
+            response_format={"type": "json_object"},
+            messages=[
+                {"role": "system", "content": MACRO_SYSTEM_PROMPT},
+                {"role": "user", "content": user_msg},
+            ],
+        )
+    except Exception as e:
+        # On remonte un message clair vers le client
+        raise HTTPException(status_code=500, detail=f"Erreur OpenAI: {e}")
+
+    content = resp.choices[0].message.content
+    ...
