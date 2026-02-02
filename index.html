@@ -1493,6 +1493,119 @@
           cmtEl.textContent = info.comment || "";
         });
 
+            /* === Calendrier économique === */
+
+    .calendar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .calendar-title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .calendar-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .calendar-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .calendar-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    .calendar-columns {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 800px) {
+      .calendar-columns {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .calendar-column-title {
+      font-size: 12px;
+      font-weight: 550;
+      margin-bottom: 6px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .calendar-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .calendar-table thead tr {
+      background: rgba(15, 23, 42, 0.96);
+    }
+
+    .calendar-table th,
+    .calendar-table td {
+      padding: 5px 6px;
+      border-bottom: 1px solid rgba(31, 41, 55, 0.85);
+    }
+
+    .calendar-table th {
+      text-align: left;
+      font-weight: 500;
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    .calendar-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .calendar-table .calendar-empty {
+      text-align: center;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .calendar-impact {
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .calendar-impact.low {
+      color: #a7f3d0;
+    }
+
+    .calendar-impact.medium {
+      color: #facc15;
+    }
+
+    .calendar-impact.high {
+      color: #fecaca;
+    }
+
+    .calendar-country {
+      font-size: 11px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+
+        
         // Timestamp
         const now = new Date();
         lastUpdate.textContent =
