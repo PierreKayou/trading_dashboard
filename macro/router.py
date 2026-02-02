@@ -92,3 +92,53 @@ async def get_month_context(
         month_end = next_month - timedelta(days=1)
 
     return await get_monthly_macro_context(month_start, month_end)
+
+# -------------------------------------------------------------------
+# Biais macro global + biais par actif (endpoint simple pour le dash)
+# -------------------------------------------------------------------
+
+MACRO_BIAS_PAYLOAD = {
+    "global_bias": "risk-on",
+    "summary": "Semaine globalement risk-on, les indices actions ont bien progressé.",
+    "assets": {
+        "ES": {
+            "bias": "bullish",
+            "confidence": "high",
+            "reason": "Biais risk-on global, performances hebdo positives sur les indices US et VIX en forte baisse."
+        },
+        "NQ": {
+            "bias": "bullish",
+            "confidence": "high",
+            "reason": "Nasdaq surperforme dans un contexte risk-on, ce qui favorise les valeurs de croissance."
+        },
+        "CL": {
+            "bias": "bearish",
+            "confidence": "medium",
+            "reason": "Pétrole en baisse sur la semaine, malgré un environnement risk-on, ce qui invite à la prudence sur CL."
+        },
+        "GC": {
+            "bias": "neutral",
+            "confidence": "medium",
+            "reason": "Or légèrement négatif mais sans stress macro marqué, rôle de valeur refuge moins dominant."
+        },
+        "BTC": {
+            "bias": "bullish",
+            "confidence": "medium",
+            "reason": "Contexte risk-on et indices en hausse, ce qui reste en général favorable aux actifs plus risqués comme le Bitcoin."
+        },
+    },
+}
+
+
+@router.get("/bias")
+async def get_macro_bias():
+    """
+    Biais macro global + biais par actif pour le dashboard trading.
+
+    - global_bias : 'risk-on' | 'risk-off' | 'neutral'
+    - assets : ES, NQ, CL, GC, BTC avec:
+        - bias : 'bullish' | 'bearish' | 'neutral'
+        - confidence : 'low' | 'medium' | 'high'
+        - reason : texte court explicatif
+    """
+    return MACRO_BIAS_PAYLOAD
