@@ -314,6 +314,14 @@ produis une analyse en français structurée, lisible dans un dashboard.
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/")
+async def root_page():
+    """
+    Sert la page principale par défaut (alias de index.html).
+    """
+    file_path = os.path.join(os.getcwd(), "index.html")
+    return FileResponse(file_path)
+
 
 @app.get("/index.html")
 async def index_page():
