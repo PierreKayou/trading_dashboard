@@ -4,7 +4,7 @@
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
-
+import os
 import yfinance as yf
 import json
 import time
@@ -314,7 +314,5 @@ produis une analyse en français structurée, lisible dans un dashboard.
 
 @app.get("/macro.html")
 async def macro_page():
-    """
-    Sert la page front de la vue macro hebdomadaire.
-    """
-    return FileResponse("macro.html")
+    file_path = os.path.join(os.getcwd(), "macro.html")
+    return FileResponse(file_path)
