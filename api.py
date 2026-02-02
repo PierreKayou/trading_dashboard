@@ -4,13 +4,15 @@
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
-from datetime import datetime
+
 
 import yfinance as yf
 import json
 import time
 import numpy as np
 import os
+
+from datetime import datetime
 
 from openai import OpenAI
 
