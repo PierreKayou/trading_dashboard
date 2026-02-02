@@ -386,6 +386,8 @@ Sois concret mais raisonnablement concis (pas plus de 400–600 mots).
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# TOUT À LA FIN
+app.mount("/", StaticFiles(directory=".", html=True), name="static")
 
 # On laisse éventuellement /tradeplan pour plus tard,
 # mais aujourd'hui le bouton du dashboard utilise uniquement /analyze.
