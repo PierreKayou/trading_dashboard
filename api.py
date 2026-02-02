@@ -23,7 +23,7 @@ from macro.router import router as macro_router
 app = FastAPI(
     title="Trading Dashboard API",
     description="Backend pour ton Stark Trading Dashboard (yfinance + OpenAI + macro)",
-    version="1.1.0",
+    version="1.2.0",
 )
 
 app.add_middleware(
@@ -215,11 +215,57 @@ def build_market_overview() -> dict:
     return overview
 
 
+def get_macro_state() -> dict:
+    """
+    Récupère l'état macro hebdo.
+
+    Version simple :
+    - Essaie de lire un fichier 'macro_state.json' (éventuellement écrit par le router macro)
+    - Sinon, renvoie un régime neutre par défaut
+
+    Tu pourras remplacer cette logique par un import direct depuis macro.router
+    si tu exposes une fonction Python côté macro.
+    """
+    try:
+        file_path = os.path.join(os.getcwd(), "macro_state.json")
+        if os.path.exists(file_path):
+            with open(file_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+    except Exception:
+        pass
+
+    # Fallback : macro neutre
+    return {
+        "timestamp": None,
+        "macro_regime": {
+            "label": "Neutre",
+            "confidence": 0.5,
+            "stability": "stable",
+        },
+        "macro_factors": {
+            "monetary_policy": "neutre",
+            "inflation_trend": "stable",
+            "growth_trend": "stable",
+            "risk_sentiment": "neutre",
+            "rates_pressure": "neutre",
+            "usd_bias": "neutre",
+        },
+        "market_bias": {
+            "equities": "contexte neutre",
+            "indices_us": "contexte neutre",
+            "commodities": "contexte neutre",
+            "crypto": "contexte neutre",
+        },
+        "invalidations": [],
+        "commentary": "Aucun contexte macro explicite disponible, régime neutre par défaut.",
+    }
+
+
 ###############################
 # ENDPOINTS
 ###############################
-@app.get("/")
-async def root():
+@app.get("/health")
+async def health():
     # Petit ping JSON si besoin
     return {"message": "API Trading Dashboard OK"}
 
@@ -237,34 +283,87 @@ async def latest(symbol: str = Query("ES")):
 
 @app.get("/analyze")
 async def analyze(symbol: str = Query("ES")):
+    """
+    Analyse IA d'un actif en tenant compte :
+    - du snapshot technique
+    - de la vue globale marché
+    - du contexte macro hebdo (macro_state)
+    """
     try:
         symbol = symbol.upper()
         if symbol not in SYMBOLS:
             raise HTTPException(status_code=400, detail=f"Symbole inconnu : {symbol}")
 
+        # 1) Données marché
         snapshot = build_snapshot(symbol)
         market_overview = build_market_overview()
+        macro_state = get_macro_state()
 
         snapshot_json = json.dumps(snapshot, ensure_ascii=False)
         market_json = json.dumps(market_overview, ensure_ascii=False)
+        macro_json = json.dumps(macro_state, ensure_ascii=False)
 
         label = snapshot["label"]
 
         user_prompt = f"""
-Tu es un assistant d'analyse de marché pour un trader discrétionnaire.
-Tu combines les données techniques (RSI, MACD, Bollinger, niveaux intraday / journaliers)
-avec le contexte global du marché.
+Tu es un assistant d'analyse de marché pour un trader discrétionnaire dans le cadre du projet Trading Dash.
+
+Tu dois combiner :
+- le CONTEXTE MACRO hebdomadaire,
+- les données techniques détaillées de l'actif analysé,
+- et la vue d'ensemble du reste du marché,
+
+pour produire une analyse structurée, lisible dans un dashboard.
+
+Voici le CONTEXTE MACRO HEBDOMADAIRE GLOBAL au format JSON :
+{macro_json}
 
 Voici les données DÉTAILLÉES pour l'actif sélectionné ({symbol} – {label}) au format JSON :
-
 {snapshot_json}
 
 Voici une VUE SYNTHÉTIQUE du reste du marché surveillé (ES, NQ, BTC, CL, GC) :
-
 {market_json}
 
-À partir de ces informations ET de ce que tu as appris dans les documents Delta Trading,
-produis une analyse en français structurée, lisible dans un dashboard.
+OBJECTIF :
+Produire une analyse en français, orientée trader discrétionnaire, qui :
+- respecte le contexte macro (tu indiques si l'actif est « aligné » ou « à contre-courant » du régime macro),
+- reste descriptive et probabiliste (PAS de certitudes ni de signaux d'entrée bruts),
+- met en avant les niveaux/structures importants plutôt que des prévisions de prix.
+
+STRUCTURE ATTENDUE (markdown simple) :
+
+1. **Contexte macro et climat de marché**
+   - Résume en 3–5 phrases le régime macro dominant (risk-on / risk-off / neutre, dollar, taux, sentiment).
+   - Explique en quoi ce contexte est globalement favorable ou défavorable aux actifs risqués.
+
+2. **Lecture de l'actif : {symbol} – {label}**
+   - Tendances principales (intraday / daily) : haussière, baissière, range, transition.
+   - Indicateurs techniques clés (RSI, MACD, Bollinger, volumes, niveaux intraday/journaliers) : ce qu'ils suggèrent.
+   - Niveaux de prix importants : supports, résistances, zones de liquidité / intérêt.
+
+3. **Cohérence avec le contexte macro**
+   - Indique si le comportement actuel de {symbol} est :
+     - « cohérent avec le régime macro »,
+     - « en décalage / contre le régime macro »,
+     - ou « neutre / peu sensible au macro ».
+   - Explique brièvement pourquoi (corrélation typique, profil de risque, etc.).
+
+4. **Scénarios et zones à surveiller (PAS de signaux de trade)**
+   - Scénario haussier : quelles conditions techniques pourraient le valider ? quels niveaux clés ?
+   - Scénario baissier : idem.
+   - Points d'attention : volatilité, news sensibles, zones où le trader doit être particulièrement prudent.
+   - Toujours formuler en termes de « si… alors… », jamais en certitude.
+
+5. **Synthèse ultra-courte pour le dashboard**
+   - 2 phrases maximum qui résument :
+     - le climat macro,
+     - le biais probable / prudence sur {symbol}.
+
+RÈGLES :
+- Ne propose PAS d’ordres concrets (pas de « achète », « vends », « stop à », « TP à »).
+- Ne donne PAS de taille de position, pas de levier.
+- Ne prétends PAS connaître l’avenir : tu décris des contextes, des probabilités, des structures.
+- Si les données sont contradictoires ou confuses, tu le dis clairement : le doute fait partie de l'analyse.
 """
 
         thread = client.beta.threads.create(
@@ -306,6 +405,7 @@ produis une analyse en français structurée, lisible dans un dashboard.
         return {
             "symbol": symbol,
             "snapshot": snapshot,
+            "macro": macro_state,
             "analysis": analysis_text,
         }
 
@@ -313,6 +413,7 @@ produis une analyse en français structurée, lisible dans un dashboard.
         raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/")
 async def root_page():
