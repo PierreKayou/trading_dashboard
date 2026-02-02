@@ -5,3 +5,4 @@ pandas
 numpy
 openai
 python-dotenv
+httpx
