@@ -360,6 +360,17 @@ async def latest(symbol: str = Query("ES")):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/perf/summary")
+async def perf_summary():
+    """
+    Tableau récapitulatif des performances J / W / M pour les indices suivis.
+    """
+    try:
+        summary = build_perf_summary()
+        return JSONResponse(summary)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/analyze")
 async def analyze(symbol: str = Query("ES")):
