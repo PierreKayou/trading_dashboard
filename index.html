@@ -769,3 +769,287 @@
 
       line.appendChild(price);
       line.appendChild(change);
+
+      const comment = document.createElement("div");
+      comment.className = "market-comment";
+      comment.textContent = "Chargement…";
+
+      const macroBias = document.createElement("div");
+      macroBias.className = "market-macro-bias";
+      macroBias.textContent = ""; // rempli après lecture macro
+
+      card.appendChild(sym);
+      card.appendChild(name);
+      card.appendChild(line);
+      card.appendChild(comment);
+      card.appendChild(macroBias);
+
+      card.addEventListener("click", () => {
+        document
+          .querySelectorAll(".market-card")
+          .forEach((c) => c.classList.remove("active"));
+        card.classList.add("active");
+        if (card.dataset.snapshot) {
+          try {
+            const snap = JSON.parse(card.dataset.snapshot);
+            setMainMarket(symbol, snap);
+          } catch (e) {
+            console.error("Erreur parse snapshot:", e);
+          }
+        }
+        const select = document.getElementById("ia-asset-select");
+        select.value = symbol;
+      });
+
+      return card;
+    }
+
+    async function fetchSnapshot(symbol) {
+      const url = `${API_BASE}/latest?symbol=${encodeURIComponent(symbol)}`;
+      const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error(`Erreur backend pour ${symbol} : ${res.status}`);
+      }
+      return res.json();
+    }
+
+    // --- MACRO ---
+
+    let MACRO_STATE = null;
+
+    function deriveRiskMode(macro) {
+      const label = (macro.macro_regime?.label || "").toLowerCase();
+      const sentiment = (macro.macro_factors?.risk_sentiment || "").toLowerCase();
+
+      if (label.includes("risk-off") || sentiment.includes("risk-off")) return "off";
+      if (label.includes("risk-on") || sentiment.includes("risk-on")) return "on";
+      return "neutral";
+    }
+
+    function updateMacroBiasGlobal(macro) {
+      const pill = document.getElementById("macro-bias-pill");
+      const labelEl = document.getElementById("macro-bias-label");
+      const comment = document.getElementById("macro-bias-comment");
+
+      pill.classList.remove("pill-positive", "pill-negative", "pill-neutral");
+
+      const mode = deriveRiskMode(macro);
+
+      if (mode === "on") {
+        pill.classList.add("pill-positive");
+        labelEl.textContent = macro.macro_regime?.label || "Biais risk-on";
+      } else if (mode === "off") {
+        pill.classList.add("pill-negative");
+        labelEl.textContent = macro.macro_regime?.label || "Biais risk-off";
+      } else {
+        pill.classList.add("pill-neutral");
+        labelEl.textContent = macro.macro_regime?.label || "Lecture neutre";
+      }
+
+      comment.textContent =
+        macro.commentary ||
+        "Vue macro hebdo chargée. Aucun commentaire détaillé disponible.";
+    }
+
+    function updateMacroBiasAssets() {
+      if (!MACRO_STATE) return;
+      const macro = MACRO_STATE;
+      const grid = document.getElementById("markets-grid");
+      const cards = grid.querySelectorAll(".market-card");
+
+      cards.forEach((card) => {
+        const symbol = card.dataset.symbol;
+        const biasEl = card.querySelector(".market-macro-bias");
+        if (!biasEl) return;
+
+        let biasText = "Biais macro neutre";
+        if (symbol === "ES" || symbol === "NQ") {
+          biasText =
+            macro.market_bias?.indices_us ||
+            macro.market_bias?.equities ||
+            biasText;
+        } else if (symbol === "BTC") {
+          biasText = macro.market_bias?.crypto || biasText;
+        } else if (symbol === "CL" || symbol === "GC") {
+          biasText = macro.market_bias?.commodities || biasText;
+        }
+
+        biasEl.textContent = biasText;
+        biasEl.classList.remove("positive", "negative");
+
+        const lower = biasText.toLowerCase();
+        if (
+          lower.includes("haussier") ||
+          lower.includes("plutôt haussier") ||
+          lower.includes("appétit") ||
+          lower.includes("risk-on")
+        ) {
+          biasEl.classList.add("positive");
+        } else if (
+          lower.includes("baissier") ||
+          lower.includes("pression baissière") ||
+          lower.includes("risk-off") ||
+          lower.includes("dégagement")
+        ) {
+          biasEl.classList.add("negative");
+        }
+      });
+    }
+
+    async function fetchMacroState() {
+      const pill = document.getElementById("macro-bias-pill");
+      const label = document.getElementById("macro-bias-label");
+      const comment = document.getElementById("macro-bias-comment");
+
+      pill.classList.remove("pill-positive", "pill-negative", "pill-neutral");
+      pill.classList.add("pill-neutral");
+      label.textContent = "Lecture neutre";
+      comment.textContent = "Chargement de la vue macro globale…";
+
+      try {
+        const res = await fetch(`${API_BASE}/api/macro/state`);
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+        const macro = await res.json();
+        MACRO_STATE = macro;
+        updateMacroBiasGlobal(macro);
+        updateMacroBiasAssets();
+      } catch (err) {
+        console.error("Erreur fetchMacroState:", err);
+        pill.classList.remove("pill-positive", "pill-negative");
+        pill.classList.add("pill-neutral");
+        label.textContent = "Indisponible";
+        comment.textContent =
+          "Impossible de récupérer la vue macro globale pour le moment.";
+      }
+    }
+
+    // --- MARCHÉS ---
+
+    async function refreshMarkets() {
+      const statusError = document.getElementById("status-error");
+      statusError.textContent = "";
+
+      try {
+        const grid = document.getElementById("markets-grid");
+        if (!grid.dataset.initialized) {
+          SYMBOL_ORDER.forEach((sym) => {
+            const card = createMarketCard(sym);
+            grid.appendChild(card);
+          });
+          grid.dataset.initialized = "1";
+        }
+
+        const snapshots = {};
+        for (const sym of SYMBOL_ORDER) {
+          try {
+            const snap = await fetchSnapshot(sym);
+            snapshots[sym] = snap;
+
+            const card = grid.querySelector(`.market-card[data-symbol="${sym}"]`);
+            if (!card) continue;
+            const priceEl = card.querySelector(".market-price");
+            const changeEl = card.querySelector(".market-change");
+            const commentEl = card.querySelector(".market-comment");
+
+            priceEl.textContent = formatPrice(snap.price);
+            const pct = snap.change_pct || 0;
+            changeEl.textContent = formatPct(pct);
+            changeEl.classList.remove("positive", "negative");
+            if (pct > 0.01) changeEl.classList.add("positive");
+            else if (pct < -0.01) changeEl.classList.add("negative");
+
+            commentEl.textContent = snap.comment || "Lecture indisponible.";
+            card.dataset.snapshot = JSON.stringify(snap);
+          } catch (err) {
+            console.error("Erreur snapshot pour", sym, err);
+            statusError.textContent = `Erreur de chargement : ${err.message}`;
+          }
+        }
+
+        // Si aucun actif n'est actif, on met ES par défaut
+        const active = document.querySelector(".market-card.active");
+        if (!active && grid.firstChild) {
+          grid.firstChild.classList.add("active");
+          const sym = grid.firstChild.dataset.symbol;
+          const snap = snapshots[sym];
+          if (snap) setMainMarket(sym, snap);
+        } else if (active) {
+          const sym = active.dataset.symbol;
+          const snap = snapshots[sym];
+          if (snap) setMainMarket(sym, snap);
+        }
+
+        const now = new Date();
+        document.getElementById("last-update").textContent =
+          "Dernière mise à jour : " +
+          now.toLocaleTimeString("fr-FR", {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+
+        // Met à jour les biais macro sur les cartes si on a l'état
+        updateMacroBiasAssets();
+      } catch (err) {
+        console.error("Erreur refreshMarkets:", err);
+        statusError.textContent = "Erreur globale de chargement des marchés.";
+      }
+    }
+
+    // --- IA ---
+
+    async function runIAAnalysis() {
+      const select = document.getElementById("ia-asset-select");
+      const symbol = select.value || "ES";
+      const btn = document.getElementById("ia-run-btn");
+      const result = document.getElementById("assistant-result");
+      const errorEl = document.getElementById("assistant-error");
+
+      errorEl.textContent = "";
+      btn.disabled = true;
+      const oldText = btn.textContent;
+      btn.textContent = "Analyse en cours…";
+
+      result.innerHTML =
+        '<div class="assistant-placeholder">Analyse IA en cours pour ' +
+        symbol +
+        "…</div>";
+
+      try {
+        const res = await fetch(
+          `${API_BASE}/analyze?symbol=${encodeURIComponent(symbol)}`
+        );
+        if (!res.ok) {
+          throw new Error(`Erreur backend IA : ${res.status}`);
+        }
+        const data = await res.json();
+        const analysis = data.analysis || "Aucune analyse retournée.";
+        result.textContent = analysis;
+      } catch (err) {
+        console.error("Erreur runIAAnalysis:", err);
+        errorEl.textContent =
+          "Erreur lors de l’appel IA. Vérifie le backend ou réessaie dans quelques instants. (" +
+          err.message +
+          ")";
+      } finally {
+        btn.disabled = false;
+        btn.textContent = oldText;
+      }
+    }
+
+    // --- INIT ---
+
+    window.addEventListener("DOMContentLoaded", () => {
+      refreshMarkets();
+      fetchMacroState(); // charge le contexte macro
+
+      // Rafraîchissement périodique des marchés
+      setInterval(refreshMarkets, 15000);
+
+      const iaBtn = document.getElementById("ia-run-btn");
+      iaBtn.addEventListener("click", runIAAnalysis);
+    });
+  </script>
+</body>
+</html>
