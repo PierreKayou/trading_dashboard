@@ -263,7 +263,6 @@
       box-shadow: var(--shadow-soft);
       position: relative;
       overflow: hidden;
-      margin-bottom: 14px;
     }
 
     .card::before {
@@ -453,7 +452,7 @@
       color: var(--danger);
     }
 
-    /* Assistant IA à droite */
+    /* Assistant IA */
 
     .assistant-header {
       display: flex;
@@ -575,220 +574,145 @@
       color: var(--danger);
     }
 
-    /* === Performance des indices === */
+    /* Bloc performances + news + calendrier */
 
-    .perf-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-top: 10px;
-      margin-bottom: 6px;
-      font-size: 12px;
-      color: var(--text-muted);
-      flex-wrap: wrap;
+    .lower-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      gap: 16px;
+      margin-top: 18px;
     }
 
-    .perf-title {
+    @media (max-width: 900px) {
+      .lower-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .card-small-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 6px;
+      gap: 8px;
+    }
+
+    .card-small-header-title {
       font-size: 13px;
       font-weight: 600;
-      color: var(--text-main);
     }
 
-    .perf-table {
+    .card-small-header-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 12px;
-      margin-top: 4px;
+      font-size: 11.5px;
     }
 
-    .perf-table th,
-    .perf-table td {
-      padding: 6px 6px;
-      border-bottom: 1px solid rgba(31, 41, 55, 0.85);
-    }
-
-    .perf-table th {
+    th, td {
+      padding: 6px 4px;
       text-align: left;
+      border-bottom: 1px solid rgba(30, 41, 59, 0.9);
+    }
+
+    th {
       font-weight: 500;
       color: var(--text-muted);
-      font-size: 11px;
     }
 
-    .perf-table tbody tr:last-child td {
-      border-bottom: none;
-    }
-
-    .perf-change-positive {
+    .perf-positive {
       color: var(--success);
     }
 
-    .perf-change-negative {
+    .perf-negative {
       color: var(--danger);
     }
 
-    .perf-empty {
-      text-align: center;
+    .cell-muted {
       color: var(--text-muted);
       font-style: italic;
     }
 
-    /* === News & Sentiment IA === */
-
-    .news-header-row {
+    .news-pills-row {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 8px;
-    }
-
-    .news-title-block {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-    }
-
-    .news-title {
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    .news-subtitle {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-
-    .news-meta {
-      font-size: 11px;
-      color: var(--text-muted);
-      text-align: right;
-    }
-
-    .news-top-pills {
-      display: flex;
-      align-items: center;
       gap: 8px;
       flex-wrap: wrap;
-      margin-top: 6px;
-      font-size: 11px;
+      margin-top: 4px;
     }
 
     .news-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
+      padding: 4px 8px;
       border-radius: 999px;
-      border: 1px solid rgba(31, 41, 55, 0.9);
-      background: rgba(15, 23, 42, 0.96);
+      border: 1px solid rgba(55, 65, 81, 0.9);
       font-size: 11px;
-    }
-
-    .news-pill-label {
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      font-size: 10px;
       color: var(--text-muted);
+      background: rgba(15, 23, 42, 0.96);
     }
 
-    .news-pill-value {
-      font-weight: 500;
+    .news-pill.positive {
+      border-color: rgba(34, 197, 94, 0.5);
+      background: rgba(22, 163, 74, 0.18);
+      color: #bbf7d0;
     }
 
-    .news-pill-positive .news-pill-value {
-      color: var(--success);
+    .news-pill.negative {
+      border-color: rgba(239, 68, 68, 0.6);
+      background: rgba(127, 29, 29, 0.28);
+      color: #fecaca;
     }
 
-    .news-pill-negative .news-pill-value {
-      color: var(--danger);
-    }
-
-    .news-keypoints {
-      margin-top: 8px;
+    .news-main-text {
       font-size: 12px;
       color: var(--text-muted);
-      line-height: 1.5;
-    }
-
-    .news-keypoints ul {
-      margin-top: 4px;
-      padding-left: 18px;
-    }
-
-    .news-keypoints li {
-      margin-bottom: 2px;
+      margin-top: 6px;
     }
 
     .news-assets-grid {
       display: grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 8px;
-      margin-top: 10px;
+      gap: 6px;
+      margin-top: 8px;
     }
 
-    @media (max-width: 980px) {
+    @media (max-width: 900px) {
       .news-assets-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
       }
     }
 
-    @media (max-width: 720px) {
-      .news-assets-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-    }
-
     .news-asset-card {
-      background: rgba(15, 23, 42, 0.96);
-      border-radius: 12px;
-      border: 1px solid rgba(31, 41, 55, 0.9);
-      padding: 8px 8px 9px;
-      font-size: 11px;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
+      border-radius: 10px;
+      padding: 6px 6px;
+      background: rgba(15, 23, 42, 0.98);
+      border: 1px solid rgba(30, 41, 59, 0.95);
     }
 
-    .news-asset-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 6px;
-    }
-
-    .news-asset-symbol {
+    .news-asset-title {
       font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      color: var(--text-muted);
+      font-weight: 600;
     }
 
     .news-asset-bias {
-      font-weight: 550;
       font-size: 11px;
-    }
-
-    .news-asset-bias.bullish {
-      color: var(--success);
-    }
-
-    .news-asset-bias.bearish {
-      color: var(--danger);
+      margin-top: 2px;
     }
 
     .news-asset-comment {
-      font-size: 11px;
+      font-size: 10.5px;
       color: var(--text-muted);
+      margin-top: 3px;
     }
 
-    .news-refresh-row {
+    .card-footer-row {
       display: flex;
-      align-items: center;
       justify-content: space-between;
+      align-items: center;
       margin-top: 8px;
-      font-size: 11px;
+      font-size: 10.5px;
       color: var(--text-muted);
       gap: 8px;
       flex-wrap: wrap;
@@ -798,129 +722,17 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 5px 10px;
+      padding: 4px 10px;
       border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.8);
+      border: 1px solid rgba(55, 65, 81, 0.9);
       background: rgba(15, 23, 42, 0.96);
       color: var(--text-main);
       font-size: 11px;
       cursor: pointer;
     }
 
-    .btn-secondary:disabled {
-      opacity: 0.6;
-      cursor: wait;
-    }
-
-    /* === Calendrier économique === */
-
-    .calendar-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 10px;
-      flex-wrap: wrap;
-    }
-
-    .calendar-title-block {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-    }
-
-    .calendar-title {
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    .calendar-subtitle {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-
-    .calendar-meta {
-      font-size: 11px;
-      color: var(--text-muted);
-      text-align: right;
-    }
-
-    .calendar-columns {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
-      margin-top: 10px;
-    }
-
-    @media (max-width: 800px) {
-      .calendar-columns {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-
-    .calendar-column-title {
-      font-size: 12px;
-      font-weight: 550;
-      margin-bottom: 6px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-    }
-
-    .calendar-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-    }
-
-    .calendar-table thead tr {
-      background: rgba(15, 23, 42, 0.96);
-    }
-
-    .calendar-table th,
-    .calendar-table td {
-      padding: 5px 6px;
-      border-bottom: 1px solid rgba(31, 41, 55, 0.85);
-    }
-
-    .calendar-table th {
-      text-align: left;
-      font-weight: 500;
-      color: var(--text-muted);
-      font-size: 11px;
-    }
-
-    .calendar-table tbody tr:last-child td {
-      border-bottom: none;
-    }
-
-    .calendar-table .calendar-empty {
-      text-align: center;
-      color: var(--text-muted);
-      font-style: italic;
-    }
-
-    .calendar-impact {
-      font-size: 11px;
-      white-space: nowrap;
-    }
-
-    .calendar-impact.low {
-      color: #a7f3d0;
-    }
-
-    .calendar-impact.medium {
-      color: #facc15;
-    }
-
-    .calendar-impact.high {
-      color: #fecaca;
-    }
-
-    .calendar-country {
-      font-size: 11px;
-      color: var(--text-muted);
-      white-space: nowrap;
+    .btn-secondary:hover {
+      border-color: rgba(148, 163, 184, 0.9);
     }
   </style>
 </head>
@@ -972,160 +784,35 @@
     </header>
 
     <div class="content-grid">
-      <!-- Colonne gauche : marchés + perfs + news + calendrier -->
-      <div>
-        <section class="card">
-          <div class="card-inner">
-            <div class="card-header">
-              <div>
-                <div class="card-title" id="main-price-title">ES — S&P 500 Future</div>
-                <div class="card-subtitle">Prix spot & variation depuis la dernière bougie.</div>
-              </div>
-              <div id="main-price-change" class="price-change">0.00 %</div>
+      <!-- Colonne gauche : marchés -->
+      <section class="card">
+        <div class="card-inner">
+          <div class="card-header">
+            <div>
+              <div class="card-title" id="main-price-title">ES — S&P 500 Future</div>
+              <div class="card-subtitle">Prix spot & variation depuis la dernière bougie.</div>
             </div>
-            <div class="price-main" id="main-price">—</div>
-            <div class="price-comment" id="main-price-comment">
-              Lecture globale en cours…
-            </div>
-
-            <div class="markets-grid" id="markets-grid">
-              <!-- Cartes marchés injectées par JS -->
-            </div>
-
-            <div class="status-row">
-              <div class="status-left">
-                <div class="status-dot"></div>
-                <span id="status-text">Backend Render en ligne – actualisation auto toutes les 15 s</span>
-              </div>
-              <div id="last-update">Dernière mise à jour : —</div>
-            </div>
-            <div id="status-error" class="status-error"></div>
+            <div id="main-price-change" class="price-change">0.00 %</div>
           </div>
-        </section>
-
-        <!-- Performance des indices -->
-        <section class="card">
-          <div class="card-inner">
-            <div class="perf-header">
-              <div class="perf-title">Performance des indices</div>
-              <div id="perf-date">Données : —</div>
-            </div>
-            <table class="perf-table">
-              <thead>
-                <tr>
-                  <th>Indice</th>
-                  <th>Jour</th>
-                  <th>Semaine</th>
-                  <th>Mois</th>
-                </tr>
-              </thead>
-              <tbody id="perf-table-body">
-                <tr>
-                  <td colspan="4" class="perf-empty">
-                    Impossible de récupérer les performances pour le moment.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <div class="price-main" id="main-price">—</div>
+          <div class="price-comment" id="main-price-comment">
+            Lecture globale en cours…
           </div>
-        </section>
 
-        <!-- News & Sentiment IA -->
-        <section class="card">
-          <div class="card-inner">
-            <div class="news-header-row">
-              <div class="news-title-block">
-                <div class="news-title">News & Sentiment IA</div>
-                <div class="news-subtitle">
-                  Lecture synthétique des dernières news macro / marché. Ne remplace pas l’analyse personnelle.
-                </div>
-              </div>
-              <div class="news-meta">
-                <div id="news-last-update">Dernière analyse : —</div>
-              </div>
-            </div>
-
-            <div class="news-top-pills">
-              <div id="news-tone-pill" class="news-pill">
-                <div class="news-pill-label">Tonalité risque</div>
-                <div class="news-pill-value">—</div>
-              </div>
-              <div id="news-vol-pill" class="news-pill">
-                <div class="news-pill-label">Volatilité</div>
-                <div class="news-pill-value">—</div>
-              </div>
-            </div>
-
-            <div class="news-keypoints" id="news-keypoints">
-              Analyse des news en cours…
-            </div>
-
-            <div class="news-assets-grid" id="news-assets-grid">
-              <!-- cartes par actif (ES / NQ / BTC / CL / GC) -->
-            </div>
-
-            <div class="news-refresh-row">
-              <button id="news-refresh-btn" class="btn-secondary" type="button">
-                🔄 Rafraîchir l’analyse
-              </button>
-              <div id="news-source-label">Source : —</div>
-            </div>
+          <div class="markets-grid" id="markets-grid">
+            <!-- Cartes marchés injectées par JS -->
           </div>
-        </section>
 
-        <!-- Calendrier économique -->
-        <section class="card">
-          <div class="card-inner">
-            <div class="calendar-header">
-              <div class="calendar-title-block">
-                <div class="calendar-title">Calendrier économique</div>
-                <div class="calendar-subtitle">
-                  Principales publications macro du jour et des prochains jours (UTC).
-                </div>
-              </div>
-              <div class="calendar-meta">
-                <div id="calendar-status">Chargement du calendrier économique…</div>
-                <div id="calendar-last-update">Dernière mise à jour : —</div>
-              </div>
+          <div class="status-row">
+            <div class="status-left">
+              <div class="status-dot"></div>
+              <span id="status-text">Backend Render en ligne – actualisation auto toutes les 15 s</span>
             </div>
-
-            <div class="calendar-columns">
-              <div>
-                <div class="calendar-column-title">Aujourd’hui</div>
-                <table class="calendar-table">
-                  <thead>
-                    <tr>
-                      <th>Heure</th>
-                      <th>Pays</th>
-                      <th>Évènement</th>
-                      <th>Impact</th>
-                    </tr>
-                  </thead>
-                  <tbody id="calendar-today-body">
-                    <!-- lignes injectées en JS -->
-                  </tbody>
-                </table>
-              </div>
-              <div>
-                <div class="calendar-column-title">Prochains jours</div>
-                <table class="calendar-table">
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Pays</th>
-                      <th>Évènement</th>
-                      <th>Impact</th>
-                    </tr>
-                  </thead>
-                  <tbody id="calendar-week-body">
-                    <!-- lignes injectées en JS -->
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <div id="last-update">Dernière mise à jour : —</div>
           </div>
-        </section>
-      </div>
+          <div id="status-error" class="status-error"></div>
+        </div>
+      </section>
 
       <!-- Colonne droite : assistant IA -->
       <section class="card">
@@ -1169,6 +856,176 @@
         </div>
       </section>
     </div>
+
+    <!-- Ligne du bas : perf + news + calendrier -->
+    <div class="lower-grid">
+      <!-- Performances des indices -->
+      <section class="card">
+        <div class="card-inner">
+          <div class="card-small-header">
+            <div>
+              <div class="card-small-header-title">Performance des indices</div>
+              <div class="card-small-header-sub">
+                Données au <span id="perf-date">—</span>.
+              </div>
+            </div>
+          </div>
+
+          <div style="overflow-x:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Indice</th>
+                  <th>Jour</th>
+                  <th>Semaine</th>
+                  <th>Mois</th>
+                </tr>
+              </thead>
+              <tbody id="perf-body">
+                <tr>
+                  <td colspan="4" class="cell-muted">
+                    Impossible de récupérer les performances pour le moment.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card-footer-row">
+            <span id="perf-status" class="cell-muted">Chargement des performances…</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- News + Calendrier à droite (stack) -->
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <!-- News & Sentiment IA -->
+        <section class="card" style="padding:14px 14px;">
+          <div class="card-inner">
+            <div class="card-small-header">
+              <div>
+                <div class="card-small-header-title">News & Sentiment IA</div>
+                <div class="card-small-header-sub">
+                  Lecture synthétique des dernières news macro / marché. Ne remplace pas l’analyse personnelle.
+                </div>
+              </div>
+              <div>
+                <button id="news-refresh-btn" class="btn-secondary" type="button">
+                  🔄 Rafraîchir l’analyse
+                </button>
+              </div>
+            </div>
+
+            <div class="news-pills-row">
+              <div id="news-tone-pill" class="news-pill">Tonalité : —</div>
+              <div id="news-vol-pill" class="news-pill">Volatilité : —</div>
+            </div>
+
+            <div id="news-main-text" class="news-main-text">
+              Analyse des news en cours…
+            </div>
+
+            <div class="news-assets-grid">
+              <!-- Une petite carte par actif -->
+              <div class="news-asset-card">
+                <div class="news-asset-title">ES</div>
+                <div id="news-ES-bias" class="news-asset-bias">—</div>
+                <div id="news-ES-comment" class="news-asset-comment">—</div>
+              </div>
+              <div class="news-asset-card">
+                <div class="news-asset-title">NQ</div>
+                <div id="news-NQ-bias" class="news-asset-bias">—</div>
+                <div id="news-NQ-comment" class="news-asset-comment">—</div>
+              </div>
+              <div class="news-asset-card">
+                <div class="news-asset-title">BTC</div>
+                <div id="news-BTC-bias" class="news-asset-bias">—</div>
+                <div id="news-BTC-comment" class="news-asset-comment">—</div>
+              </div>
+              <div class="news-asset-card">
+                <div class="news-asset-title">CL</div>
+                <div id="news-CL-bias" class="news-asset-bias">—</div>
+                <div id="news-CL-comment" class="news-asset-comment">—</div>
+              </div>
+              <div class="news-asset-card">
+                <div class="news-asset-title">GC</div>
+                <div id="news-GC-bias" class="news-asset-bias">—</div>
+                <div id="news-GC-comment" class="news-asset-comment">—</div>
+              </div>
+            </div>
+
+            <div class="card-footer-row">
+              <span id="news-last-update" class="cell-muted">Dernière analyse : —</span>
+              <span id="news-source" class="cell-muted">Source : —</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Calendrier économique -->
+        <section class="card" style="padding:14px 14px;">
+          <div class="card-inner">
+            <div class="card-small-header">
+              <div>
+                <div class="card-small-header-title">Calendrier économique</div>
+                <div class="card-small-header-sub">
+                  Principales publications macro du jour et des prochains jours (UTC).
+                </div>
+              </div>
+            </div>
+
+            <div style="font-size:11.5px; margin-bottom:4px; color:var(--text-muted);">
+              AUJOURD’HUI
+            </div>
+            <div style="overflow-x:auto; margin-bottom:8px;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Heure</th>
+                    <th>Pays</th>
+                    <th>Événement</th>
+                    <th>Impact</th>
+                  </tr>
+                </thead>
+                <tbody id="cal-today-body">
+                  <tr>
+                    <td colspan="4" class="cell-muted">
+                      Chargement du calendrier d’aujourd’hui…
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div style="font-size:11.5px; margin-bottom:4px; color:var(--text-muted);">
+              PROCHAINS JOURS
+            </div>
+            <div style="overflow-x:auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Pays</th>
+                    <th>Événement</th>
+                    <th>Impact</th>
+                  </tr>
+                </thead>
+                <tbody id="cal-next-body">
+                  <tr>
+                    <td colspan="4" class="cell-muted">
+                      Chargement du calendrier des prochains jours…
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="card-footer-row">
+              <span id="cal-status" class="cell-muted">Chargement en cours…</span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -1186,7 +1043,9 @@
 
     function formatPrice(value) {
       if (value === null || value === undefined || isNaN(value)) return "—";
-      if (value > 1000) return value.toLocaleString("fr-FR", { maximumFractionDigits: 2 });
+      if (value > 1000) {
+        return value.toLocaleString("fr-FR", { maximumFractionDigits: 2 });
+      }
       return value.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
@@ -1202,7 +1061,7 @@
       const changeEl = document.getElementById("main-price-change");
       const commentEl = document.getElementById("main-price-comment");
 
-      const cfg = SYMBOL_CONFIG[symbol];
+      const cfg = SYMBOL_CONFIG[symbol] || { label: symbol };
       titleEl.textContent = `${symbol} — ${cfg.label}`;
       priceEl.textContent = formatPrice(snapshot.price);
 
@@ -1259,9 +1118,7 @@
       card.appendChild(macroBias);
 
       card.addEventListener("click", () => {
-        document
-          .querySelectorAll(".market-card")
-          .forEach((c) => c.classList.remove("active"));
+        document.querySelectorAll(".market-card").forEach((c) => c.classList.remove("active"));
         card.classList.add("active");
         if (card.dataset.snapshot) {
           try {
@@ -1298,32 +1155,27 @@
       comment.textContent = "Chargement de la vue macro globale…";
 
       try {
-        const res = await fetch(`${API_BASE}/api/macro/state`);
+        const res = await fetch(`${API_BASE}/api/macro/week/summary`);
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}`);
         }
-        const data = await res.json();
-        const regime = data.macro_regime || {};
-        const labelTxt = regime.label || "Neutre";
-        const confidence = regime.confidence || 0;
+        const summary = await res.json();
 
         pill.classList.remove("pill-positive", "pill-negative", "pill-neutral");
-
-        const tone = (data.risk_sentiment || "neutral").toLowerCase();
-
-        if (tone.includes("on")) {
+        if (summary.risk_on === true) {
           pill.classList.add("pill-positive");
-        } else if (tone.includes("off")) {
+          label.textContent = "Biais risk-on";
+        } else if (summary.risk_on === false) {
           pill.classList.add("pill-negative");
+          label.textContent = "Biais risk-off";
         } else {
           pill.classList.add("pill-neutral");
+          label.textContent = "Lecture neutre";
         }
 
-        document.getElementById("macro-bias-label").textContent = labelTxt;
-        const commentTxt =
-          data.commentary ||
-          "Aucun contexte macro explicite disponible, régime neutre par défaut.";
-        comment.textContent = commentTxt;
+        comment.textContent =
+          summary.risk_comment ||
+          "Vue macro hebdo chargée. Aucun commentaire détaillé disponible.";
       } catch (err) {
         console.error("Erreur fetchMacroBiasGlobal:", err);
         pill.classList.remove("pill-positive", "pill-negative");
@@ -1415,7 +1267,6 @@
 
         const active = document.querySelector(".market-card.active");
         const grid = document.getElementById("markets-grid");
-
         if (!active && grid.firstChild) {
           grid.firstChild.classList.add("active");
           const sym = grid.firstChild.dataset.symbol;
@@ -1434,6 +1285,8 @@
             hour: "2-digit",
             minute: "2-digit",
           });
+
+        await fetchMacroBiasAssets();
       } catch (err) {
         console.error("Erreur refreshMarkets:", err);
         statusError.textContent = "Erreur globale de chargement des marchés.";
@@ -1479,10 +1332,19 @@
       }
     }
 
-    async function fetchPerfSummary() {
-      const tbody = document.getElementById("perf-table-body");
+    // === Bloc performances ===
+    function formatPerfNumber(v) {
+      if (v === null || v === undefined || isNaN(v)) return "—";
+      const sign = v > 0 ? "+" : "";
+      return sign + v.toFixed(2) + " %";
+    }
+
+    async function refreshPerf() {
+      const statusEl = document.getElementById("perf-status");
+      const body = document.getElementById("perf-body");
       const dateEl = document.getElementById("perf-date");
-      if (!tbody) return;
+
+      statusEl.textContent = "Chargement des performances…";
 
       try {
         const res = await fetch(`${API_BASE}/perf/summary`);
@@ -1490,349 +1352,260 @@
           throw new Error(`HTTP ${res.status}`);
         }
         const data = await res.json();
-        const rows = data.rows || [];
-        const asOf = data.as_of || null;
+        const assets = Array.isArray(data.assets) ? data.assets : [];
+        if (!assets.length) {
+          body.innerHTML = `
+            <tr>
+              <td colspan="4" class="cell-muted">
+                Aucune donnée de performance disponible.
+              </td>
+            </tr>`;
+          statusEl.textContent = "Aucune donnée disponible.";
+          return;
+        }
 
-        tbody.innerHTML = "";
+        dateEl.textContent = data.as_of || "—";
+        body.innerHTML = "";
 
-        if (rows.length === 0) {
+        for (const asset of assets) {
           const tr = document.createElement("tr");
-          const td = document.createElement("td");
-          td.colSpan = 4;
-          td.className = "perf-empty";
-          td.textContent =
-            "Impossible de récupérer les performances pour le moment.";
-          tr.appendChild(td);
-          tbody.appendChild(tr);
-        } else {
-          rows.forEach((row) => {
-            const tr = document.createElement("tr");
 
-            const nameCell = document.createElement("td");
-            nameCell.textContent = row.label || row.symbol || "—";
+          const tdName = document.createElement("td");
+          tdName.textContent = `${asset.symbol || ""} — ${asset.label || ""}`;
+          tr.appendChild(tdName);
 
-            const dayCell = document.createElement("td");
-            const weekCell = document.createElement("td");
-            const monthCell = document.createElement("td");
+          const d = typeof asset.d === "number" ? asset.d : null;
+          const w = typeof asset.w === "number" ? asset.w : null;
+          const m = typeof asset.m === "number" ? asset.m : null;
 
-            const fields = [
-              { value: row.day, cell: dayCell },
-              { value: row.week, cell: weekCell },
-              { value: row.month, cell: monthCell },
-            ];
+          const tdD = document.createElement("td");
+          tdD.textContent = formatPerfNumber(d);
+          if (d !== null) tdD.classList.add(d >= 0 ? "perf-positive" : "perf-negative");
+          tr.appendChild(tdD);
 
-            fields.forEach(({ value, cell }) => {
-              if (value === null || value === undefined || isNaN(value)) {
-                cell.textContent = "—";
-              } else {
-                cell.textContent = formatPct(value);
-                if (value > 0) cell.classList.add("perf-change-positive");
-                else if (value < 0) cell.classList.add("perf-change-negative");
-              }
-            });
+          const tdW = document.createElement("td");
+          tdW.textContent = formatPerfNumber(w);
+          if (w !== null) tdW.classList.add(w >= 0 ? "perf-positive" : "perf-negative");
+          tr.appendChild(tdW);
 
-            tr.appendChild(nameCell);
-            tr.appendChild(dayCell);
-            tr.appendChild(weekCell);
-            tr.appendChild(monthCell);
-            tbody.appendChild(tr);
-          });
+          const tdM = document.createElement("td");
+          tdM.textContent = formatPerfNumber(m);
+          if (m !== null) tdM.classList.add(m >= 0 ? "perf-positive" : "perf-negative");
+          tr.appendChild(tdM);
+
+          body.appendChild(tr);
         }
 
-        if (asOf) {
-          dateEl.textContent = "Données au " + asOf;
-        } else {
-          dateEl.textContent = "Données : —";
-        }
+        statusEl.textContent = "";
       } catch (err) {
-        console.error("Erreur fetchPerfSummary:", err);
-        tbody.innerHTML = "";
-        const tr = document.createElement("tr");
-        const td = document.createElement("td");
-        td.colSpan = 4;
-        td.className = "perf-empty";
-        td.textContent =
-          "Impossible de récupérer les performances pour le moment.";
-        tr.appendChild(td);
-        tbody.appendChild(tr);
+        console.error("Erreur refreshPerf:", err);
+        body.innerHTML = `
+          <tr>
+            <td colspan="4" class="cell-muted">
+              Impossible de récupérer les performances pour le moment.
+            </td>
+          </tr>`;
+        statusEl.textContent = "Erreur lors du chargement des performances.";
       }
     }
 
-    function renderNewsAssets(byAsset) {
-      const grid = document.getElementById("news-assets-grid");
-      if (!grid) return;
-      grid.innerHTML = "";
-
-      const order = ["ES", "NQ", "BTC", "CL", "GC"];
-
-      order.forEach((sym) => {
-        const info = (byAsset && byAsset[sym]) || null;
-        const card = document.createElement("div");
-        card.className = "news-asset-card";
-
-        const header = document.createElement("div");
-        header.className = "news-asset-header";
-
-        const symbolEl = document.createElement("div");
-        symbolEl.className = "news-asset-symbol";
-        symbolEl.textContent = sym;
-
-        const biasEl = document.createElement("div");
-        biasEl.className = "news-asset-bias";
-
-        if (!info) {
-          biasEl.textContent = "Biais neutre";
-        } else {
-          const bias = (info.bias || "neutral").toLowerCase();
-          if (bias === "bullish") {
-            biasEl.textContent = "Biais haussier";
-            biasEl.classList.add("bullish");
-          } else if (bias === "bearish") {
-            biasEl.textContent = "Biais baissier";
-            biasEl.classList.add("bearish");
-          } else {
-            biasEl.textContent = "Biais neutre";
-          }
-        }
-
-        header.appendChild(symbolEl);
-        header.appendChild(biasEl);
-
-        const commentEl = document.createElement("div");
-        commentEl.className = "news-asset-comment";
-        commentEl.textContent =
-          (info && info.comment) ||
-          "Aucun signal spécifique ressortant des news récentes.";
-
-        card.appendChild(header);
-        card.appendChild(commentEl);
-        grid.appendChild(card);
-      });
+    // === Bloc news & sentiment IA ===
+    function mapRiskTone(tone) {
+      if (tone === "risk_on") return "Tonalité risk-on";
+      if (tone === "risk_off") return "Tonalité risk-off";
+      return "Tonalité neutre";
     }
 
-    async function fetchNewsAndSentimentIA(forceRefresh = false) {
-      const btn = document.getElementById("news-refresh-btn");
+    function mapVolatilityLabel(vol) {
+      if (!vol) return "Volatilité : —";
+      if (vol === "high") return "Volatilité : élevée";
+      if (vol === "low") return "Volatilité : faible";
+      return "Volatilité : normale";
+    }
+
+    async function refreshNewsBlock() {
       const tonePill = document.getElementById("news-tone-pill");
       const volPill = document.getElementById("news-vol-pill");
-      const keypointsEl = document.getElementById("news-keypoints");
-      const sourceEl = document.getElementById("news-source-label");
-      const lastEl = document.getElementById("news-last-update");
+      const mainTextEl = document.getElementById("news-main-text");
+      const lastUpdateEl = document.getElementById("news-last-update");
+      const sourceEl = document.getElementById("news-source");
 
-      if (!keypointsEl) return;
-
-      if (btn) {
-        btn.disabled = true;
-      }
-      keypointsEl.textContent = "Analyse des news en cours…";
+      mainTextEl.textContent = "Analyse des news en cours…";
+      tonePill.classList.remove("positive", "negative");
+      tonePill.textContent = "Tonalité : —";
+      volPill.textContent = "Volatilité : —";
+      lastUpdateEl.textContent = "Dernière analyse : —";
+      sourceEl.textContent = "Source : —";
 
       try {
         const res = await fetch(`${API_BASE}/api/news/analyze`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            max_articles: 20,
-            force_refresh: !!forceRefresh,
-          }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ max_articles: 10 }),
         });
-
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}`);
         }
-
         const data = await res.json();
 
         const analysis = data.analysis || {};
-        const macroSentiment = analysis.macro_sentiment || {};
+        const macroSent = analysis.macro_sentiment || {};
         const riskTone = analysis.risk_tone || "neutral";
         const volOutlook = analysis.volatility_outlook || "normal";
-        const keyPoints = analysis.key_points || [];
+        const keyPoints = Array.isArray(analysis.key_points) ? analysis.key_points : [];
+
+        tonePill.textContent = mapRiskTone(riskTone);
+        if (riskTone === "risk_on") tonePill.classList.add("positive");
+        else if (riskTone === "risk_off") tonePill.classList.add("negative");
+
+        volPill.textContent = mapVolatilityLabel(volOutlook);
+
+        const macroLabel = macroSent.label || "Neutre";
+        const macroComment = macroSent.comment || "";
+        let text = `Biais macro : ${macroLabel}.`;
+        if (macroComment) text += " " + macroComment;
+        if (keyPoints.length) {
+          text += "\n\nPoints clés :\n- " + keyPoints.join("\n- ");
+        }
+        mainTextEl.textContent = text;
+
         const byAsset = analysis.by_asset || {};
-        const src = data.news_source || data.source || "—";
+        const symbols = ["ES", "NQ", "BTC", "CL", "GC"];
+        symbols.forEach((sym) => {
+          const info = byAsset[sym] || {};
+          const biasEl = document.getElementById(`news-${sym}-bias`);
+          const commentEl = document.getElementById(`news-${sym}-comment`);
+          if (biasEl) biasEl.textContent = info.bias ? `Biais ${info.bias}` : "Biais neutre";
+          if (commentEl) commentEl.textContent = info.comment || "—";
+        });
 
-        // Tonalité risque
-        const toneValueEl = tonePill.querySelector(".news-pill-value");
-        tonePill.classList.remove("news-pill-positive", "news-pill-negative");
-        let toneLabel = "Neutre";
-        if (riskTone === "risk_on") {
-          toneLabel = "Risk-on";
-          tonePill.classList.add("news-pill-positive");
-        } else if (riskTone === "risk_off") {
-          toneLabel = "Risk-off";
-          tonePill.classList.add("news-pill-negative");
-        }
-        toneValueEl.textContent = toneLabel;
-
-        // Volatilité
-        const volValueEl = volPill.querySelector(".news-pill-value");
-        let volLabel = "Normale";
-        if (volOutlook === "calm") volLabel = "Calme";
-        else if (volOutlook === "elevated") volLabel = "Élevée";
-        else if (volOutlook === "high") volLabel = "Très élevée";
-        volValueEl.textContent = volLabel;
-
-        // Commentaire global + points clés
-        const macroComment =
-          macroSentiment.comment ||
-          "Les news ne dégagent pas de biais macro clair pour le moment.";
-        let html =
-          "<strong>Biais global :</strong> " + macroComment + "<br/><br/>";
-
-        if (keyPoints.length > 0) {
-          html += "<strong>Points clés :</strong><ul>";
-          keyPoints.forEach((pt) => {
-            html += "<li>" + pt + "</li>";
-          });
-          html += "</ul>";
-        }
-
-        keypointsEl.innerHTML = html;
-
-        // Biais par actif
-        renderNewsAssets(byAsset);
-
-        // Source + horodatage
-        sourceEl.textContent = "Source : " + src;
-        const now = new Date();
-        lastEl.textContent =
-          "Dernière analyse : " +
-          now.toLocaleTimeString("fr-FR", {
+        lastUpdateEl.textContent = "Dernière analyse : " +
+          new Date().toLocaleTimeString("fr-FR", {
             hour: "2-digit",
             minute: "2-digit",
           });
-      } catch (err) {
-        console.error("Erreur fetchNewsAndSentimentIA:", err);
-        keypointsEl.textContent =
-          "Impossible de récupérer l’analyse des news pour le moment.";
-      } finally {
-        if (btn) btn.disabled = false;
-      }
-    }
 
-    function renderCalendarTable(tbody, events, withDate) {
-      tbody.innerHTML = "";
-
-      if (!events || events.length === 0) {
-        const tr = document.createElement("tr");
-        const td = document.createElement("td");
-        td.colSpan = 4;
-        td.className = "calendar-empty";
-        td.textContent = "Aucun évènement économique.";
-        tr.appendChild(td);
-        tbody.appendChild(tr);
-        return;
-      }
-
-      events.forEach((ev) => {
-        const tr = document.createElement("tr");
-
-        const dateCell = document.createElement("td");
-        const timeCell = document.createElement("td");
-        const countryCell = document.createElement("td");
-        const eventCell = document.createElement("td");
-        const impactCell = document.createElement("td");
-
-        const country = ev.country || "";
-        const impact = (ev.impact || "").toLowerCase();
-
-        if (withDate) {
-          dateCell.textContent = ev.date || "—";
-          tr.appendChild(dateCell);
+        if (data.news_source) {
+          sourceEl.textContent = "Source : " + data.news_source;
+        } else if (data.source) {
+          sourceEl.textContent = "Source : " + data.source;
         } else {
-          timeCell.textContent = ev.time || "—";
-          tr.appendChild(timeCell);
+          sourceEl.textContent = "Source : mix flux news";
         }
-
-        countryCell.textContent = country || "—";
-        countryCell.className = "calendar-country";
-
-        eventCell.textContent = ev.event || "—";
-
-        let impactLabel = "—";
-        if (impact.includes("high")) impactLabel = "Fort";
-        else if (impact.includes("medium")) impactLabel = "Modéré";
-        else if (impact.includes("low")) impactLabel = "Faible";
-
-        impactCell.textContent = impactLabel;
-        impactCell.classList.add("calendar-impact");
-        if (impact.includes("high")) impactCell.classList.add("high");
-        else if (impact.includes("medium")) impactCell.classList.add("medium");
-        else if (impact.includes("low")) impactCell.classList.add("low");
-
-        tr.appendChild(countryCell);
-        tr.appendChild(eventCell);
-        tr.appendChild(impactCell);
-
-        tbody.appendChild(tr);
-      });
+      } catch (err) {
+        console.error("Erreur refreshNewsBlock:", err);
+        mainTextEl.textContent =
+          "Impossible de récupérer l’analyse des news pour le moment.";
+      }
     }
 
-    async function fetchCalendarSummary() {
-      const statusEl = document.getElementById("calendar-status");
-      const lastEl = document.getElementById("calendar-last-update");
-      const todayBody = document.getElementById("calendar-today-body");
-      const weekBody = document.getElementById("calendar-week-body");
+    // === Bloc calendrier ===
+    async function refreshCalendar() {
+      const todayBody = document.getElementById("cal-today-body");
+      const nextBody = document.getElementById("cal-next-body");
+      const statusEl = document.getElementById("cal-status");
 
-      if (!statusEl || !todayBody || !weekBody) return;
-
-      statusEl.textContent = "Chargement du calendrier économique…";
+      statusEl.textContent = "Chargement du calendrier…";
 
       try {
         const res = await fetch(`${API_BASE}/api/calendar/summary`);
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}`);
         }
-
         const data = await res.json();
-        const today = data.today || [];
-        const week = data.week || [];
 
-        renderCalendarTable(todayBody, today, false);
-        renderCalendarTable(weekBody, week, true);
+        const today = Array.isArray(data.today) ? data.today : [];
+        const next = Array.isArray(data.next_days) ? data.next_days : [];
 
-        const now = new Date();
-        lastEl.textContent =
-          "Dernière mise à jour : " +
-          now.toLocaleTimeString("fr-FR", {
-            hour: "2-digit",
-            minute: "2-digit",
-          });
-
-        if (today.length === 0 && week.length === 0) {
-          statusEl.textContent =
-            "Aucun évènement économique majeur détecté sur la période.";
+        // Aujourd'hui
+        if (!today.length) {
+          todayBody.innerHTML = `
+            <tr>
+              <td colspan="4" class="cell-muted">
+                Aucun événement majeur prévu aujourd’hui.
+              </td>
+            </tr>`;
         } else {
-          statusEl.textContent = "Évènements économiques chargés.";
+          todayBody.innerHTML = "";
+          for (const ev of today) {
+            const tr = document.createElement("tr");
+            const tdTime = document.createElement("td");
+            tdTime.textContent = ev.time || "—";
+            tr.appendChild(tdTime);
+
+            const tdCountry = document.createElement("td");
+            tdCountry.textContent = ev.country || "—";
+            tr.appendChild(tdCountry);
+
+            const tdEvent = document.createElement("td");
+            tdEvent.textContent = ev.event || "—";
+            tr.appendChild(tdEvent);
+
+            const tdImpact = document.createElement("td");
+            tdImpact.textContent = ev.impact || "—";
+            tr.appendChild(tdImpact);
+
+            todayBody.appendChild(tr);
+          }
         }
+
+        // Prochains jours
+        if (!next.length) {
+          nextBody.innerHTML = `
+            <tr>
+              <td colspan="4" class="cell-muted">
+                Aucun événement majeur listé pour les prochains jours.
+              </td>
+            </tr>`;
+        } else {
+          nextBody.innerHTML = "";
+          for (const ev of next) {
+            const tr = document.createElement("tr");
+            const tdDate = document.createElement("td");
+            tdDate.textContent = ev.date || "—";
+            tr.appendChild(tdDate);
+
+            const tdCountry = document.createElement("td");
+            tdCountry.textContent = ev.country || "—";
+            tr.appendChild(tdCountry);
+
+            const tdEvent = document.createElement("td");
+            tdEvent.textContent = ev.event || "—";
+            tr.appendChild(tdEvent);
+
+            const tdImpact = document.createElement("td");
+            tdImpact.textContent = ev.impact || "—";
+            tr.appendChild(tdImpact);
+
+            nextBody.appendChild(tr);
+          }
+        }
+
+        statusEl.textContent = "";
       } catch (err) {
-        console.error("Erreur fetchCalendarSummary:", err);
+        console.error("Erreur refreshCalendar:", err);
         statusEl.textContent =
           "Impossible de récupérer le calendrier économique pour le moment.";
       }
     }
 
+    // === Init ===
     window.addEventListener("DOMContentLoaded", () => {
       refreshMarkets();
       fetchMacroBiasGlobal();
-      fetchMacroBiasAssets();
-      fetchPerfSummary();
-      fetchNewsAndSentimentIA(false);
-      fetchCalendarSummary();
+      refreshPerf();
+      refreshNewsBlock();
+      refreshCalendar();
 
-      // Rafraîchissement périodique des marchés
       setInterval(refreshMarkets, 15000);
-
-      // Rafraîchissement périodique du calendrier (toutes les 5 min)
-      setInterval(fetchCalendarSummary, 5 * 60 * 1000);
 
       const iaBtn = document.getElementById("ia-run-btn");
       iaBtn.addEventListener("click", runIAAnalysis);
 
       const newsBtn = document.getElementById("news-refresh-btn");
-      if (newsBtn) {
-        newsBtn.addEventListener("click", () => fetchNewsAndSentimentIA(true));
-      }
+      newsBtn.addEventListener("click", () => {
+        refreshNewsBlock();
+      });
     });
   </script>
 </body>
