@@ -214,6 +214,86 @@ def build_market_overview() -> dict:
             continue
     return overview
 
+def build_perf_summary() -> dict:
+    """
+    Calcule les performances journalières, hebdo et mensuelles
+    pour chaque indice de SYMBOLS en %.
+    J = dernier close vs veille
+    W = dernier close vs ~5 séances avant
+    M = dernier close vs ~21 séances avant
+    """
+    assets = []
+    today_str = datetime.utcnow().strftime("%Y-%m-%d")
+
+    for sym, cfg in SYMBOLS.items():
+        yf_symbol = cfg["yf"]
+        ticker = yf.Ticker(yf_symbol)
+
+        # On prend un peu de recul pour avoir les 21 séances
+        hist = ticker.history(period="2mo", interval="1d")
+        if hist.empty or len(hist) < 3:
+            # Pas assez de données
+            assets.append(
+                {
+                    "symbol": sym,
+                    "label": cfg["label"],
+                    "d": None,
+                    "w": None,
+                    "m": None,
+                }
+            )
+            continue
+
+        closes = hist["Close"].dropna()
+        if len(closes) < 3:
+            assets.append(
+                {
+                    "symbol": sym,
+                    "label": cfg["label"],
+                    "d": None,
+                    "w": None,
+                    "m": None,
+                }
+            )
+            continue
+
+        last = float(closes.iloc[-1])
+
+        # Jour = dernier vs veille
+        if len(closes) >= 2:
+            prev_day = float(closes.iloc[-2])
+            d = (last - prev_day) / prev_day * 100 if prev_day != 0 else None
+        else:
+            d = None
+
+        # Semaine = ~5 séances avant
+        if len(closes) >= 6:
+            prev_week = float(closes.iloc[-6])
+            w = (last - prev_week) / prev_week * 100 if prev_week != 0 else None
+        else:
+            w = None
+
+        # Mois = ~21 séances avant
+        if len(closes) >= 22:
+            prev_month = float(closes.iloc[-22])
+            m = (last - prev_month) / prev_month * 100 if prev_month != 0 else None
+        else:
+            m = None
+
+        assets.append(
+            {
+                "symbol": sym,
+                "label": cfg["label"],
+                "d": d,
+                "w": w,
+                "m": m,
+            }
+        )
+
+    return {
+        "as_of": today_str,
+        "assets": assets,
+    }
 
 def get_macro_state() -> dict:
     """
