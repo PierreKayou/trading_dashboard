@@ -573,6 +573,67 @@
       font-size: 11px;
       color: var(--danger);
     }
+
+    /* Tableau performances */
+
+    .perf-block {
+      margin-top: 16px;
+      border-top: 1px solid rgba(31, 41, 55, 0.9);
+      padding-top: 10px;
+    }
+
+    .perf-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .perf-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .perf-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+
+    .perf-table th,
+    .perf-table td {
+      padding: 4px 6px;
+      text-align: right;
+    }
+
+    .perf-table th:first-child,
+    .perf-table td:first-child {
+      text-align: left;
+    }
+
+    .perf-table thead {
+      border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+    }
+
+    .perf-table tbody tr:nth-child(odd) {
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .perf-table tbody tr:nth-child(even) {
+      background: rgba(15, 23, 42, 0.7);
+    }
+
+    .perf-positive {
+      color: var(--success);
+    }
+
+    .perf-negative {
+      color: var(--danger);
+    }
+
+    .perf-muted {
+      color: var(--text-muted);
+    }
   </style>
 </head>
 <body>
@@ -623,7 +684,7 @@
     </header>
 
     <div class="content-grid">
-      <!-- Colonne gauche : marchés -->
+      <!-- Colonne gauche : marchés + perfs -->
       <section class="card">
         <div class="card-inner">
           <div class="card-header">
@@ -650,6 +711,25 @@
             <div id="last-update">Dernière mise à jour : —</div>
           </div>
           <div id="status-error" class="status-error"></div>
+
+          <!-- Bloc performance -->
+          <div class="perf-block">
+            <div class="perf-title">Performance des indices</div>
+            <div class="perf-subtitle" id="perf-asof">—</div>
+            <table class="perf-table">
+              <thead>
+                <tr>
+                  <th>Indice</th>
+                  <th>Jour</th>
+                  <th>Semaine</th>
+                  <th>Mois</th>
+                </tr>
+              </thead>
+              <tbody id="perf-body">
+                <!-- Lignes injectées par JS -->
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
@@ -925,6 +1005,49 @@
       }
     }
 
+    // --- PERFORMANCES ---
+
+    function formatPerfCell(value) {
+      if (value === null || value === undefined || isNaN(value)) {
+        return '<span class="perf-muted">—</span>';
+      }
+      const cls = value > 0.01 ? "perf-positive" : value < -0.01 ? "perf-negative" : "perf-muted";
+      const sign = value > 0 ? "+" : "";
+      return `<span class="${cls}">${sign}${value.toFixed(2)} %</span>`;
+    }
+
+    async function fetchPerfSummary() {
+      try {
+        const res = await fetch(`${API_BASE}/perf/summary`);
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+        const data = await res.json();
+
+        const asofEl = document.getElementById("perf-asof");
+        asofEl.textContent = "Données au " + (data.as_of || "—");
+
+        const tbody = document.getElementById("perf-body");
+        tbody.innerHTML = "";
+
+        const assets = data.assets || [];
+        assets.forEach((asset) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${asset.symbol} – ${asset.label}</td>
+            <td>${formatPerfCell(asset.d)}</td>
+            <td>${formatPerfCell(asset.w)}</td>
+            <td>${formatPerfCell(asset.m)}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error("Erreur fetchPerfSummary:", err);
+        const asofEl = document.getElementById("perf-asof");
+        asofEl.textContent = "Impossible de récupérer les performances pour le moment.";
+      }
+    }
+
     // --- MARCHÉS ---
 
     async function refreshMarkets() {
@@ -1042,10 +1165,13 @@
 
     window.addEventListener("DOMContentLoaded", () => {
       refreshMarkets();
-      fetchMacroState(); // charge le contexte macro
+      fetchMacroState();
+      fetchPerfSummary();
 
       // Rafraîchissement périodique des marchés
       setInterval(refreshMarkets, 15000);
+      // Perf : ça bouge moins, on peut rafraîchir toutes les 10 minutes par exemple
+      setInterval(fetchPerfSummary, 10 * 60 * 1000);
 
       const iaBtn = document.getElementById("ia-run-btn");
       iaBtn.addEventListener("click", runIAAnalysis);
