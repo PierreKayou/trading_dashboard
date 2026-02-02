@@ -237,40 +237,40 @@ async def generate_macro_state(req: MacroRequest):
     }
 
 def generate_macro_state_from_text(context_text: str) -> Dict[str, Any]:
-    """
-    Appelle le modèle OpenAI pour générer un macro_state structuré JSON
-    à partir d'un texte macro.
-    """
     user_msg = MACRO_USER_TEMPLATE.format(context_text=context_text)
 
     try:
-        resp = client.chat.completions.create(
+        resp = client.responses.create(
             model=MACRO_MODEL,
-            response_format={"type": "json_object"},
-            messages=[
-                {"role": "system", "content": MACRO_SYSTEM_PROMPT},
-                {"role": "user", "content": user_msg},
+            input=[
+                {
+                    "role": "system",
+                    "content": MACRO_SYSTEM_PROMPT,
+                },
+                {
+                    "role": "user",
+                    "content": user_msg,
+                },
             ],
+            response_format={"type": "json_object"},
         )
     except Exception as e:
-        # 🔴 ICI : on renvoie l'erreur OpenAI vers le client pour debug
         raise HTTPException(
             status_code=500,
-            detail=f"Erreur OpenAI dans macro/generate: {e}"
+            detail=f"Erreur OpenAI (macro/generate) : {e}",
         )
 
-    content = resp.choices[0].message.content
+    # Récupération du texte généré
     try:
+        content = resp.output_text
         data = json.loads(content)
-    except json.JSONDecodeError as e:
+    except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Réponse IA invalide (JSON) : {e} | contenu brut : {content[:500]}",
+            detail=f"Réponse IA invalide : {e}",
         )
 
-    # On s'assure qu'il y a un timestamp YYYY-MM-DD
-    today_str = date.today().strftime("%Y-%m-%d")
-    if "timestamp" not in data or not data["timestamp"]:
-        data["timestamp"] = today_str
+    if not data.get("timestamp"):
+        data["timestamp"] = date.today().strftime("%Y-%m-%d")
 
     return data
