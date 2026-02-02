@@ -1,144 +1,237 @@
 # macro/router.py
 
-from __future__ import annotations
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from typing import Optional, Any, Dict
+from datetime import datetime, date
+from openai import OpenAI
+import json
+import os
 
-from datetime import date, timedelta
-from typing import Optional
-
-from fastapi import APIRouter, Query
-
-from .schemas import WeekMacroData, WeekMacroSummary, MonthlyMacroContext
-from .service import (
-    get_week_macro_data,
-    summarize_week,
-    get_monthly_macro_context,
+router = APIRouter(
+    prefix="/macro",
+    tags=["macro"],
 )
 
-router = APIRouter(prefix="/macro", tags=["macro"])
+client = OpenAI()
+
+MACRO_MODEL = "gpt-4.1"
+MACRO_STATE_FILE = os.path.join(os.getcwd(), "macro_state.json")
 
 
-def _default_week_range() -> tuple[date, date]:
-    today = date.today()
-    # On prend la semaine "courante" : lundi → dimanche
-    monday = today - timedelta(days=today.weekday())
-    sunday = monday + timedelta(days=6)
-    return monday, sunday
-
-
-@router.get("/week/raw", response_model=WeekMacroData)
-async def get_week_raw(
-    start: Optional[date] = Query(None, description="Début de semaine (YYYY-MM-DD)"),
-    end: Optional[date] = Query(None, description="Fin de semaine (YYYY-MM-DD)"),
-):
+class MacroRequest(BaseModel):
     """
-    Donne toutes les données brutes nécessaires à la vue “Semaine” :
-    - événements macro
-    - news
-    - performances hebdo
-    - grille de sentiment (heatmap)
+    context_text : texte brut / collage de tes sources macro (Fed, CPI, NFP, news, etc.)
+    force_refresh : si False, réutilise le macro_state de la semaine en cours s'il existe
     """
-    if not start or not end:
-        start, end = _default_week_range()
-    return await get_week_macro_data(start, end)
+    context_text: str
+    force_refresh: bool = False
 
 
-@router.get("/week/summary", response_model=WeekMacroSummary)
-async def get_week_summary(
-    start: Optional[date] = Query(None, description="Début de semaine (YYYY-MM-DD)"),
-    end: Optional[date] = Query(None, description="Fin de semaine (YYYY-MM-DD)"),
-):
-    """
-    Résumé structuré de la semaine :
-    - risk-on / risk-off
-    - top events
-    - top moves
-    - événements à surveiller pour le reste de la semaine
-    """
-    if not start or not end:
-        start, end = _default_week_range()
+# ======================
+# Macro neutre par défaut
+# ======================
 
-    data = await get_week_macro_data(start, end)
-    return await summarize_week(data)
-
-
-@router.get("/month/context", response_model=MonthlyMacroContext)
-async def get_month_context(
-    month_start: Optional[date] = Query(
-        None, description="Début du mois (YYYY-MM-DD, par défaut : 1er du mois courant)"
-    ),
-    month_end: Optional[date] = Query(
-        None, description="Fin du mois (YYYY-MM-DD, par défaut : dernier jour du mois courant)"
-    ),
-):
-    """
-    Vue “contexte macro mensuel” :
-    - séries CPI vs indice
-    - séries taux directeurs vs indice
-    - tableau comparatif macro par pays
-    - performances mensuelles par classes d’actifs
-    - thèmes dominants des news
-    """
-    today = date.today()
-
-    if month_start is None:
-        month_start = today.replace(day=1)
-
-    if month_end is None:
-        # calcul fin de mois
-        if month_start.month == 12:
-            next_month = month_start.replace(year=month_start.year + 1, month=1, day=1)
-        else:
-            next_month = month_start.replace(month=month_start.month + 1, day=1)
-        month_end = next_month - timedelta(days=1)
-
-    return await get_monthly_macro_context(month_start, month_end)
-
-# -------------------------------------------------------------------
-# Biais macro global + biais par actif (endpoint simple pour le dash)
-# -------------------------------------------------------------------
-
-MACRO_BIAS_PAYLOAD = {
-    "global_bias": "risk-on",
-    "summary": "Semaine globalement risk-on, les indices actions ont bien progressé.",
-    "assets": {
-        "ES": {
-            "bias": "bullish",
-            "confidence": "high",
-            "reason": "Biais risk-on global, performances hebdo positives sur les indices US et VIX en forte baisse."
-        },
-        "NQ": {
-            "bias": "bullish",
-            "confidence": "high",
-            "reason": "Nasdaq surperforme dans un contexte risk-on, ce qui favorise les valeurs de croissance."
-        },
-        "CL": {
-            "bias": "bearish",
-            "confidence": "medium",
-            "reason": "Pétrole en baisse sur la semaine, malgré un environnement risk-on, ce qui invite à la prudence sur CL."
-        },
-        "GC": {
-            "bias": "neutral",
-            "confidence": "medium",
-            "reason": "Or légèrement négatif mais sans stress macro marqué, rôle de valeur refuge moins dominant."
-        },
-        "BTC": {
-            "bias": "bullish",
-            "confidence": "medium",
-            "reason": "Contexte risk-on et indices en hausse, ce qui reste en général favorable aux actifs plus risqués comme le Bitcoin."
-        },
+NEUTRAL_MACRO_STATE: Dict[str, Any] = {
+    "timestamp": None,
+    "macro_regime": {
+        "label": "Neutre",
+        "confidence": 0.5,
+        "stability": "stable",
     },
+    "macro_factors": {
+        "monetary_policy": "neutre",
+        "inflation_trend": "stable",
+        "growth_trend": "stable",
+        "risk_sentiment": "neutre",
+        "rates_pressure": "neutre",
+        "usd_bias": "neutre",
+    },
+    "market_bias": {
+        "equities": "contexte neutre",
+        "indices_us": "contexte neutre",
+        "commodities": "contexte neutre",
+        "crypto": "contexte neutre",
+    },
+    "invalidations": [],
+    "commentary": "Aucun contexte macro explicite disponible, régime neutre par défaut.",
 }
 
 
-@router.get("/bias")
-async def get_macro_bias():
-    """
-    Biais macro global + biais par actif pour le dashboard trading.
+# ======================
+# Prompts IA
+# ======================
 
-    - global_bias : 'risk-on' | 'risk-off' | 'neutral'
-    - assets : ES, NQ, CL, GC, BTC avec:
-        - bias : 'bullish' | 'bearish' | 'neutral'
-        - confidence : 'low' | 'medium' | 'high'
-        - reason : texte court explicatif
+MACRO_SYSTEM_PROMPT = """
+Tu es une IA spécialisée en analyse macro-économique appliquée aux marchés financiers.
+
+Objectif :
+Déterminer le régime macro-économique dominant pour la semaine à venir
+(et éventuellement les 2–4 semaines suivantes).
+
+Contraintes :
+- Tu ne donnes AUCUN signal de trade.
+- Tu ne prédis PAS les prix.
+- Tu qualifies uniquement le CONTEXTE MACRO.
+- Tu dois répondre STRICTEMENT en JSON valide, sans texte autour.
+"""
+
+MACRO_USER_TEMPLATE = """
+Voici un résumé (ou collage) des informations macro-économiques récentes :
+
+---
+{context_text}
+---
+
+À partir de ces informations, produis un objet JSON STRICTEMENT conforme au schéma suivant :
+
+{
+  "timestamp": "YYYY-MM-DD",
+  "macro_regime": {
+    "label": "string (ex: 'Risk-Off Modéré', 'Risk-On', 'Neutre')",
+    "confidence": 0.0,
+    "stability": "string (ex: 'stable', 'fragile', 'en transition')"
+  },
+  "macro_factors": {
+    "monetary_policy": "restrictive | neutre | accommodante",
+    "inflation_trend": "hausse | baisse | stable | désinflation lente",
+    "growth_trend": "accélération | ralentissement | stable",
+    "risk_sentiment": "risk-on | risk-off | neutre",
+    "rates_pressure": "haussière | baissière | neutre",
+    "usd_bias": "haussier | baissier | neutre"
+  },
+  "market_bias": {
+    "equities": "string courte (pression baissière, plutôt haussier, range, etc.)",
+    "indices_us": "string courte",
+    "commodities": "string courte",
+    "crypto": "string courte"
+  },
+  "invalidations": [
+    "liste d'événements ou données qui invalideraient ce régime"
+  ],
+  "commentary": "commentaire synthétique en français sur le contexte macro et la prudence à adopter"
+}
+
+Règles :
+- Remplis tous les champs.
+- Utilise la date du jour pour "timestamp" si l'information n'est pas claire.
+- Ne rajoute AUCUN texte en dehors du JSON.
+"""
+
+
+# ======================
+# Helpers fichier macro_state
+# ======================
+
+def load_macro_state() -> Dict[str, Any]:
+    try:
+        if os.path.exists(MACRO_STATE_FILE):
+            with open(MACRO_STATE_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return NEUTRAL_MACRO_STATE
+
+
+def save_macro_state(state: Dict[str, Any]) -> None:
+    try:
+        with open(MACRO_STATE_FILE, "w", encoding="utf-8") as f:
+            json.dump(state, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        # On loguerait en prod ; ici on balance juste une exception
+        raise HTTPException(status_code=500, detail=f"Erreur sauvegarde macro_state.json : {e}")
+
+
+def same_iso_week(date_str: Optional[str], ref: date) -> bool:
     """
-    return MACRO_BIAS_PAYLOAD
+    True si date_str (YYYY-MM-DD) est dans la même semaine ISO que ref.
+    """
+    if not date_str:
+        return False
+    try:
+        d = datetime.strptime(date_str, "%Y-%m-%d").date()
+    except ValueError:
+        return False
+
+    year1, week1, _ = d.isocalendar()
+    year2, week2, _ = ref.isocalendar()
+    return (year1 == year2) and (week1 == week2)
+
+
+# ======================
+# Core IA
+# ======================
+
+def generate_macro_state_from_text(context_text: str) -> Dict[str, Any]:
+    """
+    Appelle le modèle OpenAI pour générer un macro_state structuré JSON
+    à partir d'un texte macro.
+    """
+    user_msg = MACRO_USER_TEMPLATE.format(context_text=context_text)
+
+    resp = client.chat.completions.create(
+        model=MACRO_MODEL,
+        response_format={"type": "json_object"},
+        messages=[
+            {"role": "system", "content": MACRO_SYSTEM_PROMPT},
+            {"role": "user", "content": user_msg},
+        ],
+    )
+
+    content = resp.choices[0].message.content
+    try:
+        data = json.loads(content)
+    except json.JSONDecodeError as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Réponse IA invalide (JSON) : {e} | contenu brut : {content[:2000]}",
+        )
+
+    # On s'assure qu'il y a un timestamp YYYY-MM-DD
+    today_str = date.today().strftime("%Y-%m-%d")
+    if "timestamp" not in data or not data["timestamp"]:
+        data["timestamp"] = today_str
+
+    return data
+
+
+# ======================
+# ENDPOINTS
+# ======================
+
+@router.get("/state")
+async def get_state():
+    """
+    Renvoie le dernier macro_state connu (ou un régime neutre par défaut).
+    Utilisé par le /analyze de l'API principale.
+    """
+    state = load_macro_state()
+    return state
+
+
+@router.post("/generate")
+async def generate_macro_state(req: MacroRequest):
+    """
+    Génère / met à jour le macro_state à partir d'un texte macro.
+    - Si un macro_state existe déjà pour la semaine ISO en cours et force_refresh=False,
+      on renvoie directement le cache (pas de nouvel appel IA).
+    - Sinon, on appelle l'IA, on sauve le nouveau macro_state, et on le renvoie.
+    """
+    today = date.today()
+    current_state = load_macro_state()
+
+    if not req.force_refresh and same_iso_week(current_state.get("timestamp"), today):
+        # On considère que le régime hebdo est déjà en place
+        return {
+            "source": "cache",
+            "macro_state": current_state,
+        }
+
+    # Sinon : génération IA
+    new_state = generate_macro_state_from_text(req.context_text)
+    save_macro_state(new_state)
+
+    return {
+        "source": "ia",
+        "macro_state": new_state,
+    }
