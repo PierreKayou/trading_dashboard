@@ -13,7 +13,6 @@ from openai import OpenAI
 
 router = APIRouter(prefix="/api/news", tags=["news"])
 
-
 # ------------------------------------------------------------------
 # CONFIG : NewsAPI (https://newsapi.org) pour compléter yfinance
 # ------------------------------------------------------------------
@@ -22,7 +21,7 @@ NEWS_API_URL = "https://newsapi.org/v2/top-headlines"
 
 client = OpenAI()
 
-# Symbols utilisés pour les news yfinance (comme avant)
+# Symbols utilisés pour les news yfinance
 NEWS_SYMBOLS = [
     "^GSPC",    # S&P 500
     "^NDX",     # Nasdaq 100
@@ -35,7 +34,6 @@ NEWS_SYMBOLS = [
 def fetch_yfinance_news(max_articles: int = 30) -> List[Dict[str, Any]]:
     """
     Récupère les news via yfinance (Ticker.news) sur quelques symboles clés.
-    Même logique que ce qu'on avait, mais isolé dans une fonction.
     """
     articles: List[Dict[str, Any]] = []
     seen_titles = set()
@@ -63,15 +61,13 @@ def fetch_yfinance_news(max_articles: int = 30) -> List[Dict[str, Any]]:
                 }
             )
 
-    # On ne coupe pas ici, l'agrégateur le fera
     return articles
 
 
 def fetch_newsapi_news(max_articles: int = 30) -> List[Dict[str, Any]]:
     """
     Récupère des news business / macro via NewsAPI.
-    Si NEWS_API_KEY n'est pas définie, on renvoie une liste vide
-    (dans ce cas, seule yfinance sera utilisée).
+    Si NEWS_API_KEY n'est pas définie, on renvoie une liste vide.
     """
     if not NEWS_API_KEY:
         return []
@@ -90,7 +86,6 @@ def fetch_newsapi_news(max_articles: int = 30) -> List[Dict[str, Any]]:
                 headers={"X-Api-Key": NEWS_API_KEY},
             )
     except Exception:
-        # En cas de souci réseau, on ne casse pas tout, on renvoie juste rien
         return []
 
     if resp.status_code != 200:
@@ -149,7 +144,6 @@ def fetch_raw_news(max_articles: int = 30) -> Dict[str, Any]:
         seen_titles.add(title)
         all_articles.append(a)
 
-    # On laisse l'ordre d'arrivée, on tronque
     return {
         "source": "yfinance+newsapi",
         "fetched_at": time.time(),
@@ -161,7 +155,6 @@ def fetch_raw_news(max_articles: int = 30) -> Dict[str, Any]:
 def get_raw_news(limit: int = 20) -> Dict[str, Any]:
     """
     Récupération brute des news (liste d'articles) depuis yfinance + NewsAPI.
-    Utilisable telle quelle par ton dash ou par l'IA.
     """
     if limit <= 0:
         limit = 10
@@ -181,8 +174,7 @@ class NewsAnalyzeRequest(BaseModel):
 @router.post("/analyze")
 def analyze_news(req: NewsAnalyzeRequest) -> Dict[str, Any]:
     """
-    Prend une liste de news (ou va les chercher tout seul),
-    et renvoie une analyse IA structurée :
+    Analyse IA structurée du flux de news :
     - sentiment macro global
     - tonalité risk-on / risk-off
     - volatilité attendue
@@ -198,44 +190,50 @@ def analyze_news(req: NewsAnalyzeRequest) -> Dict[str, Any]:
         articles = raw.get("articles", [])
         source = raw.get("source", "yfinance+newsapi")
 
-    # Si malgré tout aucune news (problème de flux / quotas), on renvoie une analyse neutre
+    # Si aucune news : analyse neutre
     if not articles:
         neutral_analysis = {
             "macro_sentiment": {
                 "label": "Neutre",
-                "comment": "Aucune news exploitable remontée par les sources actuelles. "
-                           "On considère le contexte informationnel comme neutre par défaut."
+                "comment": (
+                    "Aucune news exploitable remontée par les sources actuelles. "
+                    "On considère le contexte informationnel comme neutre par défaut."
+                ),
             },
             "risk_tone": "neutral",
             "volatility_outlook": "normal",
             "key_points": [
                 "Pas de news macro/financières majeures détectées via les sources configurées.",
                 "Le flux d'information ne remet pas en cause le biais technique ou macro en place.",
-                "Rester attentif à l'agenda économique et aux prochaines publications."
+                "Rester attentif à l'agenda économique et aux prochaines publications.",
             ],
             "by_asset": {
                 "ES": {
                     "bias": "neutral",
-                    "comment": "Sans news particulières, aucun biais directionnel spécifique "
-                               "lié au flux d'information pour l'ES."
+                    "comment": (
+                        "Sans news particulières, aucun biais directionnel spécifique "
+                        "lié au flux d'information pour l'ES."
+                    ),
                 },
                 "NQ": {
                     "bias": "neutral",
-                    "comment": "Pas de news marquantes orientant clairement le Nasdaq à court terme."
+                    "comment": "Pas de news marquantes orientant clairement le Nasdaq à court terme.",
                 },
                 "BTC": {
                     "bias": "neutral",
-                    "comment": "Aucune information spécifique ne modifie le biais de fond sur Bitcoin."
+                    "comment": "Aucune information spécifique ne modifie le biais de fond sur Bitcoin.",
                 },
                 "CL": {
                     "bias": "neutral",
-                    "comment": "Pas de catalyseur d'actualité identifié sur le pétrole WTI via les sources utilisées."
+                    "comment": (
+                        "Pas de catalyseur d'actualité identifié sur le pétrole WTI via les sources utilisées."
+                    ),
                 },
                 "GC": {
                     "bias": "neutral",
-                    "comment": "Sans news majeures, l'or conserve un rôle neutre dans le contexte actuel."
-                }
-            }
+                    "comment": "Sans news majeures, l'or conserve un rôle neutre dans le contexte actuel.",
+                },
+            },
         }
 
         return {
