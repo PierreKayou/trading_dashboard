@@ -177,14 +177,16 @@ def _build_sentiment_grid(start: dt.date, end: dt.date) -> List[Dict[str, Any]]:
             continue
 
         ts = art.get("providerPublishTime")
-        if not ts:
-            # si pas de timestamp, on ignore pour la grille hebdo
-            continue
+if not ts:
+    continue
 
-        try:
-            dt_obj = dt.datetime.utcfromtimestamp(ts)
-        except Exception:
-            continue
+# 🔧 CORRECTION timestamp secondes / millisecondes
+if ts > 10_000_000_000:  # > année ~2286 → donc millisecondes
+    ts = ts / 1000
+
+dt_obj = datetime.datetime.utcfromtimestamp(ts)
+date_str = dt_obj.strftime("%Y-%m-%d")
+
 
         day = dt_obj.date()
         if day < start or day > end:
