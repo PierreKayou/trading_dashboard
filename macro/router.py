@@ -1,18 +1,20 @@
 # macro/router.py
 
 from fastapi import APIRouter, HTTPException
-import yfinance as yf
-from datetime import date, timedelta
+from typing import List, Dict, Any
+import datetime as dt
 import time
-from typing import List, Dict, Any, Optional
+import os
 
-router = APIRouter(
-    prefix="/api/macro",
-    tags=["macro"],
-)
+import yfinance as yf
+import numpy as np
 
-# Même univers d’actifs que sur le dashboard principal
-SYMBOLS = {
+from news.router import fetch_raw_news  # on réutilise ton agrégateur de news
+
+router = APIRouter(prefix="/api/macro", tags=["macro"])
+
+# Univers suivi (mêmes tickers que sur l'index)
+SYMBOLS: Dict[str, Dict[str, str]] = {
     "ES": {"name": "S&P 500 Future", "yf": "ES=F"},
     "NQ": {"name": "Nasdaq 100 Future", "yf": "NQ=F"},
     "BTC": {"name": "Bitcoin", "yf": "BTC-USD"},
@@ -20,258 +22,406 @@ SYMBOLS = {
     "GC": {"name": "Gold", "yf": "GC=F"},
 }
 
+BUCKETS = ["macro_us", "macro_europe", "companies", "geopolitics", "tech"]
 
-# ------------------------------------------------------------
-# Helpers : semaine courante & calcul de perf hebdo
-# ------------------------------------------------------------
-def get_week_bounds(today: Optional[date] = None) -> tuple[date, date]:
+
+# ---------------------------------------------------------------------------
+# Outils de base : bornes de semaine + perfs
+# ---------------------------------------------------------------------------
+
+def _get_week_bounds(today: dt.date | None = None) -> tuple[dt.date, dt.date]:
     """
-    Retourne (lundi, dimanche) de la semaine du jour.
+    Retourne (lundi, dimanche) de la semaine courante.
     """
     if today is None:
-        today = date.today()
-    monday = today - timedelta(days=today.weekday())  # 0 = lundi
-    sunday = monday + timedelta(days=6)
-    return monday, sunday
+        today = dt.date.today()
+    start = today - dt.timedelta(days=today.weekday())
+    end = start + dt.timedelta(days=6)
+    return start, end
 
 
-def weekly_return_pct(yf_symbol: str, start: date, end: date) -> Optional[float]:
+def _compute_weekly_performances(start: dt.date, end: dt.date) -> List[Dict[str, Any]]:
     """
-    Perf % entre le premier close de la semaine et le dernier close de la semaine.
-    Si on n'a pas assez de données, renvoie None.
+    Calcule la perf % de chaque actif entre le premier cours de la semaine
+    (ou le plus proche disponible) et le dernier cours dispo.
     """
-    try:
-        ticker = yf.Ticker(yf_symbol)
-        # end + 1 jour pour être sûr de capter le dernier close
-        hist = ticker.history(
-            start=start,
-            end=end + timedelta(days=1),
-            interval="1d",
-        )
-    except Exception:
-        return None
-
-    if hist.empty or len(hist["Close"].dropna()) < 2:
-        return None
-
-    closes = hist["Close"].dropna()
-    first = float(closes.iloc[0])
-    last = float(closes.iloc[-1])
-    if first == 0:
-        return None
-
-    return (last - first) / first * 100.0
-
-
-def build_asset_performances(week_start: date, week_end: date) -> List[Dict[str, Any]]:
     assets: List[Dict[str, Any]] = []
 
     for sym, cfg in SYMBOLS.items():
-        ret = weekly_return_pct(cfg["yf"], week_start, week_end)
+        yf_symbol = cfg["yf"]
+        name = cfg["name"]
+
+        try:
+            # On prend un peu large pour être sûr d'avoir le début de semaine
+            hist = yf.Ticker(yf_symbol).history(period="1mo", interval="1d")
+        except Exception:
+            continue
+
+        if hist.empty or "Close" not in hist.columns:
+            continue
+
+        closes = hist["Close"].dropna()
+        if closes.empty:
+            continue
+
+        # Date du dernier close
+        last_close = float(closes.iloc[-1])
+
+        # On cherche le premier cours >= début de semaine,
+        # sinon on prend le premier close dispo (fallback).
+        idx_week = [i for i, ts in enumerate(closes.index) if ts.date() >= start]
+        if idx_week:
+            base_close = float(closes.iloc[idx_week[0]])
+        else:
+            base_close = float(closes.iloc[0])
+
+        if base_close == 0:
+            ret_pct = 0.0
+        else:
+            ret_pct = (last_close - base_close) / base_close * 100.0
+
         assets.append(
             {
                 "symbol": sym,
-                "name": cfg["name"],
-                "return_pct": ret,
+                "name": name,
+                "return_pct": ret_pct,
             }
         )
 
     return assets
 
 
-def compute_risk_on_comment(assets: List[Dict[str, Any]]) -> tuple[Optional[bool], str]:
+# ---------------------------------------------------------------------------
+# Sentiment news : classification & scoring
+# ---------------------------------------------------------------------------
+
+def _classify_bucket(title: str) -> str:
     """
-    Déduit un biais risk-on / risk-off simple à partir des perfs hebdo.
+    Classe grossièrement une news dans un bucket thématique :
+    macro_us, macro_europe, companies, geopolitics, tech.
     """
-    rets = [a["return_pct"] for a in assets if a["return_pct"] is not None]
-    if not rets:
-        return None, "Impossible d'évaluer le biais macro : données hebdos insuffisantes."
+    t = (title or "").lower()
 
-    positives = sum(1 for r in rets if r > 0.2)
-    negatives = sum(1 for r in rets if r < -0.2)
+    if any(k in t for k in ["fed", "treasury", "cpi", "inflation", "payroll",
+                            "jobs report", "unemployment", "gdp", "fomc"]):
+        return "macro_us"
 
-    if positives >= 3 and positives > negatives:
-        # Risk-on
-        return (
-            True,
-            "Biais plutôt risk-on : la majorité des actifs progresse cette semaine, "
-            "avec un contexte global plus constructif sur les marchés.",
-        )
-    elif negatives >= 3 and negatives > positives:
-        # Risk-off
-        return (
-            False,
-            "Biais plutôt risk-off : la majorité des actifs sont sous pression cette semaine, "
-            "avec un contexte plus défensif sur les marchés.",
-        )
-    else:
-        # Neutre / mixte
-        return (
-            None,
-            "Lecture macro mitigée : les performances hebdomadaires des actifs sont "
-            "mélangées, sans biais clair en faveur du risk-on ou du risk-off.",
-        )
+    if any(k in t for k in ["ecb", "eurozone", "euro zone", "european central bank",
+                            "europe", "euro area", "uk ", "germany", "france",
+                            "italy", "spain"]):
+        return "macro_europe"
+
+    if any(k in t for k in ["war", "conflict", "tension", "sanction", "geopolitic",
+                            "middle east", "ukraine", "russia", "gaza", "israel",
+                            "taiwan", "border"]):
+        return "geopolitics"
+
+    if any(k in t for k in ["ai", "artificial intelligence", "chip", "semiconductor",
+                            "nvidia", "amd", "intel", "microsoft", "google",
+                            "alphabet", "apple", "meta", "amazon", "cloud",
+                            "software", "technology", "tech "]):
+        return "tech"
+
+    # Par défaut, on considère que c'est plutôt "entreprises"
+    return "companies"
 
 
-def build_top_moves(assets: List[Dict[str, Any]], max_items: int = 3) -> List[Dict[str, Any]]:
+def _score_sentiment(text: str) -> float:
     """
-    Sélectionne les mouvements les plus marquants de la semaine.
-    - Triés par |perf| décroissante
-    - Filtre sur un seuil minimal (1 % en absolu)
+    Score très simple en [-1, +1] basé sur quelques mots positifs/négatifs
+    dans le titre (ou le titre + description si tu rajoutes plus tard).
     """
-    # On ne garde que ceux qui ont une perf
-    valid = [a for a in assets if a["return_pct"] is not None]
+    t = (text or "").lower()
 
-    # Tri par amplitude décroissante
-    valid.sort(key=lambda x: abs(x["return_pct"]), reverse=True)
+    positives = [
+        "rally", "surge", "jump", "soar", "record", "beat", "beats",
+        "strong", "growth", "better than", "optimism", "optimistic",
+        "upgrade", "bull", "bullish", "rebound", "recovery",
+    ]
+    negatives = [
+        "selloff", "sell-off", "plunge", "drop", "fall", "tumble", "slump",
+        "crash", "fear", "fears", "concern", "concerns", "warning",
+        "profit warning", "cut", "cuts", "downgrade", "bear", "bearish",
+        "recession", "slowdown",
+    ]
 
-    top: List[Dict[str, Any]] = []
-    for a in valid:
-        if len(top) >= max_items:
-            break
-        move = a["return_pct"]
-        if abs(move) < 1.0:
-            # on ignore les micro-mouvements
+    pos = sum(1 for w in positives if w in t)
+    neg = sum(1 for w in negatives if w in t)
+
+    if pos == 0 and neg == 0:
+        return 0.0
+
+    return float((pos - neg) / (pos + neg))
+
+
+def _build_sentiment_grid(start: dt.date, end: dt.date) -> List[Dict[str, Any]]:
+    """
+    Construit la grille:
+    [
+      { date, bucket, sentiment, news_count },
+      ...
+    ]
+    en utilisant fetch_raw_news (yfinance + NewsAPI).
+    """
+    try:
+        raw = fetch_raw_news(max_articles=200)
+    except Exception:
+        raw = {"articles": []}
+
+    articles = raw.get("articles", []) or []
+    daily: Dict[str, Dict[str, Dict[str, float]]] = {}
+
+    for art in articles:
+        title = art.get("title") or ""
+        if not title.strip():
             continue
 
-        direction = "hausse" if move > 0 else "baisse"
-        sign = "+" if move > 0 else ""
-        desc = (
-            f"{a['symbol']} ({a['name']}) en {direction} de "
-            f"{sign}{move:.2f} % sur la semaine."
-        )
+        ts = art.get("providerPublishTime")
+        if not ts:
+            # si pas de timestamp, on ignore pour la grille hebdo
+            continue
 
-        top.append(
-            {
-                "asset": a["symbol"],
-                "move_pct": move,
-                "description": desc,
-            }
-        )
+        try:
+            dt_obj = dt.datetime.utcfromtimestamp(ts)
+        except Exception:
+            continue
 
-    return top
+        day = dt_obj.date()
+        if day < start or day > end:
+            continue
 
+        bucket = _classify_bucket(title)
+        score = _score_sentiment(title)
 
-def build_sentiment_grid(week_start: date, week_end: date) -> List[Dict[str, Any]]:
-    """
-    Pour l'instant : grille neutre (0, 0 news).
-    Structure prête pour version B (news & IA).
-    """
-    buckets = ["macro_us", "macro_europe", "companies", "geopolitics", "tech"]
+        day_str = day.isoformat()
+        if day_str not in daily:
+            daily[day_str] = {b: {"sum": 0.0, "count": 0} for b in BUCKETS}
+
+        bucket_data = daily[day_str][bucket]
+        bucket_data["sum"] += score
+        bucket_data["count"] += 1
+
+    # On génère la grille en remplissant tous les jours / buckets,
+    # même quand il n'y a pas eu de news (news_count = 0).
     grid: List[Dict[str, Any]] = []
+    one_day = dt.timedelta(days=1)
+    d = start
+    while d <= end:
+        day_str = d.isoformat()
+        stats_for_day = daily.get(
+            day_str,
+            {b: {"sum": 0.0, "count": 0} for b in BUCKETS},
+        )
 
-    d = week_start
-    while d <= week_end:
-        for b in buckets:
+        for bucket in BUCKETS:
+            data = stats_for_day.get(bucket, {"sum": 0.0, "count": 0})
+            count = int(data["count"])
+            avg = float(data["sum"] / count) if count > 0 else 0.0
+
             grid.append(
                 {
-                    "date": d.isoformat(),
-                    "bucket": b,
-                    "sentiment": 0,   # neutre
-                    "news_count": 0,  # aucune news encore
+                    "date": day_str,
+                    "bucket": bucket,
+                    "sentiment": avg,
+                    "news_count": count,
                 }
             )
-        d += timedelta(days=1)
+        d += one_day
 
     return grid
 
 
-# ------------------------------------------------------------
-# ENDPOINTS
-# ------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# Heuristiques globales de "risk-on / risk-off"
+# ---------------------------------------------------------------------------
 
-@router.get("/week/summary")
-async def get_week_summary():
+def _compute_risk_profile(asset_perfs: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
-    Vue synthétique pour la page macro :
-
-    - start / end
-    - risk_on / risk_comment
-    - top_events / top_moves
+    Traduit les perfs de la semaine en un biais macro simple.
     """
-    week_start, week_end = get_week_bounds()
-    assets = build_asset_performances(week_start, week_end)
-    risk_on, comment = compute_risk_on_comment(assets)
-    top_moves = build_top_moves(assets, max_items=3)
+    rets = np.array([a["return_pct"] for a in asset_perfs if a.get("return_pct") is not None])
+    if rets.size == 0:
+        return {
+            "risk_on": None,
+            "label": "Lecture macro neutre",
+            "comment": "Données insuffisantes pour déterminer un biais macro.",
+        }
 
-    return {
-        "start": week_start.isoformat(),
-        "end": week_end.isoformat(),
-        "created_at": time.time(),
-        "risk_on": risk_on,
-        "risk_comment": comment,
-        "top_events": [],       # on les remplira plus tard (version C avec IA macro)
-        "top_moves": top_moves,
-    }
+    avg = float(np.mean(rets))
 
-
-@router.get("/week/raw")
-async def get_week_raw():
-    """
-    Données détaillées pour la grille et la table de la page macro :
-
-    - asset_performances : [{symbol, name, return_pct}]
-    - sentiment_grid : [{date, bucket, sentiment, news_count}]
-    """
-    week_start, week_end = get_week_bounds()
-    assets = build_asset_performances(week_start, week_end)
-    sentiment_grid = build_sentiment_grid(week_start, week_end)
-
-    return {
-        "start": week_start.isoformat(),
-        "end": week_end.isoformat(),
-        "created_at": time.time(),
-        "asset_performances": assets,
-        "sentiment_grid": sentiment_grid,
-    }
-
-
-@router.get("/bias")
-async def get_bias():
-    """
-    Biais macro par actif (utilisé par l'index pour les petites lignes
-    'Biais macro haussier / baissier / neutre').
-    """
-    week_start, week_end = get_week_bounds()
-    assets = build_asset_performances(week_start, week_end)
-    risk_on, comment = compute_risk_on_comment(assets)
-
-    # Label global
-    if risk_on is True:
-        label = "Biais macro global : risk-on"
-    elif risk_on is False:
-        label = "Biais macro global : risk-off"
+    if avg > 1.0:
+        return {
+            "risk_on": True,
+            "label": "Biais macro global : risk-on",
+            "comment": (
+                "Biais plutôt risk-on : les actifs risqués s'inscrivent globalement "
+                "en hausse cette semaine, dans un contexte plus favorable au risque."
+            ),
+        }
+    elif avg < -1.0:
+        return {
+            "risk_on": False,
+            "label": "Biais macro global : risk-off",
+            "comment": (
+                "Biais plutôt risk-off : la majorité des actifs sont sous pression "
+                "cette semaine, avec un contexte plus défensif sur les marchés."
+            ),
+        }
     else:
-        label = "Biais macro global : neutre / mitigé"
+        return {
+            "risk_on": False,
+            "label": "Biais macro global : neutre / mitigé",
+            "comment": (
+                "Lecture macro mitigée : les performances hebdomadaires des actifs "
+                "sont mélangées, sans biais clair en faveur du risk-on ou du risk-off."
+            ),
+        }
 
-    # Biais par actif, basé sur le retour hebdo
-    classified_assets: List[Dict[str, Any]] = []
-    for a in assets:
-        ret = a["return_pct"]
-        if ret is None:
-            bias = "neutral"
-        elif ret > 1.0:
+
+def _compute_macro_bias_assets(asset_perfs: List[Dict[str, Any]],
+                               risk_on: bool | None) -> List[Dict[str, Any]]:
+    """
+    Associe à chaque actif un biais macro très simple (bullish / bearish / neutral)
+    en fonction de sa perf relative et du climat global.
+    """
+    if not asset_perfs:
+        return []
+
+    rets = np.array([a["return_pct"] for a in asset_perfs])
+    mean = float(np.mean(rets))
+    std = float(np.std(rets)) if rets.size > 1 else 0.0
+
+    assets_with_bias: List[Dict[str, Any]] = []
+    for a in asset_perfs:
+        r = a["return_pct"]
+        if std > 0:
+            z = (r - mean) / std
+        else:
+            z = 0.0
+
+        # seuils très simples
+        if z > 0.5:
             bias = "bullish"
-        elif ret < -1.0:
+        elif z < -0.5:
             bias = "bearish"
         else:
             bias = "neutral"
 
-        classified_assets.append(
+        # On renvoie juste "macro_bias" pour ton index
+        assets_with_bias.append(
             {
                 "symbol": a["symbol"],
                 "name": a["name"],
-                "return_pct": ret,
+                "return_pct": r,
                 "macro_bias": bias,
             }
         )
 
-    return {
-        "start": week_start.isoformat(),
-        "end": week_end.isoformat(),
+    return assets_with_bias
+
+
+def _build_top_moves(asset_perfs: List[Dict[str, Any]],
+                     max_moves: int = 3) -> List[Dict[str, Any]]:
+    """
+    Sélectionne les mouvements les plus marquants de la semaine
+    pour la carte "MOUVEMENTS MARQUANTS".
+    """
+    if not asset_perfs:
+        return []
+
+    # tri absolu décroissant
+    ordered = sorted(asset_perfs, key=lambda a: abs(a["return_pct"]), reverse=True)
+    top = ordered[:max_moves]
+
+    moves: List[Dict[str, Any]] = []
+    for a in top:
+        sym = a["symbol"]
+        name = a["name"]
+        r = a["return_pct"]
+        sign = "+" if r > 0 else ""
+        description = f"{sym} ({name}) en {'hausse' if r >= 0 else 'baisse'} de {sign}{r:.2f} % sur la semaine."
+
+        moves.append(
+            {
+                "asset": sym,
+                "move_pct": r,
+                "description": description,
+            }
+        )
+
+    return moves
+
+
+# ---------------------------------------------------------------------------
+# ENDPOINTS
+# ---------------------------------------------------------------------------
+
+@router.get("/week/summary")
+def get_week_summary() -> Dict[str, Any]:
+    """
+    Vue synthétique pour la page macro :
+    - start / end : bornes de la semaine
+    - risk_on / risk_comment : climat global
+    - top_events : (placeholder pour l'instant)
+    - top_moves : mouvements marquants de la semaine
+    """
+    start, end = _get_week_bounds()
+    asset_perfs = _compute_weekly_performances(start, end)
+    risk_profile = _compute_risk_profile(asset_perfs)
+
+    summary = {
+        "start": start.isoformat(),
+        "end": end.isoformat(),
         "created_at": time.time(),
-        "risk_on": risk_on,
-        "label": label,
-        "comment": comment,
-        "assets": classified_assets,
+        "risk_on": risk_profile["risk_on"],
+        "risk_comment": risk_profile["comment"],
+        "top_events": [],  # on remplira ça à l'étape C
+        "top_moves": _build_top_moves(asset_perfs),
+    }
+    return summary
+
+
+@router.get("/week/raw")
+def get_week_raw() -> Dict[str, Any]:
+    """
+    Données détaillées pour la page macro :
+    - asset_performances : [{symbol, name, return_pct}]
+    - sentiment_grid : [{date, bucket, sentiment, news_count}]
+    """
+    start, end = _get_week_bounds()
+    asset_perfs = _compute_weekly_performances(start, end)
+    grid = _build_sentiment_grid(start, end)
+
+    return {
+        "start": start.isoformat(),
+        "end": end.isoformat(),
+        "created_at": time.time(),
+        "asset_performances": asset_perfs,
+        "sentiment_grid": grid,
+    }
+
+
+@router.get("/bias")
+def get_bias() -> Dict[str, Any]:
+    """
+    Biais macro par actif (utilisé par l'index pour les petites lignes
+    'Biais macro haussier / baissier / neutre').
+    """
+    start, end = _get_week_bounds()
+    asset_perfs = _compute_weekly_performances(start, end)
+    risk_profile = _compute_risk_profile(asset_perfs)
+
+    assets_with_bias = _compute_macro_bias_assets(
+        asset_perfs,
+        risk_on=risk_profile["risk_on"],
+    )
+
+    return {
+        "start": start.isoformat(),
+        "end": end.isoformat(),
+        "created_at": time.time(),
+        "risk_on": risk_profile["risk_on"],
+        "label": risk_profile["label"],
+        "comment": risk_profile["comment"],
+        "assets": assets_with_bias,
     }
