@@ -13,9 +13,6 @@ from openai import OpenAI
 
 router = APIRouter(prefix="/api/news", tags=["news"])
 
-@router.post("/analyze")
-async def analyze_news(payload: NewsRequest):
-    ...
 
 # ------------------------------------------------------------------
 # CONFIG : NewsAPI (https://newsapi.org) pour compléter yfinance
