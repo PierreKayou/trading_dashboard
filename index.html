@@ -2,25 +2,24 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Stark Trading Dashboard</title>
+  <title>STARK TRADING DASHBOARD</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
       --bg: #050816;
-      --bg-elevated: #0b1020;
-      --bg-elevated-soft: #020617;
+      --bg-alt: #0b1020;
+      --card: #020617;
+      --card-alt: #111827;
       --accent: #f97316;
       --accent-soft: rgba(249, 115, 22, 0.15);
-      --accent-strong: #ea580c;
       --text-main: #f9fafb;
       --text-muted: #9ca3af;
       --danger: #ef4444;
       --success: #22c55e;
+      --border: #1f2937;
       --card-radius: 18px;
       --transition-fast: 0.15s ease-out;
-      --shadow-soft: 0 18px 35px rgba(0, 0, 0, 0.45);
-      --border-subtle: rgba(31, 41, 55, 0.9);
-      --border-strong: rgba(15, 23, 42, 0.9);
+      --shadow-soft: 0 18px 35px rgba(0, 0, 0, 0.55);
     }
 
     * {
@@ -35,11 +34,8 @@
 
     body {
       background: radial-gradient(circle at top, #1f2937 0, #020617 50%, #000 100%);
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
-        "Segoe UI", sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
       color: var(--text-main);
-      display: flex;
-      flex-direction: column;
     }
 
     .page {
@@ -49,16 +45,14 @@
       width: 100%;
     }
 
-    header {
-      margin-bottom: 16px;
-    }
+    /* HEADER GÉNÉRIQUE */
 
-    .header-row {
+    header {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      flex-wrap: wrap;
+      margin-bottom: 16px;
     }
 
     .brand {
@@ -98,61 +92,129 @@
       color: var(--text-muted);
     }
 
-    .header-right {
+    .nav-links {
       display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 6px;
-      min-width: 0;
-    }
-
-    .beta-pill {
-      display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 6px 12px;
-      border-radius: 999px;
-      background: radial-gradient(circle at 0 0, rgba(248, 113, 22, 0.16), #020617);
-      color: #fed7aa;
-      border: 1px solid rgba(248, 113, 22, 0.8);
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
 
-    .header-row-bottom {
+    .nav-link, .btn-secondary, .btn-primary {
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      text-decoration: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      background: rgba(15, 23, 42, 0.9);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: border-color var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
+    }
+
+    .nav-link span {
+      font-size: 14px;
+    }
+
+    .nav-link--primary, .btn-primary {
+      border-color: rgba(249, 115, 22, 0.7);
+      background: radial-gradient(circle at 0 0, rgba(249, 115, 22, 0.18), #020617);
+      color: #fed7aa;
+    }
+
+    .nav-link:hover, .btn-secondary:hover, .btn-primary:hover {
+      border-color: var(--accent);
+      color: #e5e7eb;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      border-color: rgba(55, 65, 81, 0.9);
+      color: #e5e7eb;
+    }
+
+    /* CARTES GÉNÉRALES */
+
+    .card {
+      background: radial-gradient(circle at top left, rgba(148, 163, 184, 0.14), #020617);
+      border-radius: 22px;
+      padding: 18px 16px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      box-shadow: var(--shadow-soft);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at -10% -10%, rgba(249, 115, 22, 0.18), transparent 55%);
+      opacity: 0.9;
+      pointer-events: none;
+    }
+
+    .card-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .card-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
-      margin-top: 10px;
-      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
     }
 
-    .main-title-block {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .main-title-block small {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-
-    .macro-bias-wrapper {
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 12px;
-      color: var(--text-muted);
-      flex-wrap: wrap;
     }
 
-    .macro-bias-label {
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
+    .card-title-badge {
       font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      color: var(--text-muted);
+    }
+
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .section-label {
+      margin-top: 12px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-muted);
+    }
+
+    .summary-text {
+      font-size: 13px;
+      line-height: 1.5;
+      color: #e5e7eb;
+      margin-top: 8px;
+    }
+
+    .summary-text strong {
+      color: #f9fafb;
+    }
+
+    .tagline, .small-note {
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
     }
 
     .pill {
@@ -203,424 +265,158 @@
       color: var(--text-muted);
     }
 
-    .macro-bias-comment {
-      font-size: 11px;
-      color: var(--text-muted);
-      max-width: 460px;
-    }
+    /* GRID LAYOUTS */
 
-    .currency-selector {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.96);
-      border: 1px solid rgba(31, 41, 55, 0.95);
-      font-size: 12px;
-    }
-
-    .currency-selector span {
-      color: var(--text-muted);
-    }
-
-    .currency-selector button {
-      background: transparent;
-      border: none;
-      padding: 4px 8px;
-      border-radius: 999px;
-      color: var(--text-muted);
-      font-size: 12px;
-      cursor: pointer;
-    }
-
-    .currency-selector button.active {
-      background: rgba(248, 113, 22, 0.18);
-      color: #fed7aa;
-    }
-
-    .content-grid {
+    .grid-two {
       display: grid;
       grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.1fr);
-      gap: 20px;
-      margin-top: 16px;
+      gap: 18px;
+      margin-top: 10px;
     }
 
     @media (max-width: 900px) {
-      .content-grid {
+      .grid-two {
         grid-template-columns: minmax(0, 1fr);
       }
-      .header-right {
-        align-items: flex-start;
+    }
+
+    .grid-main {
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.3fr);
+      gap: 18px;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 1000px) {
+      .grid-main {
+        grid-template-columns: minmax(0, 1fr);
       }
     }
 
-    .card {
-      background: radial-gradient(circle at top left, rgba(148, 163, 184, 0.14), #020617);
-      border-radius: 22px;
-      padding: 18px 16px;
-      border: 1px solid var(--border-subtle);
-      box-shadow: var(--shadow-soft);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .card::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(
-        circle at -10% -10%,
-        rgba(249, 115, 22, 0.18),
-        transparent 55%
-      );
-      opacity: 0.9;
-      pointer-events: none;
-    }
-
-    .card-inner {
-      position: relative;
-      z-index: 1;
-    }
-
-    .card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
-
-    .card-title {
-      font-size: 15px;
-      font-weight: 600;
-    }
-
-    .card-subtitle {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-top: 3px;
-    }
-
-    .price-main {
-      font-size: 36px;
-      font-weight: 650;
-      letter-spacing: 0.04em;
-      margin: 8px 0;
-    }
-
-    .price-change {
-      font-size: 13px;
-      font-weight: 500;
-    }
-
-    .price-change.positive {
-      color: var(--success);
-    }
-
-    .price-change.negative {
-      color: var(--danger);
-    }
-
-    .price-comment {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-top: 4px;
-    }
-
-    .markets-grid {
+    .grid-bottom {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 10px;
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.1fr);
+      gap: 18px;
       margin-top: 16px;
     }
 
-    @media (max-width: 720px) {
-      .markets-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+    @media (max-width: 1000px) {
+      .grid-bottom {
+        grid-template-columns: minmax(0, 1fr);
       }
     }
 
-    .market-card {
-      background: rgba(15, 23, 42, 0.96);
-      border-radius: 14px;
-      padding: 10px 10px 11px;
-      border: 1px solid rgba(31, 41, 55, 0.96);
+    /* MACRO WEEKLY (HAUT DE PAGE) */
+
+    .events-list {
+      margin: 6px 0 0;
+      padding: 0;
+      list-style: none;
       display: flex;
       flex-direction: column;
-      gap: 4px;
-      cursor: pointer;
-      transition: transform var(--transition-fast), box-shadow var(--transition-fast),
-        border-color var(--transition-fast), background 0.12s ease-out;
+      gap: 6px;
     }
 
-    .market-card.active {
-      border-color: rgba(248, 113, 22, 0.9);
-      box-shadow: 0 0 0 1px rgba(248, 113, 22, 0.5);
-      background: radial-gradient(
-        circle at top left,
-        rgba(248, 113, 22, 0.16),
-        rgba(15, 23, 42, 0.96)
-      );
+    .event-item {
+      display: flex;
+      flex-direction: column;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.94);
+      border: 1px solid rgba(31, 41, 55, 0.96);
     }
 
-    .market-symbol {
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.16em;
-      color: var(--text-muted);
+    .event-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      margin-bottom: 4px;
     }
 
-    .market-name {
-      font-size: 13px;
-      font-weight: 500;
-    }
-
-    .market-line {
+    .event-main {
       display: flex;
       align-items: baseline;
-      justify-content: space-between;
-      gap: 8px;
-      margin-top: 4px;
+      gap: 6px;
+      font-size: 13px;
     }
 
-    .market-price {
-      font-size: 15px;
-      font-weight: 600;
+    .event-country {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      color: var(--text-muted);
     }
 
-    .market-change {
-      font-size: 12px;
+    .event-title {
+      font-size: 13px;
       font-weight: 500;
+      color: #e5e7eb;
     }
 
-    .market-change.positive {
-      color: var(--success);
-    }
-
-    .market-change.negative {
-      color: var(--danger);
-    }
-
-    .market-comment {
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-top: 3px;
-    }
-
-    .market-macro-bias {
-      font-size: 11px;
-      margin-top: 1px;
-      color: var(--text-muted);
-    }
-
-    .market-macro-bias.positive {
-      color: #bbf7d0;
-    }
-
-    .market-macro-bias.negative {
-      color: #fecaca;
-    }
-
-    .status-row {
+    .event-meta {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-top: 14px;
-      font-size: 11px;
-      color: var(--text-muted);
-      flex-wrap: wrap;
-    }
-
-    .status-left {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .status-dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 999px;
-      background: var(--success);
-      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.25);
-    }
-
-    .status-info {
+      gap: 6px;
       font-size: 11px;
       color: var(--text-muted);
     }
 
-    .status-error {
-      color: var(--danger);
-    }
-
-    /* Assistant IA */
-
-    .assistant-header {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      margin-bottom: 10px;
-    }
-
-    .assistant-title-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    .assistant-title {
-      font-size: 15px;
-      font-weight: 600;
-    }
-
-    .assistant-badge {
-      font-size: 11px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px dashed rgba(148, 163, 184, 0.8);
-      color: var(--text-muted);
-    }
-
-    .assistant-subtitle {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-
-    .assistant-controls {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-top: 8px;
-      flex-wrap: wrap;
-    }
-
-    .select-asset {
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(31, 41, 55, 0.96);
-      background: rgba(15, 23, 42, 0.96);
-      color: var(--text-main);
-      font-size: 12px;
-    }
-
-    .btn-primary {
+    .badge {
       display: inline-flex;
       align-items: center;
-      justify-content: center;
-      gap: 6px;
-      padding: 7px 14px;
+      gap: 4px;
+      padding: 2px 7px;
       border-radius: 999px;
-      border: none;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 500;
-      background: linear-gradient(90deg, #2563eb, #4f46e5);
-      color: #eff6ff;
-      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.5);
-      transition: transform var(--transition-fast), box-shadow var(--transition-fast),
-        filter 0.12s ease-out;
-      white-space: nowrap;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border: 1px solid rgba(75, 85, 99, 0.9);
+      background: rgba(15, 23, 42, 0.95);
     }
 
-    .btn-primary:hover {
-      transform: translateY(-1px);
-      filter: brightness(1.08);
-      box-shadow: 0 10px 22px rgba(37, 99, 235, 0.7);
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--text-muted);
     }
 
-    .btn-primary:disabled {
-      opacity: 0.7;
-      cursor: wait;
-      box-shadow: none;
-      transform: none;
+    .badge-high .badge-dot { background: #f97316; }
+    .badge-high { border-color: rgba(249, 115, 22, 0.7); color: #fed7aa; }
+    .badge-medium .badge-dot { background: #eab308; }
+    .badge-medium { border-color: rgba(234, 179, 8, 0.6); color: #fef9c3; }
+    .badge-low .badge-dot { background: #22c55e; }
+    .badge-low { border-color: rgba(34, 197, 94, 0.5); color: #bbf7d0; }
+
+    .event-impact {
+      font-size: 11px;
+      color: var(--text-muted);
     }
 
-    .assistant-body {
-      margin-top: 10px;
-      border-radius: 16px;
-      background: rgba(15, 23, 42, 0.98);
-      border: 1px solid rgba(31, 41, 55, 0.96);
-      min-height: 220px;
-      max-height: 420px;
+    .event-impact strong { color: #f9fafb; }
+
+    .table-wrapper {
+      margin-top: 8px;
+      border-radius: 14px;
       overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .assistant-result {
-      padding: 10px 12px;
-      font-size: 13px;
-      line-height: 1.5;
-      overflow-y: auto;
-      white-space: pre-wrap;
-    }
-
-    .assistant-placeholder {
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-
-    .assistant-footer {
-      padding: 6px 10px;
-      font-size: 11px;
-      border-top: 1px solid rgba(31, 41, 55, 0.96);
-      color: var(--text-muted);
-    }
-
-    .assistant-error {
-      padding: 6px 10px;
-      font-size: 11px;
-      color: var(--danger);
-    }
-
-    /* Bloc performances + news + calendrier */
-
-    .lower-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-      gap: 16px;
-      margin-top: 18px;
-    }
-
-    @media (max-width: 900px) {
-      .lower-grid {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-
-    .card-small-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 6px;
-      gap: 8px;
-    }
-
-    .card-small-header-title {
-      font-size: 13px;
-      font-weight: 600;
-    }
-
-    .card-small-header-sub {
-      font-size: 11px;
-      color: var(--text-muted);
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      background: rgba(15, 23, 42, 0.9);
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 11.5px;
+      font-size: 12px;
     }
 
+    thead { background: rgba(15, 23, 42, 0.98); }
+
     th, td {
-      padding: 6px 4px;
+      padding: 7px 9px;
       text-align: left;
-      border-bottom: 1px solid rgba(30, 41, 59, 0.9);
+      border-bottom: 1px solid rgba(31, 41, 55, 0.9);
     }
 
     th {
@@ -628,265 +424,599 @@
       color: var(--text-muted);
     }
 
-    /* meilleure lisibilité du tableau de perfs */
-    .perf-table th,
-    .perf-table td {
-      color: #e5e7eb;
+    tbody tr:last-child td { border-bottom: none; }
+
+    .perf-positive { color: var(--success); }
+    .perf-negative { color: var(--danger); }
+    .perf-neutral { color: var(--text-muted); }
+
+    .sentiment-grid {
+      margin-top: 8px;
+      border-radius: 14px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      overflow: hidden;
+      background: rgba(15, 23, 42, 0.9);
     }
 
-    .perf-table tbody td:first-child {
-      color: #d1d5db;
+    .sentiment-header, .sentiment-row {
+      display: grid;
+      grid-template-columns: 70px repeat(5, minmax(0, 1fr));
+      font-size: 11px;
+    }
+
+    .sentiment-header {
+      background: rgba(15, 23, 42, 0.98);
+      color: var(--text-muted);
       font-weight: 500;
     }
 
-    .perf-positive {
-      color: var(--success);
-    }
-
-    .perf-negative {
-      color: var(--danger);
-    }
-
-    .cell-muted {
-      color: var(--text-muted);
-      font-style: italic;
-    }
-
-    .news-pills-row {
+    .sentiment-cell, .sentiment-head-cell {
+      padding: 4px 6px;
+      border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+      border-right: 1px solid rgba(31, 41, 55, 0.9);
+      min-height: 20px;
       display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 4px;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
     }
 
-    .news-pill {
-      padding: 4px 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(55, 65, 81, 0.9);
-      font-size: 11px;
+    .sentiment-row:last-child .sentiment-cell { border-bottom: none; }
+    .sentiment-head-cell:last-child, .sentiment-row .sentiment-cell:last-child { border-right: none; }
+
+    .sentiment-day {
+      justify-content: flex-start;
+      padding-left: 8px;
       color: var(--text-muted);
-      background: rgba(15, 23, 42, 0.96);
     }
 
-    .news-pill.positive {
-      border-color: rgba(34, 197, 94, 0.5);
-      background: rgba(22, 163, 74, 0.18);
-      color: #bbf7d0;
+    .sentiment-pill {
+      padding: 2px 5px;
+      border-radius: 999px;
+      font-size: 10px;
+      min-width: 26px;
+      text-align: center;
     }
 
-    .news-pill.negative {
-      border-color: rgba(239, 68, 68, 0.6);
-      background: rgba(127, 29, 29, 0.28);
-      color: #fecaca;
+    .sentiment-strong-neg { background: rgba(127, 29, 29, 0.6); color: #fecaca; }
+    .sentiment-neg { background: rgba(127, 29, 29, 0.35); color: #fecaca; }
+    .sentiment-neutral { background: rgba(31, 41, 55, 0.9); color: var(--text-muted); }
+    .sentiment-pos { background: rgba(22, 163, 74, 0.35); color: #bbf7d0; }
+    .sentiment-strong-pos { background: rgba(22, 163, 74, 0.7); color: #ecfdf5; }
+
+    /* DASHBOARD LIVE */
+
+    .top-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
     }
 
-    .news-main-text {
+    .top-line-main {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .top-line-title {
+      font-size: 17px;
+      font-weight: 650;
+      letter-spacing: 0.03em;
+    }
+
+    .top-line-sub {
       font-size: 12px;
       color: var(--text-muted);
-      margin-top: 6px;
     }
 
-    .news-assets-grid {
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 6px;
-      margin-top: 8px;
-    }
-
-    @media (max-width: 900px) {
-      .news-assets-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
-    }
-
-    .news-asset-card {
-      border-radius: 10px;
-      padding: 6px 6px;
-      background: rgba(15, 23, 42, 0.98);
-      border: 1px solid rgba(30, 41, 59, 0.95);
-    }
-
-    .news-asset-title {
-      font-size: 11px;
-      font-weight: 600;
-    }
-
-    .news-asset-bias {
-      font-size: 11px;
-      margin-top: 2px;
-    }
-
-    .news-asset-comment {
-      font-size: 10.5px;
-      color: var(--text-muted);
-      margin-top: 3px;
-    }
-
-    .card-footer-row {
-      display: flex;
-      justify-content: space-between;
+    .macro-bias-chip {
+      display: inline-flex;
       align-items: center;
-      margin-top: 8px;
-      font-size: 10.5px;
-      color: var(--text-muted);
       gap: 8px;
-      flex-wrap: wrap;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      background: rgba(15, 23, 42, 0.95);
+      color: var(--text-muted);
     }
 
-    .btn-secondary {
+    .macro-bias-chip strong { color: #f9fafb; }
+
+    .badge-beta {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(249, 115, 22, 0.7);
+      background: rgba(30, 64, 175, 0.5);
+      color: #e0f2fe;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(55, 65, 81, 0.9);
-      background: rgba(15, 23, 42, 0.96);
-      color: var(--text-main);
-      font-size: 11px;
-      cursor: pointer;
     }
 
-    .btn-secondary:hover {
-      border-color: rgba(148, 163, 184, 0.9);
+    .contract-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
     }
+
+    .contract-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .main-price {
+      font-size: 26px;
+      font-weight: 650;
+    }
+
+    .main-change-pos { color: var(--success); font-size: 13px; margin-left: 6px; }
+    .main-change-neg { color: var(--danger); font-size: 13px; margin-left: 6px; }
+    .main-change-neutral { color: var(--text-muted); font-size: 13px; margin-left: 6px; }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    @media (max-width: 700px) {
+      .mini-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .mini-asset {
+      border-radius: 14px;
+      padding: 10px 10px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      font-size: 12px;
+    }
+
+    .mini-asset-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 4px;
+      gap: 4px;
+    }
+
+    .mini-asset-name {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .mini-asset-change-pos { color: var(--success); font-size: 11px; }
+    .mini-asset-change-neg { color: var(--danger); font-size: 11px; }
+    .mini-asset-change-neutral { color: var(--text-muted); font-size: 11px; }
+
+    .mini-asset-price {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .mini-asset-comment {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .status-line {
+      margin-top: 10px;
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .status-ok {
+      color: #4ade80;
+    }
+
+    .ia-output {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 14px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      font-size: 12px;
+      color: #e5e7eb;
+      max-height: 280px;
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+
+    .select-asset {
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      background: rgba(15, 23, 42, 0.95);
+      color: var(--text-main);
+      font-size: 12px;
+    }
+
+    /* NEWS IA NOUVELLE VERSION */
+
+    .news-top-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .news-last-update {
+      margin-left: auto;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .news-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.1fr);
+      gap: 14px;
+      margin-top: 6px;
+    }
+
+    @media (max-width: 900px) {
+      .news-layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .news-global { min-height: 120px; }
+
+    .news-keypoints {
+      margin-top: 8px;
+      list-style: disc;
+      padding-left: 16px;
+      font-size: 12px;
+      color: #d1d5db;
+    }
+
+    .news-keypoints li { margin-bottom: 3px; }
+
+    .news-impacts {
+      padding: 10px 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      background: rgba(15, 23, 42, 0.92);
+    }
+
+    .news-impacts-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .news-asset-select {
+      min-width: 150px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      background: rgba(15, 23, 42, 0.95);
+      color: var(--text-main);
+      font-size: 12px;
+    }
+
+    .news-impact-panel { margin-top: 4px; }
+
+    .news-impact-badge {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border: 1px solid rgba(75, 85, 99, 0.9);
+      background: rgba(15, 23, 42, 0.95);
+      margin-bottom: 6px;
+    }
+
+    .news-impact-badge.bullish {
+      border-color: rgba(34, 197, 94, 0.6);
+      color: #bbf7d0;
+    }
+
+    .news-impact-badge.bearish {
+      border-color: rgba(239, 68, 68, 0.6);
+      color: #fecaca;
+    }
+
+    .news-impact-badge.neutral {
+      border-color: rgba(55, 65, 81, 0.9);
+      color: var(--text-muted);
+    }
+
+    .news-impact-comment {
+      font-size: 12px;
+      color: #e5e7eb;
+      line-height: 1.5;
+    }
+
+    .news-asset-helper {
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .news-footer {
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* CALENDRIER ÉCO */
+
+    .calendar-columns {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    @media (max-width: 700px) {
+      .calendar-columns {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .calendar-day-block {
+      padding: 8px 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      background: rgba(15, 23, 42, 0.95);
+      font-size: 12px;
+    }
+
+    .calendar-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      margin-top: 6px;
+    }
+
+    .calendar-table th,
+    .calendar-table td {
+      padding: 4px 6px;
+      border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+    }
+
+    .calendar-table th {
+      color: var(--text-muted);
+      font-weight: 500;
+      text-align: left;
+    }
+
+    .calendar-impact-high { color: #f97316; }
+    .calendar-impact-medium { color: #eab308; }
+    .calendar-impact-low { color: #22c55e; }
   </style>
 </head>
 <body>
-  <div class="page">
+  <!-- SECTION 1 : MACRO HEBDO -->
+  <div id="macro-weekly" class="page">
     <header>
-      <div class="header-row">
-        <div class="brand">
-          <div class="brand-logo">Δ</div>
-          <div class="brand-text">
-            <div class="brand-title">STARK TRADING DASHBOARD</div>
-            <div class="brand-subtitle">
-              Vue synthétique des marchés — ES, NQ, BTC, CL, GC
-            </div>
-          </div>
-        </div>
-        <div class="header-right">
-          <div class="beta-pill">
-            <span>βêta – backend render</span>
-          </div>
-          <div class="currency-selector">
-            <span>Devise :</span>
-            <button class="active" type="button">USD $</button>
-            <button type="button">€</button>
+      <div class="brand">
+        <div class="brand-logo">Δ</div>
+        <div class="brand-text">
+          <div class="brand-title">STARK TRADING – MACRO</div>
+          <div class="brand-subtitle">
+            Résumé hebdo &amp; contexte marché
+            <span id="macro-last-update" style="margin-left:6px; color:#6b7280; font-size:11px;"></span>
           </div>
         </div>
       </div>
-
-      <div class="header-row-bottom">
-        <div class="main-title-block">
-          <div>
-            <span>Contrat principal – ES S&P 500 Future</span>
-          </div>
-          <small>Lecture globale du marché et biais macro.</small>
-
-          <!-- Biais macro global -->
-          <div class="macro-bias-wrapper" style="margin-top: 6px;">
-            <span class="macro-bias-label">Biais macro global</span>
-            <div id="macro-bias-pill" class="pill pill-neutral">
-              <span class="pill-dot"></span>
-              <span id="macro-bias-label">Lecture neutre</span>
-            </div>
-            <div id="macro-bias-comment" class="macro-bias-comment">
-              Chargement de la vue macro globale…
-            </div>
-          </div>
-        </div>
+      <div class="nav-links">
+        <a href="#live-dashboard" class="nav-link">
+          <span>⬇</span> Aller au dashboard trading
+        </a>
+        <button class="nav-link nav-link--primary" type="button" onclick="refreshMacroWeek()">
+          🔄 Rafraîchir la vue
+        </button>
       </div>
     </header>
 
-    <div class="content-grid">
-      <!-- Colonne gauche : marchés -->
+    <div class="grid-two">
+      <!-- Colonne gauche : résumé & events -->
       <section class="card">
         <div class="card-inner">
           <div class="card-header">
             <div>
-              <div class="card-title" id="main-price-title">ES — S&P 500 Future</div>
-              <div class="card-subtitle">Prix spot & variation depuis la dernière bougie.</div>
+              <div class="card-title">
+                Vue hebdomadaire
+                <span class="card-title-badge" id="week-range">Semaine en cours</span>
+              </div>
+              <div class="card-subtitle">
+                Sentiment global &amp; événements macro qui ont drivé le marché.
+              </div>
             </div>
-            <div id="main-price-change" class="price-change">0.00 %</div>
-          </div>
-          <div class="price-main" id="main-price">—</div>
-          <div class="price-comment" id="main-price-comment">
-            Lecture globale en cours…
+            <div id="risk-pill" class="pill pill-neutral">
+              <span class="pill-dot"></span>
+              <span id="risk-label">Lecture neutre</span>
+            </div>
           </div>
 
-          <div class="markets-grid" id="markets-grid">
-            <!-- Cartes marchés injectées par JS -->
+          <div id="risk-comment" class="summary-text">
+            Récupération de la vue macro en cours…
           </div>
 
-          <div class="status-row">
-            <div class="status-left">
-              <div class="status-dot"></div>
-              <span id="status-text">Backend Render en ligne – actualisation auto toutes les 15 s</span>
-            </div>
-            <div id="last-update">Dernière mise à jour : —</div>
-          </div>
-          <div id="status-error" class="status-info"></div>
+          <div class="section-label">ÉVÉNEMENTS CLÉS DE LA SEMAINE</div>
+          <ul id="events-list" class="events-list"></ul>
+
+          <div class="section-label">MOUVEMENTS MARQUANTS</div>
+          <ul id="moves-list" class="events-list"></ul>
+
+          <p class="small-note">
+            Synthèse hebdomadaire générée pour ton suivi des marchés.
+          </p>
         </div>
       </section>
 
-      <!-- Colonne droite : assistant IA -->
+      <!-- Colonne droite : perfs & grille sentiment -->
       <section class="card">
         <div class="card-inner">
-          <div class="assistant-header">
-            <div class="assistant-title-row">
-              <div class="assistant-title">Assistant Stark – Analyse IA</div>
-              <div class="assistant-badge">
-                🔗 Intégration en cours avec FastAPI & OpenAI
+          <div class="card-header">
+            <div>
+              <div class="card-title">Indices &amp; sentiment news</div>
+              <div class="card-subtitle">
+                Performance hebdo des actifs clés &amp; chaleur des news par thème.
               </div>
-            </div>
-            <div class="assistant-subtitle">
-              Génère une analyse synthétique pour l’actif sélectionné à partir des données temps réel récupérées par ton backend FastAPI.
-            </div>
-            <div class="assistant-controls">
-              <select id="ia-asset-select" class="select-asset">
-                <option value="ES">ES – S&P 500 Future</option>
-                <option value="NQ">NQ – Nasdaq 100 Future</option>
-                <option value="BTC">BTC – Bitcoin</option>
-                <option value="CL">CL – Crude Oil (WTI)</option>
-                <option value="GC">GC – Gold</option>
-              </select>
-              <button id="ia-run-btn" class="btn-primary" type="button">
-                🧠 Analyser avec l’IA
-              </button>
             </div>
           </div>
 
-          <div class="assistant-body">
-            <div id="assistant-error" class="assistant-error"></div>
-            <div id="assistant-result" class="assistant-result">
-              <div class="assistant-placeholder">
-                Sélectionne un actif puis clique sur « Analyser avec l’IA » pour générer une analyse de marché structurée (global, swing, intraday, scénarios).
+          <div class="section-label">PERFORMANCE HEBDO (INDICES SUIVIS)</div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Symbole</th>
+                  <th>Nom</th>
+                  <th>Perf semaine</th>
+                </tr>
+              </thead>
+              <tbody id="perf-body"></tbody>
+            </table>
+          </div>
+
+          <div class="section-label">SENTIMENT NEWS PAR JOUR &amp; THÉMATIQUE</div>
+          <div class="sentiment-grid">
+            <div class="sentiment-header">
+              <div class="sentiment-head-cell sentiment-day">Jour</div>
+              <div class="sentiment-head-cell">Macro US</div>
+              <div class="sentiment-head-cell">Macro Europe</div>
+              <div class="sentiment-head-cell">Entreprises</div>
+              <div class="sentiment-head-cell">Géopolitique</div>
+              <div class="sentiment-head-cell">Tech</div>
+            </div>
+            <div id="sentiment-body"></div>
+          </div>
+
+          <p class="tagline">
+            La grille reflète le sentiment moyen des news captées par thématique, sur la période de la semaine.
+          </p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- SECTION 2 : DASHBOARD LIVE -->
+  <div id="live-dashboard" class="page">
+    <header>
+      <div class="brand">
+        <div class="brand-logo">A</div>
+        <div class="brand-text">
+          <div class="brand-title">STARK TRADING DASHBOARD</div>
+          <div class="brand-subtitle">
+            Vue synthétique des marchés — ES, NQ, BTC, CL, GC
+          </div>
+        </div>
+      </div>
+      <div class="nav-links">
+        <span class="badge-beta">BÊTA – BACKEND RENDER</span>
+      </div>
+    </header>
+
+    <div class="top-line">
+      <div class="top-line-main">
+        <div class="top-line-title">Contrat principal – <span id="main-symbol-label">ES S&amp;P 500 Future</span></div>
+        <div class="top-line-sub">
+          Lecture globale du marché &amp; biais macro.
+        </div>
+      </div>
+      <div id="macro-bias-chip" class="macro-bias-chip">
+        <strong>Biais MACRO GLOBAL</strong> <span id="macro-bias-text">Lecture neutre pour le moment.</span>
+      </div>
+    </div>
+
+    <div class="grid-main">
+      <!-- Bloc gauche : prix & indices -->
+      <section class="card">
+        <div class="card-inner">
+          <div class="contract-title">ES — S&amp;P 500 Future</div>
+          <div class="contract-sub">Prix spot &amp; variation depuis la dernière bougie.</div>
+
+          <div style="margin-top:10px;">
+            <span id="main-price" class="main-price">0.00</span>
+            <span id="main-change" class="main-change-neutral">0.00 %</span>
+          </div>
+
+          <div class="section-label" style="margin-top:10px;">LECTURE GLOBALE EN COURS…</div>
+
+          <div class="mini-grid" id="mini-assets">
+            <!-- tuiles injectées -->
+          </div>
+
+          <div class="status-line">
+            <span class="status-ok" id="backend-status">
+              ● Backend Render en ligne – actualisation auto toutes les 15 s
+            </span>
+            <span id="market-last-update">Dernière mise à jour : —</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Bloc droite : Assistant IA -->
+      <section class="card">
+        <div class="card-inner">
+          <div class="card-header">
+            <div>
+              <div class="card-title">
+                Assistant Stark – Analyse IA
+              </div>
+              <div class="card-subtitle">
+                Génère une analyse synthétique pour l'actif sélectionné à partir des données temps réel récupérées par ton backend FastAPI.
               </div>
             </div>
-            <div class="assistant-footer">
-              L’assistant IA combine les données techniques et le contexte global du marché pour générer une synthèse exploitable.
-            </div>
           </div>
+
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+            <select id="ia-asset-select" class="select-asset">
+              <option value="ES">ES – S&amp;P 500 Future</option>
+              <option value="NQ">NQ – Nasdaq 100 Future</option>
+              <option value="BTC">BTC – Bitcoin</option>
+              <option value="CL">CL – Crude Oil (WTI)</option>
+              <option value="GC">GC – Gold</option>
+            </select>
+            <button id="ia-run-btn" class="btn-primary" type="button">⚡ Analyser avec l'IA</button>
+          </div>
+
+          <div id="ia-output" class="ia-output">
+            Sélectionne un actif puis clique sur « Analyser avec l'IA » pour générer une analyse de marché structurée (global, swing, intraday, scénarios).
+          </div>
+
+          <p class="small-note">
+            L'assistant IA combine les données techniques et le contexte global du marché pour générer une synthèse exploitable. Il ne fournit pas de signaux de trade ou de conseils d'investissement.
+          </p>
         </div>
       </section>
     </div>
 
-    <!-- Ligne du bas : perf + news + calendrier -->
-    <div class="lower-grid">
-      <!-- Performances des indices -->
+    <!-- Bas : Performance, News IA, Calendrier -->
+    <div class="grid-bottom">
+      <!-- Performance indices -->
       <section class="card">
         <div class="card-inner">
-          <div class="card-small-header">
+          <div class="card-header">
             <div>
-              <div class="card-small-header-title">Performance des indices</div>
-              <div class="card-small-header-sub">
-                Données au <span id="perf-date">—</span>.
+              <div class="card-title">Performance des indices</div>
+              <div class="card-subtitle">
+                Données au <span id="perf-as-of">—</span>.
               </div>
             </div>
           </div>
 
-          <div style="overflow-x:auto;">
-            <table class="perf-table">
+          <div class="table-wrapper">
+            <table>
               <thead>
                 <tr>
                   <th>Indice</th>
@@ -895,147 +1025,142 @@
                   <th>Mois</th>
                 </tr>
               </thead>
-              <tbody id="perf-body">
-                <tr>
-                  <td colspan="4" class="cell-muted">
-                    Impossible de récupérer les performances pour le moment.
-                  </td>
-                </tr>
+              <tbody id="perf-summary-body">
+                <!-- lignes -->
               </tbody>
             </table>
           </div>
 
-          <div class="card-footer-row">
-            <span id="perf-status" class="cell-muted">Chargement des performances…</span>
-          </div>
+          <p class="small-note" id="perf-error" style="display:none; color:#fca5a5; margin-top:6px;">
+            Erreur lors du chargement des performances.
+          </p>
         </div>
       </section>
 
-      <!-- News + Calendrier à droite (stack) -->
-      <div style="display:flex; flex-direction:column; gap:12px;">
-        <!-- News & Sentiment IA -->
-        <section class="card" style="padding:14px 14px;">
+      <!-- News IA + Calendrier -->
+      <div style="display:flex; flex-direction:column; gap:16px;">
+        <!-- NEWS IA -->
+        <section class="card card-news">
           <div class="card-inner">
-            <div class="card-small-header">
+            <div class="card-header">
               <div>
-                <div class="card-small-header-title">News & Sentiment IA</div>
-                <div class="card-small-header-sub">
+                <div class="card-title">News &amp; Sentiment IA</div>
+                <div class="card-subtitle">
                   Lecture synthétique des dernières news macro / marché à partir des flux IA.
                 </div>
               </div>
-              <div>
-                <button id="news-refresh-btn" class="btn-secondary" type="button">
-                  🔄 Rafraîchir l’analyse
-                </button>
+              <button id="news-refresh-btn" class="btn-secondary" type="button">
+                🔄 Rafraîchir l'analyse
+              </button>
+            </div>
+
+            <!-- Ligne tonalité / volatilité -->
+            <div class="news-top-row">
+              <span id="news-tone-pill" class="pill pill-neutral">
+                <span class="pill-dot"></span>
+                <span id="news-tone-label">Tonalité en cours…</span>
+              </span>
+              <span id="news-vol-pill" class="pill pill-neutral">
+                <span class="pill-dot"></span>
+                <span id="news-vol-label">Volatilité : —</span>
+              </span>
+              <span id="news-last-update" class="news-last-update">Dernière analyse : —</span>
+            </div>
+
+            <!-- Layout : bloc news + bloc impacts -->
+            <div class="news-layout">
+              <div class="news-global">
+                <h4 class="section-label">RÉSUMÉ MACRO (NEWS)</h4>
+                <p id="news-summary-text" class="summary-text">
+                  Impossible de récupérer l'analyse des news pour le moment.
+                </p>
+
+                <ul id="news-keypoints" class="news-keypoints"></ul>
+              </div>
+
+              <div class="news-impacts">
+                <div class="news-impacts-header">
+                  <h4 class="section-label">IMPACT PAR INDICE / ACTIF</h4>
+                  <select id="news-asset-select" class="news-asset-select"></select>
+                </div>
+
+                <div id="news-impact-panel" class="news-impact-panel">
+                  <div class="news-impact-badge neutral" id="news-impact-bias">
+                    Biais : —
+                  </div>
+                  <p id="news-impact-comment" class="news-impact-comment">
+                    Sélectionne un indice dans la liste pour voir l'interprétation de l'IA.
+                  </p>
+                </div>
+
+                <p class="news-asset-helper">
+                  Indices suivis : ES (S&amp;P 500), NQ (Nasdaq 100), BTC (Bitcoin), CL (WTI), GC (Gold).
+                </p>
               </div>
             </div>
 
-            <div class="news-pills-row">
-              <div id="news-tone-pill" class="news-pill">Tonalité : —</div>
-              <div id="news-vol-pill" class="news-pill">Volatilité : —</div>
-            </div>
-
-            <div id="news-main-text" class="news-main-text">
-              Analyse des news en cours…
-            </div>
-
-            <div class="news-assets-grid">
-              <!-- Une petite carte par actif -->
-              <div class="news-asset-card">
-                <div class="news-asset-title">ES</div>
-                <div id="news-ES-bias" class="news-asset-bias">—</div>
-                <div id="news-ES-comment" class="news-asset-comment">—</div>
-              </div>
-              <div class="news-asset-card">
-                <div class="news-asset-title">NQ</div>
-                <div id="news-NQ-bias" class="news-asset-bias">—</div>
-                <div id="news-NQ-comment" class="news-asset-comment">—</div>
-              </div>
-              <div class="news-asset-card">
-                <div class="news-asset-title">BTC</div>
-                <div id="news-BTC-bias" class="news-asset-bias">—</div>
-                <div id="news-BTC-comment" class="news-asset-comment">—</div>
-              </div>
-              <div class="news-asset-card">
-                <div class="news-asset-title">CL</div>
-                <div id="news-CL-bias" class="news-asset-bias">—</div>
-                <div id="news-CL-comment" class="news-asset-comment">—</div>
-              </div>
-              <div class="news-asset-card">
-                <div class="news-asset-title">GC</div>
-                <div id="news-GC-bias" class="news-asset-bias">—</div>
-                <div id="news-GC-comment" class="news-asset-comment">—</div>
-              </div>
-            </div>
-
-            <div class="card-footer-row">
-              <span id="news-last-update" class="cell-muted">Dernière analyse : —</span>
-              <span id="news-source" class="cell-muted">Source : —</span>
+            <div class="news-footer">
+              <span id="news-source-label" class="news-source-label">Source : —</span>
             </div>
           </div>
         </section>
 
         <!-- Calendrier économique -->
-        <section class="card" style="padding:14px 14px;">
+        <section class="card">
           <div class="card-inner">
-            <div class="card-small-header">
+            <div class="card-header">
               <div>
-                <div class="card-small-header-title">Calendrier économique</div>
-                <div class="card-small-header-sub">
+                <div class="card-title">Calendrier économique</div>
+                <div class="card-subtitle">
                   Principales publications macro du jour et des prochains jours (UTC).
                 </div>
               </div>
             </div>
 
-            <div style="font-size:11.5px; margin-bottom:4px; color:var(--text-muted);">
-              AUJOURD’HUI
-            </div>
-            <div style="overflow-x:auto; margin-bottom:8px;">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Heure</th>
-                    <th>Pays</th>
-                    <th>Événement</th>
-                    <th>Impact</th>
-                  </tr>
-                </thead>
-                <tbody id="cal-today-body">
-                  <tr>
-                    <td colspan="4" class="cell-muted">
-                      Chargement du calendrier d’aujourd’hui…
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+            <div class="calendar-columns">
+              <div class="calendar-day-block">
+                <div class="section-label">AUJOURD'HUI</div>
+                <table class="calendar-table">
+                  <thead>
+                    <tr>
+                      <th>Heure</th>
+                      <th>Pays</th>
+                      <th>Événement</th>
+                      <th>Impact</th>
+                    </tr>
+                  </thead>
+                  <tbody id="calendar-today-body">
+                    <tr>
+                      <td colspan="4" style="font-size:11px; color:#9ca3af;">
+                        Chargement du calendrier d'aujourd'hui…
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="calendar-day-block">
+                <div class="section-label">PROCHAINS JOURS</div>
+                <table class="calendar-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Pays</th>
+                      <th>Événement</th>
+                      <th>Impact</th>
+                    </tr>
+                  </thead>
+                  <tbody id="calendar-next-body">
+                    <tr>
+                      <td colspan="4" style="font-size:11px; color:#9ca3af;">
+                        Chargement des publications des prochains jours…
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
 
-            <div style="font-size:11.5px; margin-bottom:4px; color:var(--text-muted);">
-              PROCHAINS JOURS
-            </div>
-            <div style="overflow-x:auto;">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Pays</th>
-                    <th>Événement</th>
-                    <th>Impact</th>
-                  </tr>
-                </thead>
-                <tbody id="cal-next-body">
-                  <tr>
-                    <td colspan="4" class="cell-muted">
-                      Chargement du calendrier des prochains jours…
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div class="card-footer-row">
-              <span id="cal-status" class="cell-muted">Chargement en cours…</span>
-            </div>
           </div>
         </section>
       </div>
@@ -1043,593 +1168,815 @@
   </div>
 
   <script>
-    const API_BASE = ""; // même origine
+    const API_BASE = "";
 
-    const SYMBOL_CONFIG = {
-      ES: { label: "S&P 500 Future", yf: "ES=F" },
-      NQ: { label: "Nasdaq 100 Future", yf: "NQ=F" },
-      BTC: { label: "Bitcoin", yf: "BTC-USD" },
-      CL: { label: "Crude Oil (WTI)", yf: "CL=F" },
-      GC: { label: "Gold", yf: "GC=F" },
-    };
+    /* ---------- UTILITAIRES GÉNÉRAUX ---------- */
 
-    const SYMBOL_ORDER = ["ES", "NQ", "BTC", "CL", "GC"];
+    function sentimentClassFromValue(avg) {
+      if (avg === null || avg === undefined || isNaN(avg)) return "sentiment-neutral";
+      if (avg <= -0.5) return "sentiment-strong-neg";
+      if (avg < -0.1) return "sentiment-neg";
+      if (avg > -0.1 && avg < 0.1) return "sentiment-neutral";
+      if (avg < 0.5) return "sentiment-pos";
+      return "sentiment-strong-pos";
+    }
 
-    function formatPrice(value) {
-      if (value === null || value === undefined || isNaN(value)) return "—";
-      if (value > 1000) {
-        return value.toLocaleString("fr-FR", { maximumFractionDigits: 2 });
+    /* ---------- MACRO HEBDO (SECTION HAUT) ---------- */
+
+    function setRiskPillWeekly(summary) {
+      const pill = document.getElementById("risk-pill");
+      const label = document.getElementById("risk-label");
+      pill.classList.remove("pill-positive", "pill-negative", "pill-neutral");
+
+      if (summary.risk_on === true) {
+        pill.classList.add("pill-positive");
+        label.textContent = "Biais risk-on";
+      } else if (summary.risk_on === false) {
+        pill.classList.add("pill-negative");
+        label.textContent = "Biais risk-off";
+      } else {
+        pill.classList.add("pill-neutral");
+        label.textContent = "Lecture neutre";
       }
-      return value.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
-    function formatPct(value) {
-      if (value === null || value === undefined || isNaN(value)) return "0.00 %";
-      const sign = value > 0 ? "+" : "";
-      return sign + value.toFixed(2) + " %";
+    function setWeekRange(summary) {
+      const span = document.getElementById("week-range");
+      const start = new Date(summary.start);
+      const end = new Date(summary.end);
+      const opts = { day: "2-digit", month: "2-digit" };
+      span.textContent =
+        start.toLocaleDateString("fr-FR", opts) +
+        " → " +
+        end.toLocaleDateString("fr-FR", opts);
+
+      const lastUpdate = document.getElementById("macro-last-update");
+      lastUpdate.textContent =
+        "(Semaine " +
+        start.toLocaleDateString("fr-FR", opts) +
+        " → " +
+        end.toLocaleDateString("fr-FR", opts) +
+        ")";
     }
 
-    function setMainMarket(symbol, snapshot) {
-      const titleEl = document.getElementById("main-price-title");
-      const priceEl = document.getElementById("main-price");
-      const changeEl = document.getElementById("main-price-change");
-      const commentEl = document.getElementById("main-price-comment");
-
-      const cfg = SYMBOL_CONFIG[symbol] || { label: symbol };
-      titleEl.textContent = `${symbol} — ${cfg.label}`;
-      priceEl.textContent = formatPrice(snapshot.price);
-
-      const pct = snapshot.change_pct || 0;
-      changeEl.textContent = formatPct(pct);
-      changeEl.classList.remove("positive", "negative");
-      if (pct > 0.01) changeEl.classList.add("positive");
-      else if (pct < -0.01) changeEl.classList.add("negative");
-
-      commentEl.textContent = snapshot.comment || "Lecture indisponible.";
+    function renderRiskComment(summary) {
+      const el = document.getElementById("risk-comment");
+      el.textContent = summary.risk_comment || "Pas de commentaire disponible.";
     }
 
-    function createMarketCard(symbol) {
-      const cfg = SYMBOL_CONFIG[symbol];
-      const card = document.createElement("button");
-      card.className = "market-card";
-      card.type = "button";
-      card.dataset.symbol = symbol;
+    function renderTopEvents(summary) {
+      const list = document.getElementById("events-list");
+      list.innerHTML = "";
 
-      const sym = document.createElement("div");
-      sym.className = "market-symbol";
-      sym.textContent = symbol;
+      if (!summary.top_events || summary.top_events.length === 0) {
+        const li = document.createElement("li");
+        li.textContent = "Aucun événement majeur identifié pour cette semaine.";
+        li.style.fontSize = "12px";
+        li.style.color = "#9ca3af";
+        list.appendChild(li);
+        return;
+      }
 
-      const name = document.createElement("div");
-      name.className = "market-name";
-      name.textContent = cfg.label;
+      summary.top_events.forEach((ev) => {
+        const li = document.createElement("li");
+        li.className = "event-item";
 
-      const line = document.createElement("div");
-      line.className = "market-line";
+        const top = document.createElement("div");
+        top.className = "event-top";
 
-      const price = document.createElement("div");
-      price.className = "market-price";
-      price.textContent = "—";
+        const main = document.createElement("div");
+        main.className = "event-main";
 
-      const change = document.createElement("div");
-      change.className = "market-change";
-      change.textContent = "0.00 %";
+        const country = document.createElement("span");
+        country.className = "event-country";
+        country.textContent = ev.country || "—";
 
-      line.appendChild(price);
-      line.appendChild(change);
+        const title = document.createElement("span");
+        title.className = "event-title";
+        title.textContent = ev.title || "Événement";
 
-      const comment = document.createElement("div");
-      comment.className = "market-comment";
-      comment.textContent = "Chargement…";
+        main.appendChild(country);
+        main.appendChild(title);
 
-      const macroBias = document.createElement("div");
-      macroBias.className = "market-macro-bias";
-      macroBias.textContent = "";
+        const meta = document.createElement("div");
+        meta.className = "event-meta";
 
-      card.appendChild(sym);
-      card.appendChild(name);
-      card.appendChild(line);
-      card.appendChild(comment);
-      card.appendChild(macroBias);
-
-      card.addEventListener("click", () => {
-        document.querySelectorAll(".market-card").forEach((c) => c.classList.remove("active"));
-        card.classList.add("active");
-        if (card.dataset.snapshot) {
-          try {
-            const snap = JSON.parse(card.dataset.snapshot);
-            setMainMarket(symbol, snap);
-          } catch (e) {
-            console.error("Erreur parse snapshot:", e);
-          }
+        if (ev.datetime) {
+          const date = new Date(ev.datetime);
+          const txt =
+            date.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }) +
+            " • " +
+            date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+          const dt = document.createElement("span");
+          dt.textContent = txt;
+          meta.appendChild(dt);
         }
-        const select = document.getElementById("ia-asset-select");
-        select.value = symbol;
+
+        const badge = document.createElement("span");
+        badge.className = "badge";
+        badge.classList.add(
+          ev.importance === "high"
+            ? "badge-high"
+            : ev.importance === "medium"
+            ? "badge-medium"
+            : "badge-low"
+        );
+
+        const dot = document.createElement("span");
+        dot.className = "badge-dot";
+        badge.appendChild(dot);
+
+        const txt = document.createElement("span");
+        txt.textContent =
+          ev.importance === "high"
+            ? "MAJEUR"
+            : ev.importance === "medium"
+            ? "SIGNIFICATIF"
+            : "SECONDAIRE";
+        badge.appendChild(txt);
+
+        meta.appendChild(badge);
+        top.appendChild(main);
+        top.appendChild(meta);
+
+        const impact = document.createElement("div");
+        impact.className = "event-impact";
+        impact.textContent = ev.impact_comment || "Impact macro / marché non précisé.";
+
+        li.appendChild(top);
+        li.appendChild(impact);
+        list.appendChild(li);
+      });
+    }
+
+    function renderTopMoves(summary) {
+      const list = document.getElementById("moves-list");
+      list.innerHTML = "";
+
+      if (!summary.top_moves || summary.top_moves.length === 0) {
+        const li = document.createElement("li");
+        li.textContent = "Aucun mouvement marquant remonté pour cette semaine.";
+        li.style.fontSize = "12px";
+        li.style.color = "#9ca3af";
+        list.appendChild(li);
+        return;
+      }
+
+      summary.top_moves.forEach((mv) => {
+        const li = document.createElement("li");
+        li.className = "event-item";
+
+        const top = document.createElement("div");
+        top.className = "event-top";
+
+        const desc = document.createElement("div");
+        desc.className = "event-title";
+        desc.textContent = mv.description || "Mouvement";
+
+        const meta = document.createElement("div");
+        meta.className = "event-meta";
+
+        const asset = document.createElement("span");
+        asset.textContent = mv.asset || "—";
+
+        const perf = document.createElement("span");
+        const val = mv.move_pct || 0;
+        const sign = val > 0 ? "+" : "";
+        perf.textContent = sign + val.toFixed(2) + " %";
+        perf.style.color =
+          val > 0
+            ? "var(--success)"
+            : val < 0
+            ? "var(--danger)"
+            : "var(--text-muted)";
+
+        meta.appendChild(asset);
+        meta.appendChild(perf);
+
+        top.appendChild(desc);
+        top.appendChild(meta);
+
+        li.appendChild(top);
+        list.appendChild(li);
+      });
+    }
+
+    function renderPerfTableWeekly(data) {
+      const body = document.getElementById("perf-body");
+      body.innerHTML = "";
+
+      if (!data.asset_performances || data.asset_performances.length === 0) {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 3;
+        td.textContent = "Pas de données de performance disponibles.";
+        td.style.fontSize = "12px";
+        td.style.color = "#9ca3af";
+        tr.appendChild(td);
+        body.appendChild(tr);
+        return;
+      }
+
+      data.asset_performances.forEach((a) => {
+        const tr = document.createElement("tr");
+
+        const tdSym = document.createElement("td");
+        tdSym.textContent = a.symbol || "—";
+
+        const tdName = document.createElement("td");
+        tdName.textContent = a.name || "—";
+
+        const tdRet = document.createElement("td");
+        const val = a.return_pct || 0;
+        const sign = val > 0 ? "+" : "";
+        tdRet.textContent = sign + val.toFixed(2) + " %";
+
+        tdRet.className =
+          val > 0
+            ? "perf-positive"
+            : val < 0
+            ? "perf-negative"
+            : "perf-neutral";
+
+        tr.appendChild(tdSym);
+        tr.appendChild(tdName);
+        tr.appendChild(tdRet);
+        body.appendChild(tr);
+      });
+    }
+
+    function renderSentimentGrid(data) {
+      const container = document.getElementById("sentiment-body");
+      container.innerHTML = "";
+
+      if (!data.sentiment_grid || data.sentiment_grid.length === 0) {
+        const row = document.createElement("div");
+        row.className = "sentiment-row";
+        const cell = document.createElement("div");
+        cell.className = "sentiment-cell sentiment-day";
+        cell.textContent = "Pas de données de sentiment.";
+        cell.style.gridColumn = "1 / -1";
+        row.appendChild(cell);
+        container.appendChild(row);
+        return;
+      }
+
+      const bucketsOrder = ["macro_us", "macro_europe", "companies", "geopolitics", "tech"];
+      const groupedByDay = {};
+      data.sentiment_grid.forEach((cell) => {
+        const d = cell.date;
+        if (!groupedByDay[d]) groupedByDay[d] = {};
+        groupedByDay[d][cell.bucket] = cell;
       });
 
-      return card;
+      const days = Object.keys(groupedByDay).sort();
+      const dayLabels = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
+
+      days.forEach((d) => {
+        const row = document.createElement("div");
+        row.className = "sentiment-row";
+
+        const dayCell = document.createElement("div");
+        dayCell.className = "sentiment-cell sentiment-day";
+        const dateObj = new Date(d);
+        const dow = dayLabels[dateObj.getDay()] || "";
+        dayCell.textContent =
+          dow +
+          " " +
+          dateObj.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
+        row.appendChild(dayCell);
+
+        bucketsOrder.forEach((bucket) => {
+          const info = groupedByDay[d][bucket];
+          const cellDiv = document.createElement("div");
+          cellDiv.className = "sentiment-cell";
+
+          if (!info) {
+            cellDiv.textContent = "—";
+            cellDiv.classList.add("sentiment-neutral");
+          } else {
+            const avg = info.sentiment;
+            const count = info.news_count || 0;
+            const pill = document.createElement("div");
+            pill.className = "sentiment-pill " + sentimentClassFromValue(avg);
+
+            if (count === 0) {
+              pill.textContent = "—";
+            } else if (avg === null || avg === undefined || isNaN(avg)) {
+              pill.textContent = count;
+            } else {
+              pill.textContent = (avg > 0 ? "+" : "") + avg.toFixed(2);
+            }
+            cellDiv.appendChild(pill);
+          }
+
+          row.appendChild(cellDiv);
+        });
+
+        container.appendChild(row);
+      });
     }
+
+    async function refreshMacroWeek() {
+      try {
+        const [summaryRes, rawRes] = await Promise.all([
+          fetch(API_BASE + "/api/macro/week/summary"),
+          fetch(API_BASE + "/api/macro/week/raw"),
+        ]);
+
+        if (!summaryRes.ok || !rawRes.ok) {
+          throw new Error("Erreur HTTP sur les endpoints macro");
+        }
+
+        const summary = await summaryRes.json();
+        const raw = await rawRes.json();
+
+        setWeekRange(summary);
+        setRiskPillWeekly(summary);
+        renderRiskComment(summary);
+        renderTopEvents(summary);
+        renderTopMoves(summary);
+        renderPerfTableWeekly(raw);
+        renderSentimentGrid(raw);
+
+        // MAJ chip macro globale pour le dashboard
+        updateMacroBiasChip();
+      } catch (err) {
+        console.error("Erreur refreshMacroWeek:", err);
+        const el = document.getElementById("risk-comment");
+        el.textContent = "Vue macro indisponible pour le moment.";
+      }
+    }
+
+    /* ---------- MACRO BIAS POUR LA BANDEAU HAUT DASH ---------- */
+
+    async function updateMacroBiasChip() {
+      try {
+        const resp = await fetch(API_BASE + "/api/macro/bias");
+        if (!resp.ok) throw new Error("HTTP " + resp.status);
+        const data = await resp.json();
+
+        const chip = document.getElementById("macro-bias-chip");
+        const txt = document.getElementById("macro-bias-text");
+
+        chip.classList.remove("pill-positive", "pill-negative", "pill-neutral");
+        if (data.risk_on === true) {
+          chip.classList.add("pill-positive");
+        } else if (data.risk_on === false) {
+          chip.classList.add("pill-negative");
+        } else {
+          chip.classList.add("pill-neutral");
+        }
+        txt.textContent = data.comment || "Lecture macro indisponible pour le moment.";
+      } catch (e) {
+        console.error("Erreur updateMacroBiasChip:", e);
+      }
+    }
+
+    /* ---------- DASHBOARD LIVE : SNAPSHOTS & PERF ---------- */
+
+    const ASSETS = ["ES", "NQ", "BTC", "CL", "GC"];
 
     async function fetchSnapshot(symbol) {
-      const url = `${API_BASE}/latest?symbol=${encodeURIComponent(symbol)}`;
-      const res = await fetch(url);
-      if (!res.ok) {
-        throw new Error(`Erreur backend pour ${symbol} : ${res.status}`);
-      }
-      return res.json();
+      const resp = await fetch(API_BASE + "/latest?symbol=" + encodeURIComponent(symbol));
+      if (!resp.ok) throw new Error("HTTP " + resp.status);
+      return resp.json();
     }
 
-    async function fetchMacroBiasGlobal() {
-      const pill = document.getElementById("macro-bias-pill");
-      const label = document.getElementById("macro-bias-label");
-      const comment = document.getElementById("macro-bias-comment");
-
-      pill.classList.remove("pill-positive", "pill-negative", "pill-neutral");
-      pill.classList.add("pill-neutral");
-      label.textContent = "Lecture neutre";
-      comment.textContent = "Chargement de la vue macro globale…";
-
+    async function refreshSnapshots() {
       try {
-        const res = await fetch(`${API_BASE}/api/macro/week/summary`);
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
-        const summary = await res.json();
+        const results = await Promise.allSettled(ASSETS.map((s) => fetchSnapshot(s)));
+        const miniContainer = document.getElementById("mini-assets");
+        miniContainer.innerHTML = "";
 
-        pill.classList.remove("pill-positive", "pill-negative", "pill-neutral");
-        if (summary.risk_on === true) {
-          pill.classList.add("pill-positive");
-          label.textContent = "Biais risk-on";
-        } else if (summary.risk_on === false) {
-          pill.classList.add("pill-negative");
-          label.textContent = "Biais risk-off";
-        } else {
-          pill.classList.add("pill-neutral");
-          label.textContent = "Lecture neutre";
-        }
+        let mainSnapshot = null;
 
-        comment.textContent =
-          summary.risk_comment ||
-          "Vue macro hebdo chargée. Aucun commentaire détaillé disponible.";
-      } catch (err) {
-        console.error("Erreur fetchMacroBiasGlobal:", err);
-        pill.classList.remove("pill-positive", "pill-negative");
-        pill.classList.add("pill-neutral");
-        label.textContent = "Indisponible";
-        comment.textContent =
-          "Impossible de récupérer la vue macro globale pour le moment.";
-      }
-    }
+        results.forEach((res, idx) => {
+          const sym = ASSETS[idx];
+          if (res.status !== "fulfilled") return;
+          const snap = res.value;
 
-    async function fetchMacroBiasAssets() {
-      try {
-        const res = await fetch(`${API_BASE}/api/macro/bias`);
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
-        const data = await res.json();
-        const assets = data.assets || {};
-        const grid = document.getElementById("markets-grid");
+          if (sym === "ES") mainSnapshot = snap;
 
-        Object.entries(assets).forEach(([symbol, info]) => {
-          const card = grid.querySelector(`.market-card[data-symbol="${symbol}"]`);
-          if (!card) return;
-          const biasEl = card.querySelector(".market-macro-bias");
-          if (!biasEl) return;
+          const card = document.createElement("div");
+          card.className = "mini-asset";
 
-          let text = "Biais macro neutre";
-          let cls = "";
-          if (info.bias === "bullish") {
-            text = "Biais macro haussier";
-            cls = "positive";
-          } else if (info.bias === "bearish") {
-            text = "Biais macro baissier";
-            cls = "negative";
-          }
+          const header = document.createElement("div");
+          header.className = "mini-asset-header";
 
-          biasEl.textContent = text;
-          biasEl.classList.remove("positive", "negative");
-          if (cls) biasEl.classList.add(cls);
-          if (info.reason) {
-            biasEl.title = info.reason;
-          }
+          const name = document.createElement("div");
+          name.className = "mini-asset-name";
+          name.textContent = snap.label || sym;
+
+          const changeEl = document.createElement("div");
+          const ch = snap.change_pct ?? 0;
+          const sign = ch > 0 ? "+" : "";
+          changeEl.textContent = sign + ch.toFixed(2) + " %";
+          changeEl.className =
+            ch > 0
+              ? "mini-asset-change-pos"
+              : ch < 0
+              ? "mini-asset-change-neg"
+              : "mini-asset-change-neutral";
+
+          header.appendChild(name);
+          header.appendChild(changeEl);
+
+          const price = document.createElement("div");
+          price.className = "mini-asset-price";
+          price.textContent = (snap.price ?? 0).toFixed(2);
+
+          const comment = document.createElement("div");
+          comment.className = "mini-asset-comment";
+          comment.textContent = snap.comment || "Pas de commentaire disponible.";
+
+          card.appendChild(header);
+          card.appendChild(price);
+          card.appendChild(comment);
+          miniContainer.appendChild(card);
         });
-      } catch (err) {
-        console.error("Erreur fetchMacroBiasAssets:", err);
-      }
-    }
 
-    async function refreshMarkets() {
-      const statusError = document.getElementById("status-error");
-      statusError.textContent = "";
-      statusError.classList.remove("status-error");
+        if (mainSnapshot) {
+          const priceEl = document.getElementById("main-price");
+          const changeEl = document.getElementById("main-change");
+          priceEl.textContent = (mainSnapshot.price ?? 0).toFixed(2);
 
-      let hadSymbolError = false;
-
-      try {
-        const grid = document.getElementById("markets-grid");
-        if (!grid.dataset.initialized) {
-          SYMBOL_ORDER.forEach((sym) => {
-            const card = createMarketCard(sym);
-            grid.appendChild(card);
-          });
-          grid.dataset.initialized = "1";
+          const ch = mainSnapshot.change_pct ?? 0;
+          const sign = ch > 0 ? "+" : "";
+          changeEl.textContent = sign + ch.toFixed(2) + " %";
+          changeEl.className =
+            ch > 0
+              ? "main-change-pos"
+              : ch < 0
+              ? "main-change-neg"
+              : "main-change-neutral";
         }
 
-        const snapshots = {};
-        for (const sym of SYMBOL_ORDER) {
-          try {
-            const snap = await fetchSnapshot(sym);
-            snapshots[sym] = snap;
-
-            const card = grid.querySelector(`.market-card[data-symbol="${sym}"]`);
-            if (!card) continue;
-            const priceEl = card.querySelector(".market-price");
-            const changeEl = card.querySelector(".market-change");
-            const commentEl = card.querySelector(".market-comment");
-
-            priceEl.textContent = formatPrice(snap.price);
-            const pct = snap.change_pct || 0;
-            changeEl.textContent = formatPct(pct);
-            changeEl.classList.remove("positive", "negative");
-            if (pct > 0.01) changeEl.classList.add("positive");
-            else if (pct < -0.01) changeEl.classList.add("negative");
-
-            commentEl.textContent = snap.comment || "Lecture indisponible.";
-            card.dataset.snapshot = JSON.stringify(snap);
-          } catch (err) {
-            console.error("Erreur snapshot pour", sym, err);
-            hadSymbolError = true;
-          }
-        }
-
-        const active = document.querySelector(".market-card.active");
-        if (!active && grid.firstChild) {
-          grid.firstChild.classList.add("active");
-          const sym = grid.firstChild.dataset.symbol;
-          const snap = snapshots[sym];
-          if (snap) setMainMarket(sym, snap);
-        } else if (active) {
-          const sym = active.dataset.symbol;
-          const snap = snapshots[sym];
-          if (snap) setMainMarket(sym, snap);
-        }
-
-        const now = new Date();
-        document.getElementById("last-update").textContent =
+        const ts = new Date();
+        document.getElementById("market-last-update").textContent =
           "Dernière mise à jour : " +
-          now.toLocaleTimeString("fr-FR", {
+          ts.toLocaleTimeString("fr-FR", {
             hour: "2-digit",
             minute: "2-digit",
           });
-
-        await fetchMacroBiasAssets();
-
-        if (hadSymbolError) {
-          statusError.textContent = "Certaines données marché n’ont pas pu être mises à jour.";
-          statusError.classList.add("status-error");
-        } else {
-          statusError.textContent = "Données marchés à jour.";
-        }
-      } catch (err) {
-        console.error("Erreur refreshMarkets:", err);
-        statusError.textContent = "Impossible de mettre à jour les données marchés pour le moment.";
-        statusError.classList.add("status-error");
+      } catch (e) {
+        console.error("Erreur refreshSnapshots:", e);
+        document.getElementById("backend-status").textContent =
+          "Impossible de mettre à jour les données marchés pour le moment.";
+        document.getElementById("backend-status").classList.remove("status-ok");
       }
     }
 
-    async function runIAAnalysis() {
-      const select = document.getElementById("ia-asset-select");
-      const symbol = select.value || "ES";
-      const btn = document.getElementById("ia-run-btn");
-      const result = document.getElementById("assistant-result");
-      const errorEl = document.getElementById("assistant-error");
-
-      errorEl.textContent = "";
-      btn.disabled = true;
-      const oldText = btn.textContent;
-      btn.textContent = "Analyse en cours…";
-
-      result.innerHTML =
-        '<div class="assistant-placeholder">Analyse IA en cours pour ' +
-        symbol +
-        "…</div>";
-
+    async function refreshPerfSummary() {
       try {
-        const res = await fetch(
-          `${API_BASE}/analyze?symbol=${encodeURIComponent(symbol)}`
-        );
-        if (!res.ok) {
-          throw new Error(`Erreur backend IA : ${res.status}`);
-        }
-        const data = await res.json();
-        const analysis = data.analysis || "Aucune analyse retournée.";
-        result.textContent = analysis;
-      } catch (err) {
-        console.error("Erreur runIAAnalysis:", err);
-        errorEl.textContent =
-          "Erreur lors de l’appel IA. Vérifie le backend ou réessaie dans quelques instants. (" +
-          err.message +
-          ")";
-      } finally {
-        btn.disabled = false;
-        btn.textContent = oldText;
-      }
-    }
+        const resp = await fetch(API_BASE + "/perf/summary");
+        if (!resp.ok) throw new Error("HTTP " + resp.status);
+        const data = await resp.json();
 
-    // === Bloc performances ===
-    function formatPerfNumber(v) {
-      if (v === null || v === undefined || isNaN(v)) return "—";
-      const sign = v > 0 ? "+" : "";
-      return sign + v.toFixed(2) + " %";
-    }
+        document.getElementById("perf-as-of").textContent = data.as_of || "—";
 
-    async function refreshPerf() {
-      const statusEl = document.getElementById("perf-status");
-      const body = document.getElementById("perf-body");
-      const dateEl = document.getElementById("perf-date");
-
-      statusEl.textContent = "Chargement des performances…";
-
-      try {
-        const res = await fetch(`${API_BASE}/perf/summary`);
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
-        const data = await res.json();
-        const assets = Array.isArray(data.assets) ? data.assets : [];
-        if (!assets.length) {
-          body.innerHTML = `
-            <tr>
-              <td colspan="4" class="cell-muted">
-                Aucune donnée de performance disponible.
-              </td>
-            </tr>`;
-          statusEl.textContent = "Aucune donnée disponible.";
-          return;
-        }
-
-        dateEl.textContent = data.as_of || "—";
+        const body = document.getElementById("perf-summary-body");
         body.innerHTML = "";
 
-        for (const asset of assets) {
+        (data.assets || []).forEach((a) => {
           const tr = document.createElement("tr");
 
           const tdName = document.createElement("td");
-          tdName.textContent = `${asset.symbol || ""} — ${asset.label || ""}`;
-          tr.appendChild(tdName);
-
-          const d = typeof asset.d === "number" ? asset.d : null;
-          const w = typeof asset.w === "number" ? asset.w : null;
-          const m = typeof asset.m === "number" ? asset.m : null;
+          tdName.textContent = a.label || a.symbol || "—";
 
           const tdD = document.createElement("td");
-          tdD.textContent = formatPerfNumber(d);
-          if (d !== null) tdD.classList.add(d >= 0 ? "perf-positive" : "perf-negative");
-          tr.appendChild(tdD);
-
           const tdW = document.createElement("td");
-          tdW.textContent = formatPerfNumber(w);
-          if (w !== null) tdW.classList.add(w >= 0 ? "perf-positive" : "perf-negative");
-          tr.appendChild(tdW);
-
           const tdM = document.createElement("td");
-          tdM.textContent = formatPerfNumber(m);
-          if (m !== null) tdM.classList.add(m >= 0 ? "perf-positive" : "perf-negative");
+
+          const setCell = (td, val) => {
+            if (val === null || val === undefined) {
+              td.textContent = "—";
+              td.className = "perf-neutral";
+            } else {
+              const sign = val > 0 ? "+" : "";
+              td.textContent = sign + val.toFixed(2) + " %";
+              td.className =
+                val > 0 ? "perf-positive" : val < 0 ? "perf-negative" : "perf-neutral";
+            }
+          };
+
+          setCell(tdD, a.d);
+          setCell(tdW, a.w);
+          setCell(tdM, a.m);
+
+          tr.appendChild(tdName);
+          tr.appendChild(tdD);
+          tr.appendChild(tdW);
           tr.appendChild(tdM);
-
           body.appendChild(tr);
-        }
+        });
 
-        statusEl.textContent = "";
-      } catch (err) {
-        console.error("Erreur refreshPerf:", err);
-        body.innerHTML = `
-          <tr>
-            <td colspan="4" class="cell-muted">
-              Impossible de récupérer les performances pour le moment.
-            </td>
-          </tr>`;
-        statusEl.textContent = "Erreur lors du chargement des performances.";
+        document.getElementById("perf-error").style.display = "none";
+      } catch (e) {
+        console.error("Erreur refreshPerfSummary:", e);
+        document.getElementById("perf-error").style.display = "block";
       }
     }
 
-    // === Bloc news & sentiment IA ===
-    function mapRiskTone(tone) {
-      if (tone === "risk_on") return "Tonalité risk-on";
-      if (tone === "risk_off") return "Tonalité risk-off";
-      return "Tonalité neutre";
-    }
+    /* ---------- ASSISTANT IA ---------- */
 
-    function mapVolatilityLabel(vol) {
-      if (!vol) return "Volatilité : —";
-      if (vol === "high") return "Volatilité : élevée";
-      if (vol === "low") return "Volatilité : faible";
-      return "Volatilité : normale";
-    }
-
-    async function refreshNewsBlock() {
-      const tonePill = document.getElementById("news-tone-pill");
-      const volPill = document.getElementById("news-vol-pill");
-      const mainTextEl = document.getElementById("news-main-text");
-      const lastUpdateEl = document.getElementById("news-last-update");
-      const sourceEl = document.getElementById("news-source");
-
-      mainTextEl.textContent = "Analyse des news en cours…";
-      tonePill.classList.remove("positive", "negative");
-      tonePill.textContent = "Tonalité : —";
-      volPill.textContent = "Volatilité : —";
-      lastUpdateEl.textContent = "Dernière analyse : —";
-      sourceEl.textContent = "Source : —";
+    async function runIaAnalysis() {
+      const select = document.getElementById("ia-asset-select");
+      const symbol = select.value || "ES";
+      const out = document.getElementById("ia-output");
+      out.textContent = "Analyse en cours pour " + symbol + "…";
 
       try {
-        const res = await fetch(`${API_BASE}/api/news/analyze`, {
+        const resp = await fetch(API_BASE + "/analyze?symbol=" + encodeURIComponent(symbol));
+        if (!resp.ok) throw new Error("HTTP " + resp.status);
+        const data = await resp.json();
+
+        out.textContent = data.analysis || "Aucune analyse renvoyée par l'assistant.";
+      } catch (e) {
+        console.error("Erreur runIaAnalysis:", e);
+        out.textContent =
+          "Impossible de générer l'analyse IA pour le moment. Vérifie le backend OpenAI.";
+      }
+    }
+
+    /* ---------- NEWS IA (NOUVELLE VERSION) ---------- */
+
+    let NEWS_IMPACT_BY_ASSET = {};
+
+    function applyRiskTonePill(riskTone) {
+      const pill = document.getElementById("news-tone-pill");
+      const label = document.getElementById("news-tone-label");
+      pill.classList.remove("pill-positive", "pill-negative", "pill-neutral");
+
+      if (riskTone === "risk_on") {
+        pill.classList.add("pill-positive");
+        label.textContent = "Tonalité risk-on";
+      } else if (riskTone === "risk_off") {
+        pill.classList.add("pill-negative");
+        label.textContent = "Tonalité risk-off";
+      } else {
+        pill.classList.add("pill-neutral");
+        label.textContent = "Tonalité neutre / mitigée";
+      }
+    }
+
+    function applyVolPill(volOutlook) {
+      const pill = document.getElementById("news-vol-pill");
+      const label = document.getElementById("news-vol-label");
+      pill.classList.remove("pill-positive", "pill-negative", "pill-neutral");
+
+      if (volOutlook === "high") {
+        pill.classList.add("pill-negative");
+        label.textContent = "Volatilité : élevée";
+      } else if (volOutlook === "low") {
+        pill.classList.add("pill-positive");
+        label.textContent = "Volatilité : faible";
+      } else {
+        pill.classList.add("pill-neutral");
+        label.textContent = "Volatilité : normale";
+      }
+    }
+
+    function populateImpactSelect(byAsset) {
+      const select = document.getElementById("news-asset-select");
+      select.innerHTML = "";
+
+      const entries = Object.entries(byAsset || {});
+      if (entries.length === 0) {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "Aucun actif disponible";
+        select.appendChild(opt);
+        updateImpactPanel(null);
+        return;
+      }
+
+      const labels = {
+        ES: "ES – S&P 500 Future",
+        NQ: "NQ – Nasdaq 100 Future",
+        BTC: "BTC – Bitcoin",
+        CL: "CL – Crude Oil (WTI)",
+        GC: "GC – Gold",
+      };
+
+      entries.forEach(([sym]) => {
+        const opt = document.createElement("option");
+        opt.value = sym;
+        opt.textContent = labels[sym] || sym;
+        select.appendChild(opt);
+      });
+
+      select.onchange = (e) => updateImpactPanel(e.target.value);
+      updateImpactPanel(entries[0][0]);
+    }
+
+    function updateImpactPanel(symbol) {
+      const info = symbol ? (NEWS_IMPACT_BY_ASSET && NEWS_IMPACT_BY_ASSET[symbol]) : null;
+      const badge = document.getElementById("news-impact-bias");
+      const commentEl = document.getElementById("news-impact-comment");
+
+      badge.classList.remove("bullish", "bearish", "neutral");
+
+      if (!info) {
+        badge.textContent = "Biais : —";
+        badge.classList.add("neutral");
+        commentEl.textContent =
+          "Pas de commentaire spécifique disponible pour cet actif.";
+        return;
+      }
+
+      const bias = (info.bias || "neutral").toLowerCase();
+      if (bias === "bullish") badge.classList.add("bullish");
+      else if (bias === "bearish") badge.classList.add("bearish");
+      else badge.classList.add("neutral");
+
+      let biasLabel =
+        bias === "bullish"
+          ? "Biais haussier"
+          : bias === "bearish"
+          ? "Biais baissier"
+          : "Biais neutre";
+      badge.textContent = `Biais : ${biasLabel}`;
+
+      commentEl.textContent = info.comment || "Pas de détail fourni par l'IA.";
+    }
+
+    function renderNewsAnalysis(data) {
+      const analysis = data.analysis || {};
+      const macroSent = analysis.macro_sentiment || {};
+      const keyPoints = analysis.key_points || [];
+      const byAsset = analysis.by_asset || {};
+      const riskTone = analysis.risk_tone || "neutral";
+      const volOutlook = analysis.volatility_outlook || "normal";
+
+      applyRiskTonePill(riskTone);
+      applyVolPill(volOutlook);
+
+      const summaryEl = document.getElementById("news-summary-text");
+      summaryEl.textContent =
+        macroSent.comment ||
+        "Pas de commentaire macro disponible dans l'analyse.";
+
+      const ul = document.getElementById("news-keypoints");
+      ul.innerHTML = "";
+      keyPoints.forEach((p) => {
+        const li = document.createElement("li");
+        li.textContent = p;
+        ul.appendChild(li);
+      });
+
+      const sourceLabel = document.getElementById("news-source-label");
+      sourceLabel.textContent = `Source : ${data.news_source || "—"}`;
+
+      const lastUpdate = document.getElementById("news-last-update");
+      if (data.created_at) {
+        const d = new Date(data.created_at * 1000);
+        lastUpdate.textContent =
+          "Dernière analyse : " +
+          d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+      } else {
+        lastUpdate.textContent = "Dernière analyse : —";
+      }
+
+      NEWS_IMPACT_BY_ASSET = byAsset;
+      populateImpactSelect(byAsset);
+    }
+
+    async function fetchNewsAnalysis() {
+      try {
+        const resp = await fetch(API_BASE + "/api/news/analyze", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ max_articles: 10 }),
+          body: JSON.stringify({ max_articles: 15 }),
         });
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
-        const data = await res.json();
-
-        const analysis = data.analysis || {};
-        const macroSent = analysis.macro_sentiment || {};
-        const riskTone = analysis.risk_tone || "neutral";
-        const volOutlook = analysis.volatility_outlook || "normal";
-        const keyPoints = Array.isArray(analysis.key_points) ? analysis.key_points : [];
-
-        tonePill.textContent = mapRiskTone(riskTone);
-        if (riskTone === "risk_on") tonePill.classList.add("positive");
-        else if (riskTone === "risk_off") tonePill.classList.add("negative");
-
-        volPill.textContent = mapVolatilityLabel(volOutlook);
-
-        const macroLabel = macroSent.label || "Neutre";
-        const macroComment = macroSent.comment || "";
-        let text = `Biais macro : ${macroLabel}.`;
-        if (macroComment) text += " " + macroComment;
-        if (keyPoints.length) {
-          text += "\n\nPoints clés :\n- " + keyPoints.join("\n- ");
-        }
-        mainTextEl.textContent = text;
-
-        const byAsset = analysis.by_asset || {};
-        const symbols = ["ES", "NQ", "BTC", "CL", "GC"];
-        symbols.forEach((sym) => {
-          const info = byAsset[sym] || {};
-          const biasEl = document.getElementById(`news-${sym}-bias`);
-          const commentEl = document.getElementById(`news-${sym}-comment`);
-          if (biasEl) biasEl.textContent = info.bias ? `Biais ${info.bias}` : "Biais neutre";
-          if (commentEl) commentEl.textContent = info.comment || "—";
-        });
-
-        lastUpdateEl.textContent = "Dernière analyse : " +
-          new Date().toLocaleTimeString("fr-FR", {
-            hour: "2-digit",
-            minute: "2-digit",
-          });
-
-        if (data.news_source) {
-          sourceEl.textContent = "Source : " + data.news_source;
-        } else if (data.source) {
-          sourceEl.textContent = "Source : " + data.source;
-        } else {
-          sourceEl.textContent = "Source : mix flux news";
-        }
-      } catch (err) {
-        console.error("Erreur refreshNewsBlock:", err);
-        mainTextEl.textContent =
-          "Impossible de récupérer l’analyse des news pour le moment.";
+        if (!resp.ok) throw new Error("HTTP " + resp.status);
+        const data = await resp.json();
+        renderNewsAnalysis(data);
+      } catch (e) {
+        console.error("Erreur fetchNewsAnalysis:", e);
+        const summaryEl = document.getElementById("news-summary-text");
+        summaryEl.textContent =
+          "Impossible de récupérer l'analyse des news pour le moment.";
       }
     }
 
-    // === Bloc calendrier ===
+    /* ---------- CALENDRIER ÉCO ---------- */
+
+    function impactClass(impact) {
+      if (!impact) return "";
+      const lvl = impact.toLowerCase();
+      if (lvl === "high") return "calendar-impact-high";
+      if (lvl === "medium") return "calendar-impact-medium";
+      return "calendar-impact-low";
+    }
+
     async function refreshCalendar() {
-      const todayBody = document.getElementById("cal-today-body");
-      const nextBody = document.getElementById("cal-next-body");
-      const statusEl = document.getElementById("cal-status");
-
-      statusEl.textContent = "Chargement du calendrier…";
-
       try {
-        const res = await fetch(`${API_BASE}/api/calendar/summary`);
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
-        const data = await res.json();
+        const [todayRes, nextRes] = await Promise.all([
+          fetch(API_BASE + "/api/calendar/today"),
+          fetch(API_BASE + "/api/calendar/next"),
+        ]);
 
-        const today = Array.isArray(data.today) ? data.today : [];
-        const next = Array.isArray(data.next_days) ? data.next_days : [];
+        const todayData = todayRes.ok ? await todayRes.json() : { events: [] };
+        const nextData = nextRes.ok ? await nextRes.json() : { events: [] };
 
-        // Aujourd'hui
-        if (!today.length) {
-          todayBody.innerHTML = `
-            <tr>
-              <td colspan="4" class="cell-muted">
-                Aucun événement majeur prévu aujourd’hui.
-              </td>
-            </tr>`;
+        const todayBody = document.getElementById("calendar-today-body");
+        const nextBody = document.getElementById("calendar-next-body");
+        todayBody.innerHTML = "";
+        nextBody.innerHTML = "";
+
+        const todayEvents = todayData.events || [];
+        if (todayEvents.length === 0) {
+          const tr = document.createElement("tr");
+          const td = document.createElement("td");
+          td.colSpan = 4;
+          td.style.fontSize = "11px";
+          td.style.color = "#9ca3af";
+          td.textContent = "Aucune publication macro majeure aujourd'hui.";
+          tr.appendChild(td);
+          todayBody.appendChild(tr);
         } else {
-          todayBody.innerHTML = "";
-          for (const ev of today) {
+          todayEvents.forEach((ev) => {
             const tr = document.createElement("tr");
             const tdTime = document.createElement("td");
             tdTime.textContent = ev.time || "—";
-            tr.appendChild(tdTime);
-
             const tdCountry = document.createElement("td");
             tdCountry.textContent = ev.country || "—";
-            tr.appendChild(tdCountry);
-
             const tdEvent = document.createElement("td");
-            tdEvent.textContent = ev.event || "—";
-            tr.appendChild(tdEvent);
-
+            tdEvent.textContent = ev.title || "Événement";
             const tdImpact = document.createElement("td");
             tdImpact.textContent = ev.impact || "—";
-            tr.appendChild(tdImpact);
+            tdImpact.className = impactClass(ev.impact_level || ev.impact);
 
+            tr.appendChild(tdTime);
+            tr.appendChild(tdCountry);
+            tr.appendChild(tdEvent);
+            tr.appendChild(tdImpact);
             todayBody.appendChild(tr);
-          }
+          });
         }
 
-        // Prochains jours
-        if (!next.length) {
-          nextBody.innerHTML = `
-            <tr>
-              <td colspan="4" class="cell-muted">
-                Aucun événement majeur listé pour les prochains jours.
-              </td>
-            </tr>`;
+        const nextEvents = nextData.events || [];
+        if (nextEvents.length === 0) {
+          const tr = document.createElement("tr");
+          const td = document.createElement("td");
+          td.colSpan = 4;
+          td.style.fontSize = "11px";
+          td.style.color = "#9ca3af";
+          td.textContent =
+            "Aucune publication significative dans les prochains jours.";
+          tr.appendChild(td);
+          nextBody.appendChild(tr);
         } else {
-          nextBody.innerHTML = "";
-          for (const ev of next) {
+          nextEvents.forEach((ev) => {
             const tr = document.createElement("tr");
             const tdDate = document.createElement("td");
             tdDate.textContent = ev.date || "—";
-            tr.appendChild(tdDate);
-
             const tdCountry = document.createElement("td");
             tdCountry.textContent = ev.country || "—";
-            tr.appendChild(tdCountry);
-
             const tdEvent = document.createElement("td");
-            tdEvent.textContent = ev.event || "—";
-            tr.appendChild(tdEvent);
-
+            tdEvent.textContent = ev.title || "Événement";
             const tdImpact = document.createElement("td");
             tdImpact.textContent = ev.impact || "—";
+            tdImpact.className = impactClass(ev.impact_level || ev.impact);
+
+            tr.appendChild(tdDate);
+            tr.appendChild(tdCountry);
+            tr.appendChild(tdEvent);
             tr.appendChild(tdImpact);
-
             nextBody.appendChild(tr);
-          }
+          });
         }
-
-        statusEl.textContent = "";
-      } catch (err) {
-        console.error("Erreur refreshCalendar:", err);
-        statusEl.textContent =
-          "Impossible de récupérer le calendrier économique pour le moment.";
+      } catch (e) {
+        console.error("Erreur refreshCalendar:", e);
       }
     }
 
-    // === Init ===
-    window.addEventListener("DOMContentLoaded", () => {
-      refreshMarkets();
-      fetchMacroBiasGlobal();
-      refreshPerf();
-      refreshNewsBlock();
+    /* ---------- INIT ---------- */
+
+    document.addEventListener("DOMContentLoaded", () => {
+      // Macro hebdo
+      refreshMacroWeek();
+
+      // Snapshots + perf
+      refreshSnapshots();
+      refreshPerfSummary();
+      updateMacroBiasChip();
+
+      // News IA
+      const newsBtn = document.getElementById("news-refresh-btn");
+      if (newsBtn) newsBtn.addEventListener("click", fetchNewsAnalysis);
+      fetchNewsAnalysis();
+
+      // IA bouton
+      const iaBtn = document.getElementById("ia-run-btn");
+      if (iaBtn) iaBtn.addEventListener("click", runIaAnalysis);
+
+      // Calendrier
       refreshCalendar();
 
-      setInterval(refreshMarkets, 15000);
-
-      const iaBtn = document.getElementById("ia-run-btn");
-      iaBtn.addEventListener("click", runIAAnalysis);
-
-      const newsBtn = document.getElementById("news-refresh-btn");
-      newsBtn.addEventListener("click", () => {
-        refreshNewsBlock();
-      });
+      // Refresh périodique snapshots
+      setInterval(refreshSnapshots, 15000);
     });
   </script>
 </body>
