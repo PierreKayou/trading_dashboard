@@ -9,7 +9,7 @@ import json
 import os
 
 router = APIRouter(
-    prefix="/macro",
+    prefix="/api/macro",
     tags=["macro"],
 )
 
