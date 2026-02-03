@@ -578,7 +578,7 @@
           </ul>
 
           <p class="small-note">
-            Les éléments ci-dessus restent descriptifs et ne constituent en aucun cas un conseil en investissement.
+            Synthèse hebdomadaire générée pour ton suivi des marchés.
           </p>
         </div>
       </section>
@@ -903,14 +903,13 @@
     }
 
     function sentimentClassFromValue(avg) {
-  if (avg === null || avg === undefined || isNaN(avg)) return "sentiment-neutral";
-  if (avg <= -0.5) return "sentiment-strong-neg";
-  if (avg < -0.1) return "sentiment-neg";
-  if (avg > -0.1 && avg < 0.1) return "sentiment-neutral";
-  if (avg < 0.5) return "sentiment-pos";
-  return "sentiment-strong-pos";
-}
-
+      if (avg === null || avg === undefined || isNaN(avg)) return "sentiment-neutral";
+      if (avg <= -0.5) return "sentiment-strong-neg";
+      if (avg < -0.1) return "sentiment-neg";
+      if (avg > -0.1 && avg < 0.1) return "sentiment-neutral";
+      if (avg < 0.5) return "sentiment-pos";
+      return "sentiment-strong-pos";
+    }
 
     function renderSentimentGrid(data) {
       const container = document.getElementById("sentiment-body");
@@ -1023,7 +1022,7 @@
         console.error("Erreur refreshMacro:", err);
         const el = document.getElementById("risk-comment");
         el.textContent =
-          "Impossible de récupérer la vue macro pour le moment. Vérifie l'API Render.";
+          "Vue macro indisponible pour le moment.";
       }
     }
 
