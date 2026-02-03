@@ -447,8 +447,12 @@
       box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.25);
     }
 
-    .status-error {
+    .status-info {
       font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .status-error {
       color: var(--danger);
     }
 
@@ -622,6 +626,17 @@
     th {
       font-weight: 500;
       color: var(--text-muted);
+    }
+
+    /* meilleure lisibilité du tableau de perfs */
+    .perf-table th,
+    .perf-table td {
+      color: #e5e7eb;
+    }
+
+    .perf-table tbody td:first-child {
+      color: #d1d5db;
+      font-weight: 500;
     }
 
     .perf-positive {
@@ -810,7 +825,7 @@
             </div>
             <div id="last-update">Dernière mise à jour : —</div>
           </div>
-          <div id="status-error" class="status-error"></div>
+          <div id="status-error" class="status-info"></div>
         </div>
       </section>
 
@@ -819,13 +834,13 @@
         <div class="card-inner">
           <div class="assistant-header">
             <div class="assistant-title-row">
-              <div class="assistant-title">Assistant Stark – Analyse IA (pas un conseil)</div>
+              <div class="assistant-title">Assistant Stark – Analyse IA</div>
               <div class="assistant-badge">
                 🔗 Intégration en cours avec FastAPI & OpenAI
               </div>
             </div>
             <div class="assistant-subtitle">
-              Génère une analyse synthétique pour l’actif sélectionné à partir des données temps réel (yfinance) récupérées par ton backend FastAPI.
+              Génère une analyse synthétique pour l’actif sélectionné à partir des données temps réel récupérées par ton backend FastAPI.
             </div>
             <div class="assistant-controls">
               <select id="ia-asset-select" class="select-asset">
@@ -845,12 +860,11 @@
             <div id="assistant-error" class="assistant-error"></div>
             <div id="assistant-result" class="assistant-result">
               <div class="assistant-placeholder">
-                Sélectionne un actif puis clique sur « Analyser avec l’IA » pour générer une analyse de marché structurée (global, swing, intraday, scénarios).<br /><br />
-                Rappel : tout ce qui est affiché ici reste purement informatif et ne constitue en aucun cas un conseil en investissement.
+                Sélectionne un actif puis clique sur « Analyser avec l’IA » pour générer une analyse de marché structurée (global, swing, intraday, scénarios).
               </div>
             </div>
             <div class="assistant-footer">
-              L’assistant IA combine les données techniques (RSI, MACD, Bollinger…) avec le contexte global du marché. Utilisation à des fins d’analyse uniquement.
+              L’assistant IA combine les données techniques et le contexte global du marché pour générer une synthèse exploitable.
             </div>
           </div>
         </div>
@@ -872,7 +886,7 @@
           </div>
 
           <div style="overflow-x:auto;">
-            <table>
+            <table class="perf-table">
               <thead>
                 <tr>
                   <th>Indice</th>
@@ -906,7 +920,7 @@
               <div>
                 <div class="card-small-header-title">News & Sentiment IA</div>
                 <div class="card-small-header-sub">
-                  Lecture synthétique des dernières news macro / marché. Ne remplace pas l’analyse personnelle.
+                  Lecture synthétique des dernières news macro / marché à partir des flux IA.
                 </div>
               </div>
               <div>
@@ -1227,6 +1241,9 @@
     async function refreshMarkets() {
       const statusError = document.getElementById("status-error");
       statusError.textContent = "";
+      statusError.classList.remove("status-error");
+
+      let hadSymbolError = false;
 
       try {
         const grid = document.getElementById("markets-grid");
@@ -1261,7 +1278,7 @@
             card.dataset.snapshot = JSON.stringify(snap);
           } catch (err) {
             console.error("Erreur snapshot pour", sym, err);
-            statusError.textContent = `Erreur de chargement : ${err.message}`;
+            hadSymbolError = true;
           }
         }
 
@@ -1286,9 +1303,17 @@
           });
 
         await fetchMacroBiasAssets();
+
+        if (hadSymbolError) {
+          statusError.textContent = "Certaines données marché n’ont pas pu être mises à jour.";
+          statusError.classList.add("status-error");
+        } else {
+          statusError.textContent = "Données marchés à jour.";
+        }
       } catch (err) {
         console.error("Erreur refreshMarkets:", err);
-        statusError.textContent = "Erreur globale de chargement des marchés.";
+        statusError.textContent = "Impossible de mettre à jour les données marchés pour le moment.";
+        statusError.classList.add("status-error");
       }
     }
 
