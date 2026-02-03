@@ -9,7 +9,7 @@ import yfinance as yf
 
 router = APIRouter(prefix="/api/macro", tags=["macro"])
 
-# Les mêmes grands actifs que ton dash
+# Les mêmes grands actifs que le reste du dash
 ASSETS = [
     {"symbol": "ES", "name": "S&P 500 Future", "yf": "ES=F"},
     {"symbol": "NQ", "name": "Nasdaq 100 Future", "yf": "NQ=F"},
@@ -18,6 +18,10 @@ ASSETS = [
     {"symbol": "GC", "name": "Gold", "yf": "GC=F"},
 ]
 
+
+# -------------------------------
+# FONCTIONS UTILITAIRES
+# -------------------------------
 
 def _current_week_range() -> tuple[dt.date, dt.date]:
     """
@@ -47,7 +51,6 @@ def _compute_weekly_returns() -> List[Dict[str, Any]]:
             ticker = yf.Ticker(yf_sym)
             hist = ticker.history(period="7d", interval="1d")
         except Exception as e:
-            # Si un flux plante on n'explose pas tout le endpoint
             results.append(
                 {
                     "symbol": sym,
@@ -150,7 +153,6 @@ def _build_dummy_sentiment_grid(start: dt.date, end: dt.date) -> List[Dict[str, 
 
     d = start
     while d <= end:
-        # on ne remplit que les jours de semaine
         if d.weekday() < 5:  # 0 = lundi, ..., 4 = vendredi
             for b in buckets:
                 cells.append(
@@ -166,18 +168,28 @@ def _build_dummy_sentiment_grid(start: dt.date, end: dt.date) -> List[Dict[str, 
     return cells
 
 
+def _risk_label_from_flag(flag: bool | None) -> str:
+    """
+    Texte court pour la bannière du dash.
+    """
+    if flag is True:
+        return "Biais macro global : risk-on"
+    if flag is False:
+        return "Biais macro global : risk-off"
+    return "Biais macro global : neutre"
+
+
 # -------------------------------
-# ENDPOINTS MACRO HEBDO
+# ENDPOINTS
 # -------------------------------
 
 @router.get("/week/summary")
 async def get_week_summary():
     """
-    Vue synthétique pour la semaine :
+    Vue synthétique pour la page macro :
     - start / end
-    - biais risk-on / risk-off / neutre
-    - commentaire de contexte
-    - place-holder pour top_events / top_moves
+    - risk_on / risk_comment
+    - top_events / top_moves (placeholder pour l'instant)
     """
     try:
         start, end = _current_week_range()
@@ -188,10 +200,10 @@ async def get_week_summary():
             "start": start.isoformat(),
             "end": end.isoformat(),
             "created_at": time.time(),
-            "risk_on": risk_on,             # true / false / null
+            "risk_on": risk_on,
             "risk_comment": comment,
-            "top_events": [],               # on remplira plus tard avec l'IA + calendrier
-            "top_moves": [],                # idem (mouvements marquants de la semaine)
+            "top_events": [],
+            "top_moves": [],
         }
     except HTTPException:
         raise
@@ -202,9 +214,9 @@ async def get_week_summary():
 @router.get("/week/raw")
 async def get_week_raw():
     """
-    Données brutes hebdo pour la vue macro :
-    - performances par actif
-    - grille de sentiment (pour l'instant neutre)
+    Données détaillées pour la grille et la table de la page macro :
+    - asset_performances : [{symbol, name, return_pct}]
+    - sentiment_grid     : [{date, bucket, sentiment, news_count}]
     """
     try:
         start, end = _current_week_range()
@@ -217,6 +229,54 @@ async def get_week_raw():
             "created_at": time.time(),
             "asset_performances": perfs,
             "sentiment_grid": sentiment_grid,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/bias")
+async def get_bias():
+    """
+    Biais macro pour le dashboard principal :
+    - résumé global (risk_on / label / commentaire)
+    - perf hebdo par actif + biais simple par actif
+    """
+    try:
+        start, end = _current_week_range()
+        perfs = _compute_weekly_returns()
+        risk_on, comment = _infer_risk_bias(perfs)
+
+        def per_asset_bias(ret: float | None) -> str:
+            if ret is None:
+                return "neutral"
+            if ret > 0.5:
+                return "bullish"
+            if ret < -0.5:
+                return "bearish"
+            return "neutral"
+
+        assets_view = []
+        for a in perfs:
+            ret = a.get("return_pct")
+            assets_view.append(
+                {
+                    "symbol": a["symbol"],
+                    "name": a["name"],
+                    "return_pct": ret,
+                    "macro_bias": per_asset_bias(ret),
+                }
+            )
+
+        return {
+            "start": start.isoformat(),
+            "end": end.isoformat(),
+            "created_at": time.time(),
+            "risk_on": risk_on,                  # true / false / null
+            "label": _risk_label_from_flag(risk_on),
+            "comment": comment,
+            "assets": assets_view,               # pour les petites lignes par actif si tu veux
         }
     except HTTPException:
         raise
