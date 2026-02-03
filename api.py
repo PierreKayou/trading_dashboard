@@ -16,11 +16,14 @@ from datetime import datetime
 
 from openai import OpenAI
 
-# Router macro (backend analyse macro)
 from macro.router import router as macro_router
-
-# : router news
 from news.router import router as news_router
+from econ_calendar.router import router as calendar_router
+
+app.include_router(macro_router)
+app.include_router(news_router)
+app.include_router(calendar_router)
+
 
 ###############################
 # CONFIG GLOBALE
