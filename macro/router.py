@@ -9,7 +9,7 @@ import json
 import os
 
 router = APIRouter(
-    prefix="/macro",
+    prefix="/api/macro",
     tags=["macro"],
 )
 
@@ -17,6 +17,18 @@ client = OpenAI()
 
 MACRO_MODEL = "gpt-4.1-mini"
 MACRO_STATE_FILE = os.path.join(os.getcwd(), "macro_state.json")
+
+@router.get("/week/summary")
+async def get_week_summary():
+    ...
+
+@router.get("/week/raw")
+async def get_week_raw():
+    ...
+
+@router.get("/bias")
+async def get_bias():
+    ...
 
 
 class MacroRequest(BaseModel):
