@@ -177,15 +177,15 @@ def _build_sentiment_grid(start: dt.date, end: dt.date) -> List[Dict[str, Any]]:
             continue
 
         ts = art.get("providerPublishTime")
-if not ts:
-    continue
+        if not ts:
+            continue
 
-# 🔧 CORRECTION timestamp secondes / millisecondes
-if ts > 10_000_000_000:  # > année ~2286 → donc millisecondes
-    ts = ts / 1000
+        # 🔧 CORRECTION timestamp secondes / millisecondes
+        if ts > 10_000_000_000:  # -> timestamp probablement en millisecondes
+            ts = ts / 1000.0
 
-dt_obj = datetime.datetime.utcfromtimestamp(ts)
-date_str = dt_obj.strftime("%Y-%m-%d")
+        dt_obj = datetime.datetime.utcfromtimestamp(ts)
+        date_str = dt_obj.strftime("%Y-%m-%d")
 
 
         day = dt_obj.date()
