@@ -903,13 +903,14 @@
     }
 
     function sentimentClassFromValue(avg) {
-      if (avg === null || avg === undefined || isNaN(avg)) return "sentiment-neutral";
-      if (avg <= -0.5) return "sentiment-strong-neg";
-      if (avg < -0.1) return "sentiment-neg";
-      if (avg < -0.1 || avg < 0.1) return "sentiment-neutral";
-      if (avg < 0.5) return "sentiment-pos";
-      return "sentiment-strong-pos";
-    }
+  if (avg === null || avg === undefined || isNaN(avg)) return "sentiment-neutral";
+  if (avg <= -0.5) return "sentiment-strong-neg";
+  if (avg < -0.1) return "sentiment-neg";
+  if (avg > -0.1 && avg < 0.1) return "sentiment-neutral";
+  if (avg < 0.5) return "sentiment-pos";
+  return "sentiment-strong-pos";
+}
+
 
     function renderSentimentGrid(data) {
       const container = document.getElementById("sentiment-body");
