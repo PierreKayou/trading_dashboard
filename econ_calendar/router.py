@@ -7,19 +7,9 @@ import time
 import datetime as dt
 import requests
 
-
 router = APIRouter(prefix="/api/calendar", tags=["calendar"])
 
 FMP_API_KEY = os.getenv("FMP_API_KEY")
-
-@router.get("/summary")
-async def get_calendar_summary():
-    return {
-        "today": [],
-        "next_days": [],
-        "source": "placeholder"
-    }
-
 
 
 def _fetch_from_fmp(start: dt.date, end: dt.date):
@@ -150,11 +140,11 @@ def _mock_events(today: dt.date):
 
 
 @router.get("/summary")
-def get_calendar_summary():
+async def get_calendar_summary():
     """
     Vue synthétique calendrier économique :
     - today : évènements du jour
-    - week : évènements des 6 prochains jours
+    - next_days : évènements des 6 prochains jours
     """
     today = dt.date.today()
     week_end = today + dt.timedelta(days=6)
@@ -171,5 +161,6 @@ def get_calendar_summary():
         "source": source,
         "fetched_at": time.time(),
         "today": today_events,
-        "week": week_events,
+        "next_days": week_events,  # <-- clé alignée avec le front
+        "week": week_events,       # optionnel, pour débogage
     }
