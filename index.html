@@ -45,7 +45,7 @@
       width: 100%;
     }
 
-    /* HEADER GÉNÉRIQUE */
+    /* HEADER */
 
     header {
       display: flex;
@@ -265,7 +265,7 @@
       color: var(--text-muted);
     }
 
-    /* GRID LAYOUTS */
+    /* GRIDS */
 
     .grid-two {
       display: grid;
@@ -306,7 +306,7 @@
       }
     }
 
-    /* MACRO WEEKLY (HAUT DE PAGE) */
+    /* MACRO WEEKLY */
 
     .events-list {
       margin: 6px 0 0;
@@ -396,39 +396,6 @@
     }
 
     .event-impact strong { color: #f9fafb; }
-
-    .table-wrapper {
-      margin-top: 8px;
-      border-radius: 14px;
-      overflow: hidden;
-      border: 1px solid rgba(31, 41, 55, 0.9);
-      background: rgba(15, 23, 42, 0.9);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-    }
-
-    thead { background: rgba(15, 23, 42, 0.98); }
-
-    th, td {
-      padding: 7px 9px;
-      text-align: left;
-      border-bottom: 1px solid rgba(31, 41, 55, 0.9);
-    }
-
-    th {
-      font-weight: 500;
-      color: var(--text-muted);
-    }
-
-    tbody tr:last-child td { border-bottom: none; }
-
-    .perf-positive { color: var(--success); }
-    .perf-negative { color: var(--danger); }
-    .perf-neutral { color: var(--text-muted); }
 
     .sentiment-grid {
       margin-top: 8px;
@@ -642,7 +609,7 @@
       font-size: 12px;
     }
 
-    /* NEWS IA NOUVELLE VERSION */
+    /* NEWS IA */
 
     .news-top-row {
       display: flex;
@@ -862,14 +829,14 @@
         </div>
       </section>
 
-      <!-- Colonne droite : sentiment grid uniquement -->
+      <!-- Colonne droite : seulement la grille de sentiment -->
       <section class="card">
         <div class="card-inner">
           <div class="card-header">
             <div>
-              <div class="card-title">Sentiment news &amp; thématiques</div>
+              <div class="card-title">Indices &amp; sentiment news</div>
               <div class="card-subtitle">
-                Grille hebdo du sentiment moyen des news par grande thématique.
+                Chaleur des news par thème au cours de la semaine.
               </div>
             </div>
           </div>
@@ -989,7 +956,7 @@
 
     <!-- Bas : Performance, News IA, Calendrier -->
     <div class="grid-bottom">
-      <!-- Performance indices (élargi côté backend) -->
+      <!-- Performance indices -->
       <section class="card">
         <div class="card-inner">
           <div class="card-header">
@@ -1005,7 +972,7 @@
             <table>
               <thead>
                 <tr>
-                  <th>Indice / Actif</th>
+                  <th>Indice</th>
                   <th>Jour</th>
                   <th>Semaine</th>
                   <th>Mois</th>
@@ -1080,8 +1047,7 @@
                 </div>
 
                 <p class="news-asset-helper">
-                  Indices suivis : ES (S&amp;P 500), NQ (Nasdaq 100), BTC (Bitcoin), CL (WTI), GC (Gold).  
-                  Tu peux en ajouter d'autres côté backend, ils s'afficheront ici automatiquement.
+                  Indices suivis : ES (S&amp;P 500), NQ (Nasdaq 100), BTC (Bitcoin), CL (WTI), GC (Gold).
                 </p>
               </div>
             </div>
@@ -1156,6 +1122,8 @@
 
   <script>
     const API_BASE = "";
+
+    /* ---------- UTILITAIRES GÉNÉRAUX ---------- */
 
     function sentimentClassFromValue(avg) {
       if (avg === null || avg === undefined || isNaN(avg)) return "sentiment-neutral";
@@ -1439,6 +1407,7 @@
         renderTopMoves(summary);
         renderSentimentGrid(raw);
 
+        // MAJ chip macro globale pour le dashboard
         updateMacroBiasChip();
       } catch (err) {
         console.error("Erreur refreshMacroWeek:", err);
@@ -1447,7 +1416,7 @@
       }
     }
 
-    /* ---------- MACRO BIAS POUR LA BANDEAU HAUT DASH ---------- */
+    /* ---------- MACRO BIAS POUR LE BANDEAU HAUT DASH ---------- */
 
     async function updateMacroBiasChip() {
       try {
@@ -1809,43 +1778,35 @@
       return "calendar-impact-low";
     }
 
+    async function fetchCalendarJson(pathOptions) {
+      for (const path of pathOptions) {
+        try {
+          const resp = await fetch(API_BASE + path);
+          if (resp.ok) {
+            return await resp.json();
+          }
+        } catch (e) {
+          console.warn("Erreur fetch calendrier sur", path, e);
+        }
+      }
+      return { events: [] };
+    }
+
     async function refreshCalendar() {
       try {
-        const [todayRes, nextRes] = await Promise.all([
-          fetch(API_BASE + "/api/calendar/today"),
-          fetch(API_BASE + "/api/calendar/next"),
+        const todayData = await fetchCalendarJson([
+          "/api/calendar/today",
+          "/calendar/today",
+        ]);
+        const nextData = await fetchCalendarJson([
+          "/api/calendar/next",
+          "/calendar/next",
         ]);
 
         const todayBody = document.getElementById("calendar-today-body");
         const nextBody = document.getElementById("calendar-next-body");
         todayBody.innerHTML = "";
         nextBody.innerHTML = "";
-
-        if (!todayRes.ok && !nextRes.ok) {
-          const tr1 = document.createElement("tr");
-          const td1 = document.createElement("td");
-          td1.colSpan = 4;
-          td1.style.fontSize = "11px";
-          td1.style.color = "#fca5a5";
-          td1.textContent =
-            "Calendrier économique indisponible (endpoint backend manquant ou erreur).";
-          tr1.appendChild(td1);
-          todayBody.appendChild(tr1);
-
-          const tr2 = document.createElement("tr");
-          const td2 = document.createElement("td");
-          td2.colSpan = 4;
-          td2.style.fontSize = "11px";
-          td2.style.color = "#fca5a5";
-          td2.textContent =
-            "Vérifie /api/calendar/today et /api/calendar/next sur ton backend.";
-          tr2.appendChild(td2);
-          nextBody.appendChild(tr2);
-          return;
-        }
-
-        const todayData = todayRes.ok ? await todayRes.json() : { events: [] };
-        const nextData = nextRes.ok ? await nextRes.json() : { events: [] };
 
         const todayEvents = todayData.events || [];
         if (todayEvents.length === 0) {
@@ -1854,7 +1815,8 @@
           td.colSpan = 4;
           td.style.fontSize = "11px";
           td.style.color = "#9ca3af";
-          td.textContent = "Aucune publication macro majeure aujourd'hui.";
+          td.textContent =
+            "Aucune publication macro majeure aujourd'hui ou calendrier non configuré.";
           tr.appendChild(td);
           todayBody.appendChild(tr);
         } else {
@@ -1886,7 +1848,7 @@
           td.style.fontSize = "11px";
           td.style.color = "#9ca3af";
           td.textContent =
-            "Aucune publication significative dans les prochains jours.";
+            "Aucune publication significative dans les prochains jours ou calendrier non configuré.";
           tr.appendChild(td);
           nextBody.appendChild(tr);
         } else {
