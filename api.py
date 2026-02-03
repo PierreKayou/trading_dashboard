@@ -39,12 +39,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# On branche le router macro sous /api
-app.include_router(macro_router, prefix="/api")
-# On branche le router news sous /api
-app.include_router(news_router, prefix="/api")
-
-app.include_router(calendar_router, prefix="/api")
+app.include_router(macro_router)
+app.include_router(news_router)
+app.include_router(calendar_router))
 
 # Mapping symbol ↔ yfinance
 SYMBOLS = {
