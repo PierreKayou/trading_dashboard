@@ -297,8 +297,8 @@
 
     .event-main {
       display: flex;
-      align-items: baseline;
-      gap: 6px;
+      flex-direction: column;
+      gap: 2px;
       font-size: 13px;
     }
 
@@ -318,6 +318,7 @@
 
     .event-meta {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       gap: 6px;
       font-size: 11px;
@@ -518,6 +519,32 @@
       font-size: 11px;
       color: var(--text-muted);
     }
+
+    /* Pills pour le biais macro d’un mouvement marquant */
+    .move-bias-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 10px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      background: rgba(15, 23, 42, 0.95);
+    }
+
+    .move-bias-bullish {
+      border-color: rgba(34, 197, 94, 0.6);
+      color: #bbf7d0;
+    }
+
+    .move-bias-bearish {
+      border-color: rgba(239, 68, 68, 0.6);
+      color: #fecaca;
+    }
+
+    .move-bias-neutral {
+      border-color: rgba(148, 163, 184, 0.7);
+      color: #e5e7eb;
+    }
   </style>
 </head>
 <body>
@@ -635,7 +662,7 @@
   </div>
 
   <script>
-    // Laisse vide si front et API sont sur le même host/port
+    // Laisse vide si front et API sont sur le même host/port (Render full stack)
     const API_BASE = "";
 
     function formatDate(d) {
@@ -682,7 +709,6 @@
         " → " +
         end.toLocaleDateString("fr-FR", opts);
 
-      // petit plus : affiche la semaine dans le sous-titre
       const lastUpdate = document.getElementById("macro-last-update");
       lastUpdate.textContent =
         "(Semaine " +
@@ -736,7 +762,8 @@
 
         if (ev.datetime) {
           const dt = document.createElement("span");
-          dt.textContent = formatDate(ev.datetime) + " • " + formatTime(ev.datetime);
+          dt.textContent =
+            formatDate(ev.datetime) + " • " + formatTime(ev.datetime);
           meta.appendChild(dt);
         }
 
@@ -819,7 +846,8 @@
         return;
       }
 
-      summary.top_moves.forEach((mv) => {
+      // on limite l’affichage à 4 mouvements pour garder la carte lisible
+      summary.top_moves.slice(0, 4).forEach((mv) => {
         const li = document.createElement("li");
         li.className = "event-item";
 
@@ -827,17 +855,25 @@
         top.className = "event-top";
 
         const desc = document.createElement("div");
-        desc.className = "event-title";
-        desc.textContent = mv.description || "Mouvement";
+        desc.className = "event-main";
+
+        const title = document.createElement("div");
+        title.className = "event-title";
+        title.textContent = mv.description || "Mouvement";
+
+        desc.appendChild(title);
 
         const meta = document.createElement("div");
         meta.className = "event-meta";
 
         const asset = document.createElement("span");
-        asset.textContent = mv.asset || "—";
+        const labelParts = [];
+        if (mv.asset) labelParts.push(mv.asset);
+        if (mv.name) labelParts.push(mv.name);
+        asset.textContent = labelParts.join(" — ") || "—";
 
         const perf = document.createElement("span");
-        const val = mv.move_pct || 0;
+        const val = typeof mv.move_pct === "number" ? mv.move_pct : 0;
         const sign = val > 0 ? "+" : "";
         perf.textContent = sign + val.toFixed(2) + " %";
         perf.style.color =
@@ -849,6 +885,26 @@
 
         meta.appendChild(asset);
         meta.appendChild(perf);
+
+        // petit pill de biais macro si présent (macro_bias ou bias)
+        const rawBias = (mv.macro_bias || mv.bias || "neutral").toLowerCase();
+        if (rawBias) {
+          const biasSpan = document.createElement("span");
+          biasSpan.className = "move-bias-pill";
+
+          if (rawBias === "bullish") {
+            biasSpan.classList.add("move-bias-bullish");
+            biasSpan.textContent = "Biais macro haussier";
+          } else if (rawBias === "bearish") {
+            biasSpan.classList.add("move-bias-bearish");
+            biasSpan.textContent = "Biais macro baissier";
+          } else {
+            biasSpan.classList.add("move-bias-neutral");
+            biasSpan.textContent = "Biais macro neutre";
+          }
+
+          meta.appendChild(biasSpan);
+        }
 
         top.appendChild(desc);
         top.appendChild(meta);
@@ -884,7 +940,7 @@
         tdName.textContent = a.name || "—";
 
         const tdRet = document.createElement("td");
-        const val = a.return_pct || 0;
+        const val = typeof a.return_pct === "number" ? a.return_pct : 0;
         const sign = val > 0 ? "+" : "";
         tdRet.textContent = sign + val.toFixed(2) + " %";
 
