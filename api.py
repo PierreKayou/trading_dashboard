@@ -41,7 +41,7 @@ app.add_middleware(
 
 app.include_router(macro_router)
 app.include_router(news_router)
-app.include_router(calendar_router))
+app.include_router(calendar_router)
 
 # Mapping symbol ↔ yfinance
 SYMBOLS = {
