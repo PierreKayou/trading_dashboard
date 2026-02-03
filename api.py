@@ -4,25 +4,20 @@
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
-from econ_calendar.router import router as calendar_router
 
 import yfinance as yf
 import json
 import time
 import numpy as np
 import os
-
 from datetime import datetime
 
 from openai import OpenAI
 
+# Routers
 from macro.router import router as macro_router
 from news.router import router as news_router
-from econ_calendar.router import router as calendar_router
-
-app.include_router(macro_router)
-app.include_router(news_router)
-app.include_router(calendar_router)
+from econ_calendar.router import router as calendar_router   # une seule fois
 
 
 ###############################
@@ -42,9 +37,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Enregistrement des routers (APRÈS la création de app)
 app.include_router(macro_router)
 app.include_router(news_router)
 app.include_router(calendar_router)
+
 
 # Mapping symbol ↔ yfinance
 SYMBOLS = {
@@ -54,6 +51,7 @@ SYMBOLS = {
     "CL": {"label": "Crude Oil (WTI)", "yf": "CL=F"},
     "GC": {"label": "Gold", "yf": "GC=F"},
 }
+
 
 ###############################
 # OPENAI CLIENT + ASSISTANT
