@@ -7,12 +7,19 @@ import time
 import datetime as dt
 import requests
 
+
 router = APIRouter(prefix="/api/calendar", tags=["calendar"])
+
+FMP_API_KEY = os.getenv("FMP_API_KEY")
 
 @router.get("/summary")
 async def get_calendar_summary():
+    return {
+        "today": [],
+        "next_days": [],
+        "source": "placeholder"
+    }
 
-FMP_API_KEY = os.getenv("FMP_API_KEY")  # à mettre dans Render si tu veux du vrai flux
 
 
 def _fetch_from_fmp(start: dt.date, end: dt.date):
