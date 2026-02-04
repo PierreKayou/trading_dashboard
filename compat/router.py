@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from datetime import date, timedelta
 
 router = APIRouter()
 
@@ -27,11 +28,12 @@ def latest_price(symbol: str):
 
 @router.get("/perf/summary")
 def perf_summary():
-    """
-    Ancien endpoint dashboard → mapping macro/indices.
-    """
     from macro.router import macro_indices
-    return macro_indices()
+    data = macro_indices()
+    return {
+        "indices": data
+    }
+
 
 
 # =====================================================
@@ -48,13 +50,21 @@ def macro_bias():
         "comment": snap["comment"],
     }
 
-
 @router.get("/api/macro/week/summary")
 def macro_week_summary():
+    today = date.today()
+    monday = today - timedelta(days=today.weekday())
+    friday = monday + timedelta(days=4)
+
     return {
         "status": "ok",
-        "summary": "Synthèse hebdomadaire non encore activée.",
+        "week_start": monday.isoformat(),
+        "week_end": friday.isoformat(),
+        "summary": "Aucun événement macro majeur identifié pour la semaine.",
+        "key_events": [],
+        "notable_moves": [],
     }
+
 
 
 @router.get("/api/macro/week/raw")
