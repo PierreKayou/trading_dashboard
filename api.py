@@ -86,6 +86,7 @@ app.include_router(news_router, prefix="/api", tags=["news"])
 # Module calendrier économique (source dédiée)
 app.include_router(econ_router, prefix="/api", tags=["calendar"])
 
+app.include_router(compat_router)
 
 # ---------------------------------------------------------
 # Endpoint de santé (Render healthcheck)
@@ -98,4 +99,4 @@ async def health():
     """
     return {"status": "ok"}
 
-app.include_router(compat_router)
+
