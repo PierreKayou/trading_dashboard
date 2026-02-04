@@ -62,23 +62,27 @@ def macro_week_summary():
     return {
         "status": "ok",
 
-        # formats possibles attendus par le front
+        # STRUCTURE ATTENDUE PAR LE FRONT
+        "week": {
+            "start": monday.isoformat(),
+            "end": friday.isoformat(),
+            "label": f"Semaine du {monday.strftime('%d/%m')} au {friday.strftime('%d/%m')}",
+        },
+
+        # fallback / compat
         "week_start": monday.isoformat(),
         "week_end": friday.isoformat(),
-
         "start_date": monday.isoformat(),
         "end_date": friday.isoformat(),
-
         "from": monday.isoformat(),
         "to": friday.isoformat(),
-
-        # version déjà lisible si le front affiche direct
         "period": f"Semaine du {monday.strftime('%d/%m')} au {friday.strftime('%d/%m')}",
 
         "summary": "Aucun événement macro majeur identifié pour la semaine.",
         "key_events": [],
         "notable_moves": [],
     }
+
 
 
 
