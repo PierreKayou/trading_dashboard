@@ -11,13 +11,18 @@ import yfinance as yf
 import httpx
 from openai import OpenAI
 
-router = APIRouter(prefix="/api/news", tags=["news"])
+# IMPORTANT : plus de "/api" ici, on laisse juste "/news"
+router = APIRouter(prefix="/news", tags=["news"])
 
 # ------------------------------------------------------------------
 # CONFIG : NewsAPI (https://newsapi.org) pour compléter yfinance
 # ------------------------------------------------------------------
 NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 NEWS_API_URL = "https://newsapi.org/v2/top-headlines"
+
+client = OpenAI()
+
+# ... (le reste du fichier inchangé)
 
 client = OpenAI()
 
