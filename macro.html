@@ -2,1089 +2,202 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>STARK TRADING – MACRO</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Macro Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <style>
-    :root {
-      --bg: #050816;
-      --bg-alt: #0b1020;
-      --card: #020617;
-      --card-alt: #111827;
-      --accent: #f97316;
-      --accent-soft: rgba(249, 115, 22, 0.15);
-      --text-main: #f9fafb;
-      --text-muted: #9ca3af;
-      --danger: #ef4444;
-      --success: #22c55e;
-      --border: #1f2937;
-      --card-radius: 18px;
-      --transition-fast: 0.15s ease-out;
-      --shadow-soft: 0 18px 35px rgba(0, 0, 0, 0.55);
-    }
-
-    * {
-      box-sizing: border-box;
+    body {
       margin: 0;
-      padding: 0;
+      font-family: Inter, Arial, sans-serif;
+      background: #0e1117;
+      color: #e6e6e6;
     }
 
-    html,
-    body {
-      min-height: 100%;
+    h1, h2 {
+      margin: 0 0 10px 0;
     }
 
-    body {
-      background: radial-gradient(circle at top, #1f2937 0, #020617 50%, #000 100%);
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
-        "Segoe UI", sans-serif;
-      color: var(--text-main);
-      display: flex;
-      flex-direction: column;
-    }
-
-    .page {
+    .container {
       max-width: 1200px;
-      margin: 0 auto;
-      padding: 18px 16px 32px;
-      width: 100%;
-    }
-
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .brand-logo {
-      width: 34px;
-      height: 34px;
-      border-radius: 12px;
-      background: radial-gradient(circle at 30% 0, #f97316, #7c2d12 55%, #020617);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fef3c7;
-      font-size: 18px;
-      font-weight: 700;
-      box-shadow: 0 12px 25px rgba(248, 113, 22, 0.5);
-    }
-
-    .brand-text {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .brand-title {
-      font-size: 18px;
-      font-weight: 650;
-      letter-spacing: 0.04em;
-    }
-
-    .brand-subtitle {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-
-    .nav-links {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
-
-    .nav-link {
-      padding: 6px 12px;
-      border-radius: 999px;
-      font-size: 12px;
-      text-decoration: none;
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      background: rgba(15, 23, 42, 0.9);
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-    }
-
-    .nav-link span {
-      font-size: 14px;
-    }
-
-    .nav-link--primary {
-      border-color: rgba(249, 115, 22, 0.7);
-      background: radial-gradient(circle at 0 0, rgba(249, 115, 22, 0.18), #020617);
-      color: #fed7aa;
-    }
-
-    .nav-link:hover {
-      border-color: var(--accent);
-      color: #e5e7eb;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.1fr);
-      gap: 18px;
-      margin-top: 10px;
-    }
-
-    @media (max-width: 900px) {
-      .grid {
-        grid-template-columns: minmax(0, 1fr);
-      }
+      margin: auto;
+      padding: 20px;
     }
 
     .card {
-      background: radial-gradient(circle at top left, rgba(148, 163, 184, 0.14), #020617);
-      border-radius: 22px;
-      padding: 18px 16px;
-      border: 1px solid rgba(31, 41, 55, 0.9);
-      box-shadow: var(--shadow-soft);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .card::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(
-        circle at -10% -10%,
-        rgba(249, 115, 22, 0.18),
-        transparent 55%
-      );
-      opacity: 0.9;
-      pointer-events: none;
-    }
-
-    .card-inner {
-      position: relative;
-      z-index: 1;
-    }
-
-    .card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-
-    .card-title {
-      font-size: 15px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .card-title-badge {
-      font-size: 11px;
-      padding: 3px 8px;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid rgba(55, 65, 81, 0.9);
-      color: var(--text-muted);
-    }
-
-    .card-subtitle {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 5px 10px;
-      border-radius: 999px;
-      font-size: 11px;
-      border: 1px solid rgba(75, 85, 99, 0.9);
-      background: rgba(15, 23, 42, 0.95);
-    }
-
-    .pill-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 999px;
-      background: var(--text-muted);
-    }
-
-    .pill-positive .pill-dot {
-      background: var(--success);
-    }
-
-    .pill-negative .pill-dot {
-      background: var(--danger);
-    }
-
-    .pill-neutral .pill-dot {
-      background: var(--text-muted);
-    }
-
-    .pill-positive {
-      border-color: rgba(34, 197, 94, 0.5);
-      background: rgba(22, 163, 74, 0.18);
-      color: #bbf7d0;
-    }
-
-    .pill-negative {
-      border-color: rgba(239, 68, 68, 0.55);
-      background: rgba(127, 29, 29, 0.28);
-      color: #fecaca;
-    }
-
-    .pill-neutral {
-      border-color: rgba(55, 65, 81, 0.9);
-      background: rgba(15, 23, 42, 0.95);
-      color: var(--text-muted);
-    }
-
-    .summary-text {
-      font-size: 13px;
-      line-height: 1.5;
-      color: #e5e7eb;
-      margin-top: 8px;
-    }
-
-    .summary-text strong {
-      color: #f9fafb;
-    }
-
-    .section-label {
-      margin-top: 12px;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.16em;
-      color: var(--text-muted);
-    }
-
-    .events-list {
-      margin: 6px 0 0;
-      padding: 0;
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .event-item {
-      display: flex;
-      flex-direction: column;
-      padding: 8px 10px;
-      border-radius: 12px;
-      background: rgba(15, 23, 42, 0.94);
-      border: 1px solid rgba(31, 41, 55, 0.96);
-    }
-
-    .event-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 6px;
-      margin-bottom: 4px;
-    }
-
-    .event-main {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      font-size: 13px;
-    }
-
-    .event-country {
-      font-size: 11px;
-      padding: 2px 6px;
-      border-radius: 999px;
-      border: 1px solid rgba(55, 65, 81, 0.9);
-      color: var(--text-muted);
-    }
-
-    .event-title {
-      font-size: 13px;
-      font-weight: 500;
-      color: #e5e7eb;
-    }
-
-    .event-meta {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 6px;
-      font-size: 11px;
-      color: var(--text-muted);
+      background: #161b22;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.05);
     }
 
     .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 2px 7px;
-      border-radius: 999px;
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      border: 1px solid rgba(75, 85, 99, 0.9);
-      background: rgba(15, 23, 42, 0.95);
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 14px;
     }
 
-    .badge-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 999px;
-      background: var(--text-muted);
-    }
-
-    .badge-high .badge-dot {
-      background: #f97316;
-    }
-
-    .badge-high {
-      border-color: rgba(249, 115, 22, 0.7);
-      color: #fed7aa;
-    }
-
-    .badge-medium .badge-dot {
-      background: #eab308;
-    }
-
-    .badge-medium {
-      border-color: rgba(234, 179, 8, 0.6);
-      color: #fef9c3;
-    }
-
-    .badge-low .badge-dot {
-      background: #22c55e;
-    }
-
-    .badge-low {
-      border-color: rgba(34, 197, 94, 0.5);
-      color: #bbf7d0;
-    }
-
-    .event-impact {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .event-impact strong {
-      color: #f9fafb;
-    }
-
-    .table-wrapper {
-      margin-top: 8px;
-      border-radius: 14px;
-      overflow: hidden;
-      border: 1px solid rgba(31, 41, 55, 0.9);
-      background: rgba(15, 23, 42, 0.9);
-    }
+    .risk-on { background: #1f8f5f; }
+    .risk-off { background: #b33a3a; }
+    .neutral { background: #777; }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 12px;
+      margin-top: 10px;
     }
 
-    thead {
-      background: rgba(15, 23, 42, 0.98);
-    }
-
-    th,
-    td {
-      padding: 7px 9px;
+    th, td {
+      padding: 8px;
       text-align: left;
-      border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+      border-bottom: 1px solid #222;
+      font-size: 14px;
     }
 
     th {
-      font-weight: 500;
-      color: var(--text-muted);
+      color: #aaa;
+      font-weight: 600;
     }
 
-    tbody tr:last-child td {
-      border-bottom: none;
-    }
+    .pos { color: #3fb950; }
+    .neg { color: #f85149; }
+    .neu { color: #8b949e; }
 
-    .perf-positive {
-      color: var(--success);
-    }
-
-    .perf-negative {
-      color: var(--danger);
-    }
-
-    .perf-neutral {
-      color: var(--text-muted);
-    }
-
-    .sentiment-grid {
-      margin-top: 8px;
-      border-radius: 14px;
-      border: 1px solid rgba(31, 41, 55, 0.9);
-      overflow: hidden;
-      background: rgba(15, 23, 42, 0.9);
-    }
-
-    .sentiment-header,
-    .sentiment-row {
-      display: grid;
-      grid-template-columns: 70px repeat(5, minmax(0, 1fr));
-      font-size: 11px;
-    }
-
-    .sentiment-header {
-      background: rgba(15, 23, 42, 0.98);
-      color: var(--text-muted);
-      font-weight: 500;
-    }
-
-    .sentiment-cell,
-    .sentiment-head-cell {
-      padding: 4px 6px;
-      border-bottom: 1px solid rgba(31, 41, 55, 0.9);
-      border-right: 1px solid rgba(31, 41, 55, 0.9);
-      min-height: 20px;
+    .calendar-item {
       display: flex;
-      align-items: center;
-      justify-content: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #222;
+      font-size: 14px;
+    }
+
+    .impact-high { color: #f85149; font-weight: bold; }
+    .impact-medium { color: #d29922; }
+    .impact-low { color: #3fb950; }
+
+    footer {
       text-align: center;
-    }
-
-    .sentiment-row:last-child .sentiment-cell {
-      border-bottom: none;
-    }
-
-    .sentiment-head-cell:last-child,
-    .sentiment-row .sentiment-cell:last-child {
-      border-right: none;
-    }
-
-    .sentiment-day {
-      justify-content: flex-start;
-      padding-left: 8px;
-      color: var(--text-muted);
-    }
-
-    .sentiment-pill {
-      padding: 2px 5px;
-      border-radius: 999px;
-      font-size: 10px;
-      min-width: 26px;
-      text-align: center;
-    }
-
-    .sentiment-strong-neg {
-      background: rgba(127, 29, 29, 0.6);
-      color: #fecaca;
-    }
-
-    .sentiment-neg {
-      background: rgba(127, 29, 29, 0.35);
-      color: #fecaca;
-    }
-
-    .sentiment-neutral {
-      background: rgba(31, 41, 55, 0.9);
-      color: var(--text-muted);
-    }
-
-    .sentiment-pos {
-      background: rgba(22, 163, 74, 0.35);
-      color: #bbf7d0;
-    }
-
-    .sentiment-strong-pos {
-      background: rgba(22, 163, 74, 0.7);
-      color: #ecfdf5;
-    }
-
-    .tagline {
-      margin-top: 6px;
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .small-note {
-      margin-top: 6px;
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    /* Pills pour le biais macro d’un mouvement marquant */
-    .move-bias-pill {
-      display: inline-flex;
-      align-items: center;
-      padding: 2px 6px;
-      border-radius: 999px;
-      font-size: 10px;
-      border: 1px solid rgba(55, 65, 81, 0.9);
-      background: rgba(15, 23, 42, 0.95);
-    }
-
-    .move-bias-bullish {
-      border-color: rgba(34, 197, 94, 0.6);
-      color: #bbf7d0;
-    }
-
-    .move-bias-bearish {
-      border-color: rgba(239, 68, 68, 0.6);
-      color: #fecaca;
-    }
-
-    .move-bias-neutral {
-      border-color: rgba(148, 163, 184, 0.7);
-      color: #e5e7eb;
+      color: #666;
+      font-size: 12px;
+      margin-top: 40px;
     }
   </style>
 </head>
+
 <body>
-  <div class="page">
-    <header>
-      <div class="brand">
-        <div class="brand-logo">Δ</div>
-        <div class="brand-text">
-          <div class="brand-title">STARK TRADING – MACRO</div>
-          <div class="brand-subtitle">
-            Résumé hebdo & contexte marché
-            <span id="macro-last-update" style="margin-left:6px; color:#6b7280; font-size:11px;"></span>
-          </div>
-        </div>
+  <div class="container">
+    <h1>🌍 Macro Dashboard</h1>
+
+    <!-- SNAPSHOT -->
+    <div class="card">
+      <h2>Contexte global</h2>
+      <div id="snapshot">
+        Chargement…
       </div>
-      <div class="nav-links">
-        <a href="index.html" class="nav-link">
-          <span>⬅</span> Retour au dashboard principal
-        </a>
-        <button class="nav-link nav-link--primary" type="button" onclick="refreshMacro()">
-          🔄 Rafraîchir la vue
-        </button>
-      </div>
-    </header>
-
-    <div class="grid">
-      <!-- Colonne gauche : résumé & events -->
-      <section class="card">
-        <div class="card-inner">
-          <div class="card-header">
-            <div>
-              <div class="card-title">
-                Vue hebdomadaire
-                <span class="card-title-badge" id="week-range">Semaine en cours</span>
-              </div>
-              <div class="card-subtitle">
-                Sentiment global & événements macro qui ont drivé le marché.
-              </div>
-            </div>
-            <div id="risk-pill" class="pill pill-neutral">
-              <span class="pill-dot"></span>
-              <span id="risk-label">Calcul en cours…</span>
-            </div>
-          </div>
-
-          <div id="risk-comment" class="summary-text">
-            Récupération de la vue macro en cours…
-          </div>
-
-          <div class="section-label">ÉVÉNEMENTS CLÉS DE LA SEMAINE</div>
-          <ul id="events-list" class="events-list">
-            <!-- Injecté par JS -->
-          </ul>
-
-          <div class="section-label">MOUVEMENTS MARQUANTS</div>
-          <ul id="moves-list" class="events-list">
-            <!-- Injecté par JS -->
-          </ul>
-
-          <p class="small-note">
-            Synthèse hebdomadaire générée pour ton suivi des marchés.
-          </p>
-        </div>
-      </section>
-
-      <!-- Colonne droite : perfs & grille sentiment -->
-      <section class="card">
-        <div class="card-inner">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Indices & sentiment news</div>
-              <div class="card-subtitle">
-                Performance hebdo des actifs clés & chaleur des news par thème.
-              </div>
-            </div>
-          </div>
-
-          <div class="section-label">PERFORMANCE HEBDO (INDICES SUIVIS)</div>
-          <div class="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Symbole</th>
-                  <th>Nom</th>
-                  <th>Perf semaine</th>
-                </tr>
-              </thead>
-              <tbody id="perf-body">
-                <!-- Injecté par JS -->
-              </tbody>
-            </table>
-          </div>
-
-          <div class="section-label">SENTIMENT NEWS PAR JOUR & THÉMATIQUE</div>
-          <div class="sentiment-grid">
-            <div class="sentiment-header">
-              <div class="sentiment-head-cell sentiment-day">Jour</div>
-              <div class="sentiment-head-cell">Macro US</div>
-              <div class="sentiment-head-cell">Macro Europe</div>
-              <div class="sentiment-head-cell">Entreprises</div>
-              <div class="sentiment-head-cell">Géopolitique</div>
-              <div class="sentiment-head-cell">Tech</div>
-            </div>
-            <div id="sentiment-body">
-              <!-- Lignes injectées par JS -->
-            </div>
-          </div>
-
-          <p class="tagline">
-            La grille reflète le sentiment moyen des news captées par thématique, sur la période de la semaine.
-          </p>
-        </div>
-      </section>
     </div>
+
+    <!-- INDICES -->
+    <div class="card">
+      <h2>Indices & actifs majeurs</h2>
+      <table id="indices-table">
+        <thead>
+          <tr>
+            <th>Actif</th>
+            <th>Daily</th>
+            <th>Weekly</th>
+            <th>Monthly</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- CALENDAR -->
+    <div class="card">
+      <h2>📅 Calendrier économique</h2>
+      <div id="calendar">
+        Chargement…
+      </div>
+    </div>
+
+    <footer>
+      Stark Macro Engine · Render · v1.0
+    </footer>
   </div>
 
   <script>
-    // Laisse vide si front et API sont sur le même host/port (Render full stack)
-    const API_BASE = "";
+    const API_BASE = "/api";
 
-    function formatDate(d) {
-      const date = new Date(d);
-      return date.toLocaleDateString("fr-FR", {
-        weekday: "short",
-        day: "2-digit",
-        month: "2-digit",
-      });
+    function pctClass(v) {
+      if (v > 0) return "pos";
+      if (v < 0) return "neg";
+      return "neu";
     }
 
-    function formatTime(d) {
-      const date = new Date(d);
-      return date.toLocaleTimeString("fr-FR", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    }
+    // -------------------------
+    // SNAPSHOT
+    // -------------------------
+    fetch(`${API_BASE}/macro/snapshot`)
+      .then(r => r.json())
+      .then(data => {
+        const riskClass =
+          data.risk_mode === "risk_on" ? "risk-on" :
+          data.risk_mode === "risk_off" ? "risk-off" : "neutral";
 
-    function setRiskPill(summary) {
-      const pill = document.getElementById("risk-pill");
-      const label = document.getElementById("risk-label");
-      pill.classList.remove("pill-positive", "pill-negative", "pill-neutral");
-
-      if (summary.risk_on === true) {
-        pill.classList.add("pill-positive");
-        label.textContent = "Biais risk-on";
-      } else if (summary.risk_on === false) {
-        pill.classList.add("pill-negative");
-        label.textContent = "Biais risk-off";
-      } else {
-        pill.classList.add("pill-neutral");
-        label.textContent = "Lecture neutre";
-      }
-    }
-
-    function setWeekRange(summary) {
-      const span = document.getElementById("week-range");
-      const start = new Date(summary.start);
-      const end = new Date(summary.end);
-      const opts = { day: "2-digit", month: "2-digit" };
-      span.textContent =
-        start.toLocaleDateString("fr-FR", opts) +
-        " → " +
-        end.toLocaleDateString("fr-FR", opts);
-
-      const lastUpdate = document.getElementById("macro-last-update");
-      lastUpdate.textContent =
-        "(Semaine " +
-        start.toLocaleDateString("fr-FR", opts) +
-        " → " +
-        end.toLocaleDateString("fr-FR", opts) +
-        ")";
-    }
-
-    function renderRiskComment(summary) {
-      const el = document.getElementById("risk-comment");
-      el.textContent = summary.risk_comment || "Pas de commentaire disponible.";
-    }
-
-    function renderTopEvents(summary) {
-      const list = document.getElementById("events-list");
-      list.innerHTML = "";
-
-      if (!summary.top_events || summary.top_events.length === 0) {
-        const li = document.createElement("li");
-        li.textContent = "Aucun événement majeur identifié pour cette semaine.";
-        li.style.fontSize = "12px";
-        li.style.color = "#9ca3af";
-        list.appendChild(li);
-        return;
-      }
-
-      summary.top_events.forEach((ev) => {
-        const li = document.createElement("li");
-        li.className = "event-item";
-
-        const top = document.createElement("div");
-        top.className = "event-top";
-
-        const main = document.createElement("div");
-        main.className = "event-main";
-
-        const country = document.createElement("span");
-        country.className = "event-country";
-        country.textContent = ev.country || "—";
-
-        const title = document.createElement("span");
-        title.className = "event-title";
-        title.textContent = ev.title || "Événement";
-
-        main.appendChild(country);
-        main.appendChild(title);
-
-        const meta = document.createElement("div");
-        meta.className = "event-meta";
-
-        if (ev.datetime) {
-          const dt = document.createElement("span");
-          dt.textContent =
-            formatDate(ev.datetime) + " • " + formatTime(ev.datetime);
-          meta.appendChild(dt);
-        }
-
-        const badge = document.createElement("span");
-        badge.className = "badge";
-        badge.classList.add(
-          ev.importance === "high"
-            ? "badge-high"
-            : ev.importance === "medium"
-            ? "badge-medium"
-            : "badge-low"
-        );
-
-        const dot = document.createElement("span");
-        dot.className = "badge-dot";
-        badge.appendChild(dot);
-
-        const txt = document.createElement("span");
-        txt.textContent =
-          ev.importance === "high"
-            ? "MAJEUR"
-            : ev.importance === "medium"
-            ? "SIGNIFICATIF"
-            : "SECONDAIRE";
-        badge.appendChild(txt);
-
-        meta.appendChild(badge);
-
-        top.appendChild(main);
-        top.appendChild(meta);
-
-        const impact = document.createElement("div");
-        impact.className = "event-impact";
-        let text = "";
-        if (ev.actual !== null && ev.actual !== undefined && !isNaN(ev.actual)) {
-          text += `Actual: ${ev.actual}`;
-          if (ev.unit) text += ` ${ev.unit}`;
-        }
-        if (
-          ev.consensus !== null &&
-          ev.consensus !== undefined &&
-          !isNaN(ev.consensus)
-        ) {
-          if (text) text += " • ";
-          text += `Consensus: ${ev.consensus}`;
-          if (ev.unit) text += ` ${ev.unit}`;
-        }
-        if (
-          ev.previous !== null &&
-          ev.previous !== undefined &&
-          !isNaN(ev.previous)
-        ) {
-          if (text) text += " • ";
-          text += `Précédent: ${ev.previous}`;
-          if (ev.unit) text += ` ${ev.unit}`;
-        }
-
-        if (text) {
-          impact.innerHTML = `<strong>Données :</strong> ${text}`;
-        } else {
-          impact.textContent = "Données détaillées non disponibles.";
-        }
-
-        li.appendChild(top);
-        li.appendChild(impact);
-        list.appendChild(li);
-      });
-    }
-
-    function renderTopMoves(summary) {
-      const list = document.getElementById("moves-list");
-      list.innerHTML = "";
-
-      if (!summary.top_moves || summary.top_moves.length === 0) {
-        const li = document.createElement("li");
-        li.textContent = "Aucun mouvement marquant remonté pour cette semaine.";
-        li.style.fontSize = "12px";
-        li.style.color = "#9ca3af";
-        list.appendChild(li);
-        return;
-      }
-
-      // on limite l’affichage à 4 mouvements pour garder la carte lisible
-      summary.top_moves.slice(0, 4).forEach((mv) => {
-        const li = document.createElement("li");
-        li.className = "event-item";
-
-        const top = document.createElement("div");
-        top.className = "event-top";
-
-        const desc = document.createElement("div");
-        desc.className = "event-main";
-
-        const title = document.createElement("div");
-        title.className = "event-title";
-        title.textContent = mv.description || "Mouvement";
-
-        desc.appendChild(title);
-
-        const meta = document.createElement("div");
-        meta.className = "event-meta";
-
-        const asset = document.createElement("span");
-        const labelParts = [];
-        if (mv.asset) labelParts.push(mv.asset);
-        if (mv.name) labelParts.push(mv.name);
-        asset.textContent = labelParts.join(" — ") || "—";
-
-        const perf = document.createElement("span");
-        const val = typeof mv.move_pct === "number" ? mv.move_pct : 0;
-        const sign = val > 0 ? "+" : "";
-        perf.textContent = sign + val.toFixed(2) + " %";
-        perf.style.color =
-          val > 0
-            ? "var(--success)"
-            : val < 0
-            ? "var(--danger)"
-            : "var(--text-muted)";
-
-        meta.appendChild(asset);
-        meta.appendChild(perf);
-
-        // petit pill de biais macro si présent (macro_bias ou bias)
-        const rawBias = (mv.macro_bias || mv.bias || "neutral").toLowerCase();
-        if (rawBias) {
-          const biasSpan = document.createElement("span");
-          biasSpan.className = "move-bias-pill";
-
-          if (rawBias === "bullish") {
-            biasSpan.classList.add("move-bias-bullish");
-            biasSpan.textContent = "Biais macro haussier";
-          } else if (rawBias === "bearish") {
-            biasSpan.classList.add("move-bias-bearish");
-            biasSpan.textContent = "Biais macro baissier";
-          } else {
-            biasSpan.classList.add("move-bias-neutral");
-            biasSpan.textContent = "Biais macro neutre";
-          }
-
-          meta.appendChild(biasSpan);
-        }
-
-        top.appendChild(desc);
-        top.appendChild(meta);
-
-        li.appendChild(top);
-        list.appendChild(li);
-      });
-    }
-
-    function renderPerfTable(data) {
-      const body = document.getElementById("perf-body");
-      body.innerHTML = "";
-
-      if (!data.asset_performances || data.asset_performances.length === 0) {
-        const tr = document.createElement("tr");
-        const td = document.createElement("td");
-        td.colSpan = 3;
-        td.textContent = "Pas de données de performance disponibles.";
-        td.style.fontSize = "12px";
-        td.style.color = "#9ca3af";
-        tr.appendChild(td);
-        body.appendChild(tr);
-        return;
-      }
-
-      data.asset_performances.forEach((a) => {
-        const tr = document.createElement("tr");
-
-        const tdSym = document.createElement("td");
-        tdSym.textContent = a.symbol || "—";
-
-        const tdName = document.createElement("td");
-        tdName.textContent = a.name || "—";
-
-        const tdRet = document.createElement("td");
-        const val = typeof a.return_pct === "number" ? a.return_pct : 0;
-        const sign = val > 0 ? "+" : "";
-        tdRet.textContent = sign + val.toFixed(2) + " %";
-
-        tdRet.className =
-          val > 0
-            ? "perf-positive"
-            : val < 0
-            ? "perf-negative"
-            : "perf-neutral";
-
-        tr.appendChild(tdSym);
-        tr.appendChild(tdName);
-        tr.appendChild(tdRet);
-        body.appendChild(tr);
-      });
-    }
-
-    function sentimentClassFromValue(avg) {
-      if (avg === null || avg === undefined || isNaN(avg)) return "sentiment-neutral";
-      if (avg <= -0.5) return "sentiment-strong-neg";
-      if (avg < -0.1) return "sentiment-neg";
-      if (avg > -0.1 && avg < 0.1) return "sentiment-neutral";
-      if (avg < 0.5) return "sentiment-pos";
-      return "sentiment-strong-pos";
-    }
-
-    function renderSentimentGrid(data) {
-      const container = document.getElementById("sentiment-body");
-      container.innerHTML = "";
-
-      if (!data.sentiment_grid || data.sentiment_grid.length === 0) {
-        const row = document.createElement("div");
-        row.className = "sentiment-row";
-        const cell = document.createElement("div");
-        cell.className = "sentiment-cell sentiment-day";
-        cell.textContent = "Pas de données de sentiment.";
-        cell.style.gridColumn = "1 / -1";
-        row.appendChild(cell);
-        container.appendChild(row);
-        return;
-      }
-
-      const bucketsOrder = [
-        "macro_us",
-        "macro_europe",
-        "companies",
-        "geopolitics",
-        "tech",
-      ];
-
-      const groupedByDay = {};
-      data.sentiment_grid.forEach((cell) => {
-        const d = cell.date;
-        if (!groupedByDay[d]) groupedByDay[d] = {};
-        groupedByDay[d][cell.bucket] = cell;
+        document.getElementById("snapshot").innerHTML = `
+          <span class="badge ${riskClass}">
+            ${data.risk_mode.replace("_", " ").toUpperCase()}
+          </span>
+          <p style="margin-top:10px">${data.comment}</p>
+          <small>Volatilité : ${data.volatility}</small>
+        `;
       });
 
-      const days = Object.keys(groupedByDay).sort();
-      const dayLabels = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
+    // -------------------------
+    // INDICES
+    // -------------------------
+    fetch(`${API_BASE}/macro/indices`)
+      .then(r => r.json())
+      .then(rows => {
+        const tbody = document.querySelector("#indices-table tbody");
+        tbody.innerHTML = "";
 
-      days.forEach((d) => {
-        const row = document.createElement("div");
-        row.className = "sentiment-row";
-
-        const dayCell = document.createElement("div");
-        dayCell.className = "sentiment-cell sentiment-day";
-
-        const dateObj = new Date(d);
-        const dow = dayLabels[dateObj.getDay()] || "";
-        dayCell.textContent =
-          dow +
-          " " +
-          dateObj.toLocaleDateString("fr-FR", {
-            day: "2-digit",
-            month: "2-digit",
-          });
-
-        row.appendChild(dayCell);
-
-        bucketsOrder.forEach((bucket) => {
-          const info = groupedByDay[d][bucket];
-          const cellDiv = document.createElement("div");
-          cellDiv.className = "sentiment-cell";
-
-          if (!info) {
-            cellDiv.textContent = "—";
-            cellDiv.classList.add("sentiment-neutral");
-          } else {
-            const avg = info.sentiment;
-            const count = info.news_count || 0;
-            const pill = document.createElement("div");
-            pill.className =
-              "sentiment-pill " + sentimentClassFromValue(avg);
-
-            if (count === 0) {
-              pill.textContent = "—";
-            } else if (avg === null || avg === undefined || isNaN(avg)) {
-              pill.textContent = count;
-            } else {
-              pill.textContent = (avg > 0 ? "+" : "") + avg.toFixed(2);
-            }
-
-            cellDiv.appendChild(pill);
-          }
-
-          row.appendChild(cellDiv);
+        rows.forEach(r => {
+          tbody.innerHTML += `
+            <tr>
+              <td>${r.name}</td>
+              <td class="${pctClass(r.daily)}">${r.daily}%</td>
+              <td class="${pctClass(r.weekly)}">${r.weekly}%</td>
+              <td class="${pctClass(r.monthly)}">${r.monthly}%</td>
+            </tr>
+          `;
         });
-
-        container.appendChild(row);
       });
-    }
 
-    async function refreshMacro() {
-      try {
-        const [summaryRes, rawRes] = await Promise.all([
-          fetch(API_BASE + "/api/macro/week/summary"),
-          fetch(API_BASE + "/api/macro/week/raw"),
-        ]);
+    // -------------------------
+    // CALENDAR
+    // -------------------------
+    fetch(`${API_BASE}/macro/calendar?days_ahead=2`)
+      .then(r => r.json())
+      .then(events => {
+        const container = document.getElementById("calendar");
+        container.innerHTML = "";
 
-        if (!summaryRes.ok || !rawRes.ok) {
-          throw new Error("Erreur HTTP sur les endpoints macro");
-        }
-
-        const summary = await summaryRes.json();
-        const raw = await rawRes.json();
-
-        setWeekRange(summary);
-        setRiskPill(summary);
-        renderRiskComment(summary);
-        renderTopEvents(summary);
-        renderTopMoves(summary);
-        renderPerfTable(raw);
-        renderSentimentGrid(raw);
-      } catch (err) {
-        console.error("Erreur refreshMacro:", err);
-        const el = document.getElementById("risk-comment");
-        el.textContent =
-          "Vue macro indisponible pour le moment.";
-      }
-    }
-
-    window.addEventListener("DOMContentLoaded", () => {
-      refreshMacro();
-    });
+        events.forEach(e => {
+          container.innerHTML += `
+            <div class="calendar-item">
+              <div>
+                ${e.date} ${e.time} · ${e.event}
+              </div>
+              <div class="impact-${e.impact}">
+                ${e.impact.toUpperCase()}
+              </div>
+            </div>
+          `;
+        });
+      });
   </script>
 </body>
 </html>
