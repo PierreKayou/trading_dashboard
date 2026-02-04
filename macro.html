@@ -2,133 +2,408 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Macro Dashboard</title>
+  <title>Stark Trading – Macro Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
+    :root {
+      --bg: #050814;
+      --bg-card: #0d1220;
+      --bg-card-soft: #111829;
+      --border-soft: rgba(255,255,255,0.04);
+      --text: #f5f5f7;
+      --muted: #8b8fa3;
+      --accent: #f97316;
+      --pos: #22c55e;
+      --neg: #ef4444;
+      --neu: #e5e7eb;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
-      font-family: Inter, Arial, sans-serif;
-      background: #0e1117;
-      color: #e6e6e6;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", Arial, sans-serif;
+      background: radial-gradient(circle at top, #111827 0, #020617 50%, #000 100%);
+      color: var(--text);
     }
 
-    h1, h2 {
-      margin: 0 0 10px 0;
+    .page {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 24px 16px 40px;
     }
 
-    .container {
-      max-width: 1200px;
-      margin: auto;
-      padding: 20px;
+    h1, h2, h3 {
+      margin: 0;
+    }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      gap: 12px;
+    }
+
+    .page-title {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .page-title span.badge-main {
+      font-size: 12px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: rgba(248, 113, 113, 0.1);
+      border: 1px solid rgba(248, 113, 113, 0.5);
+      color: #fecaca;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .page-subtitle {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .refresh-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.4);
+      background: rgba(15,23,42,0.8);
+      color: #e5e7eb;
+      font-size: 13px;
+      padding: 6px 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .refresh-btn:hover {
+      background: rgba(30,64,175,0.7);
+      border-color: rgba(129,140,248,0.8);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 2fr 1.3fr;
+      gap: 20px;
+    }
+
+    .grid-full {
+      margin-top: 20px;
     }
 
     .card {
-      background: #161b22;
-      border-radius: 10px;
-      padding: 16px;
-      margin-bottom: 20px;
-      box-shadow: 0 0 0 1px rgba(255,255,255,0.05);
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 6px 12px;
+      background: linear-gradient(145deg, var(--bg-card), var(--bg-card-soft));
       border-radius: 20px;
-      font-weight: bold;
-      font-size: 14px;
+      border: 1px solid var(--border-soft);
+      padding: 16px 18px 18px;
+      box-shadow: 0 18px 45px rgba(15,23,42,0.75);
     }
 
-    .risk-on { background: #1f8f5f; }
-    .risk-off { background: #b33a3a; }
-    .neutral { background: #777; }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 10px;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #e5e7eb;
+    }
+
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .badge-risk {
+      padding: 4px 10px;
+      font-size: 11px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 600;
+    }
+
+    .risk-on {
+      background: rgba(34,197,94,0.12);
+      color: #bbf7d0;
+      border: 1px solid rgba(34,197,94,0.6);
+    }
+
+    .risk-off {
+      background: rgba(239,68,68,0.12);
+      color: #fecaca;
+      border: 1px solid rgba(239,68,68,0.7);
+    }
+
+    .risk-neutral {
+      background: rgba(148,163,184,0.18);
+      color: #e5e7eb;
+      border: 1px solid rgba(148,163,184,0.7);
+    }
+
+    .snapshot-comment {
+      font-size: 13px;
+      color: #e5e7eb;
+      margin-top: 8px;
+      line-height: 1.4;
+    }
+
+    .snapshot-meta {
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .badge-vol {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.6);
+      font-size: 11px;
+      margin-left: 6px;
+    }
+
+    .orientation-notes {
+      margin-top: 6px;
+      padding-left: 16px;
+      font-size: 12px;
+      color: var(--muted);
+    }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 10px;
+      margin-top: 6px;
     }
 
     th, td {
-      padding: 8px;
+      padding: 6px 4px;
+      border-bottom: 1px solid rgba(15,23,42,0.9);
+      font-size: 12px;
       text-align: left;
-      border-bottom: 1px solid #222;
-      font-size: 14px;
     }
 
     th {
-      color: #aaa;
-      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 11px;
     }
 
-    .pos { color: #3fb950; }
-    .neg { color: #f85149; }
-    .neu { color: #8b949e; }
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .td-name {
+      font-weight: 500;
+      color: #e5e7eb;
+    }
+
+    .td-symbol {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .pos { color: var(--pos); }
+    .neg { color: var(--neg); }
+    .neu { color: var(--neu); }
+
+    .calendar-list {
+      margin-top: 8px;
+      max-height: 260px;
+      overflow-y: auto;
+      border-top: 1px solid rgba(15,23,42,0.9);
+    }
 
     .calendar-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 8px 0;
-      border-bottom: 1px solid #222;
-      font-size: 14px;
+      display: grid;
+      grid-template-columns: 1.2fr 2.2fr 0.8fr;
+      gap: 8px;
+      padding: 7px 0;
+      border-bottom: 1px solid rgba(15,23,42,0.9);
+      font-size: 12px;
+      align-items: baseline;
     }
 
-    .impact-high { color: #f85149; font-weight: bold; }
-    .impact-medium { color: #d29922; }
-    .impact-low { color: #3fb950; }
+    .calendar-date {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .calendar-event {
+      color: #e5e7eb;
+    }
+
+    .impact-pill {
+      justify-self: flex-end;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .impact-high {
+      background: rgba(239,68,68,0.2);
+      color: #fecaca;
+      border: 1px solid rgba(239,68,68,0.7);
+    }
+
+    .impact-medium {
+      background: rgba(234,179,8,0.18);
+      color: #fef9c3;
+      border: 1px solid rgba(234,179,8,0.65);
+    }
+
+    .impact-low {
+      background: rgba(34,197,94,0.16);
+      color: #bbf7d0;
+      border: 1px solid rgba(34,197,94,0.6);
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .small-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
 
     footer {
+      margin-top: 26px;
       text-align: center;
-      color: #666;
-      font-size: 12px;
-      margin-top: 40px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
-
 <body>
-  <div class="container">
-    <h1>🌍 Macro Dashboard</h1>
-
-    <!-- SNAPSHOT -->
-    <div class="card">
-      <h2>Contexte global</h2>
-      <div id="snapshot">
-        Chargement…
+  <div class="page">
+    <div class="page-header">
+      <div>
+        <div class="page-title">
+          <span class="badge-main">Macro</span>
+          STARK TRADING – CONTEXTE MARCHÉ
+        </div>
+        <div class="page-subtitle">
+          Synthèse globale des marchés + performances indices + calendrier économique.
+        </div>
       </div>
+      <button class="refresh-btn" id="btn-refresh">
+        ↻ Rafraîchir la vue
+      </button>
     </div>
 
-    <!-- INDICES -->
-    <div class="card">
-      <h2>Indices & actifs majeurs</h2>
-      <table id="indices-table">
-        <thead>
-          <tr>
-            <th>Actif</th>
-            <th>Daily</th>
-            <th>Weekly</th>
-            <th>Monthly</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
+    <div class="grid">
+      <!-- Colonne gauche : snapshot + indices -->
+      <div class="col-left">
+        <!-- SNAPSHOT MACRO -->
+        <div class="card" id="card-snapshot">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Vue globale</div>
+              <div class="card-subtitle">Sentiment macro & lecture IA</div>
+            </div>
+            <div id="snapshot-risk-pill">
+              <!-- badge risk -->
+            </div>
+          </div>
+          <div class="snapshot-comment" id="snapshot-comment">
+            Chargement de la lecture macro globale…
+          </div>
+          <div class="snapshot-meta" id="snapshot-meta">
+            Volatilité : — · Dernière mise à jour : —
+          </div>
+        </div>
 
-    <!-- CALENDAR -->
-    <div class="card">
-      <h2>📅 Calendrier économique</h2>
-      <div id="calendar">
-        Chargement…
+        <!-- INDICES -->
+        <div class="card" id="card-indices">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Performance des indices</div>
+              <div class="card-subtitle">Variation % par jour, semaine, mois</div>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Actif</th>
+                <th>Jour</th>
+                <th>Semaine</th>
+                <th>Mois</th>
+              </tr>
+            </thead>
+            <tbody id="indices-body">
+              <tr><td colspan="4" class="muted">Chargement des performances…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Colonne droite : orientation + calendrier -->
+      <div class="col-right">
+        <!-- ORIENTATION (simple pour bots / règles) -->
+        <div class="card" id="card-orientation">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Orientation de marché</div>
+              <div class="card-subtitle">Lecture synthétique pour la gestion du risque</div>
+            </div>
+          </div>
+          <div id="orientation-content" class="muted">
+            Chargement de l’orientation…
+          </div>
+        </div>
+
+        <!-- CALENDRIER ÉCO -->
+        <div class="card" id="card-calendar">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Calendrier économique</div>
+              <div class="card-subtitle">Principales publications aujourd’hui & prochains jours (UTC)</div>
+            </div>
+          </div>
+          <div class="calendar-list" id="calendar-list">
+            <div class="muted" style="padding-top:6px;">Chargement du calendrier…</div>
+          </div>
+        </div>
       </div>
     </div>
 
     <footer>
-      Stark Macro Engine · Render · v1.0
+      Stark Macro Engine · backend Render : <span id="health-status">check en cours…</span>
     </footer>
   </div>
 
   <script>
-    const API_BASE = "/api";
+    const API_BASE = "/api/macro";
 
     function pctClass(v) {
       if (v > 0) return "pos";
@@ -136,68 +411,202 @@
       return "neu";
     }
 
-    // -------------------------
-    // SNAPSHOT
-    // -------------------------
-    fetch(`${API_BASE}/macro/snapshot`)
-      .then(r => r.json())
-      .then(data => {
-        const riskClass =
-          data.risk_mode === "risk_on" ? "risk-on" :
-          data.risk_mode === "risk_off" ? "risk-off" : "neutral";
+    function formatPct(v) {
+      if (v === null || v === undefined) return "—";
+      const num = Number(v);
+      if (Number.isNaN(num)) return "—";
+      const rounded = Math.round(num * 10) / 10;
+      return (rounded > 0 ? "+" : "") + rounded + "%";
+    }
 
-        document.getElementById("snapshot").innerHTML = `
-          <span class="badge ${riskClass}">
-            ${data.risk_mode.replace("_", " ").toUpperCase()}
-          </span>
-          <p style="margin-top:10px">${data.comment}</p>
-          <small>Volatilité : ${data.volatility}</small>
+    function formatDateTimeISO(iso) {
+      try {
+        const d = new Date(iso);
+        if (Number.isNaN(d.getTime())) return "—";
+        return d.toLocaleString("fr-FR", { hour12: false });
+      } catch {
+        return "—";
+      }
+    }
+
+    async function loadSnapshot() {
+      try {
+        const res = await fetch(`${API_BASE}/snapshot`);
+        const data = await res.json();
+
+        const pill = document.getElementById("snapshot-risk-pill");
+        const commentEl = document.getElementById("snapshot-comment");
+        const metaEl = document.getElementById("snapshot-meta");
+
+        let riskLabel = "NEUTRE";
+        let riskClass = "risk-neutral";
+        if (data.risk_mode === "risk_on") {
+          riskLabel = "RISK ON";
+          riskClass = "risk-on";
+        } else if (data.risk_mode === "risk_off") {
+          riskLabel = "RISK OFF";
+          riskClass = "risk-off";
+        }
+
+        pill.innerHTML = `<span class="badge-risk ${riskClass}">${riskLabel}</span>`;
+
+        commentEl.textContent = data.comment || "Lecture macro globale non disponible.";
+
+        const vol = data.volatility || "—";
+        const ts = data.timestamp ? formatDateTimeISO(data.timestamp) : "—";
+
+        metaEl.innerHTML = `
+          Volatilité : <span class="badge-vol">${vol}</span>
+          · Dernière mise à jour : ${ts}
         `;
-      });
+      } catch (err) {
+        document.getElementById("snapshot-comment").textContent =
+          "Impossible de récupérer la vue macro globale.";
+        document.getElementById("snapshot-meta").textContent = "";
+      }
+    }
 
-    // -------------------------
-    // INDICES
-    // -------------------------
-    fetch(`${API_BASE}/macro/indices`)
-      .then(r => r.json())
-      .then(rows => {
-        const tbody = document.querySelector("#indices-table tbody");
+    async function loadOrientation() {
+      try {
+        const res = await fetch(`${API_BASE}/orientation`);
+        const data = await res.json();
+
+        const container = document.getElementById("orientation-content");
+
+        const risk = (data.risk || "neutral").toUpperCase();
+        const conf = data.confidence != null
+          ? Math.round(data.confidence * 100) + "%"
+          : "—";
+
+        const comment = data.comment || "";
+        const notes = Array.isArray(data.notes) ? data.notes : [];
+
+        container.innerHTML = `
+          <div class="small-label">Mode risque</div>
+          <div style="font-size:13px;margin-bottom:6px;">
+            ${risk} <span style="color:var(--muted);font-size:11px;">(confiance ${conf})</span>
+          </div>
+          <div style="font-size:12px;margin-bottom:6px;">${comment}</div>
+          ${notes.length ? `
+            <div class="small-label" style="margin-top:4px;">Points de contrôle</div>
+            <ul class="orientation-notes">
+              ${notes.map(n => `<li>${n}</li>`).join("")}
+            </ul>
+          ` : ""}
+        `;
+      } catch (err) {
+        document.getElementById("orientation-content").textContent =
+          "Impossible de récupérer l’orientation de marché.";
+      }
+    }
+
+    async function loadIndices() {
+      try {
+        const res = await fetch(`${API_BASE}/indices`);
+        const data = await res.json();
+        const tbody = document.getElementById("indices-body");
+
+        if (!Array.isArray(data) || data.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="4" class="muted">Aucune donnée d’indice disponible.</td></tr>`;
+          return;
+        }
+
         tbody.innerHTML = "";
+        data.forEach(row => {
+          const daily = Number(row.daily);
+          const weekly = Number(row.weekly);
+          const monthly = Number(row.monthly);
 
-        rows.forEach(r => {
           tbody.innerHTML += `
             <tr>
-              <td>${r.name}</td>
-              <td class="${pctClass(r.daily)}">${r.daily}%</td>
-              <td class="${pctClass(r.weekly)}">${r.weekly}%</td>
-              <td class="${pctClass(r.monthly)}">${r.monthly}%</td>
+              <td>
+                <div class="td-name">${row.name || row.symbol}</div>
+                <div class="td-symbol">${row.symbol}</div>
+              </td>
+              <td class="${pctClass(daily)}">${formatPct(daily)}</td>
+              <td class="${pctClass(weekly)}">${formatPct(weekly)}</td>
+              <td class="${pctClass(monthly)}">${formatPct(monthly)}</td>
             </tr>
           `;
         });
-      });
+      } catch (err) {
+        document.getElementById("indices-body").innerHTML =
+          `<tr><td colspan="4" class="muted">Erreur lors du chargement des performances.</td></tr>`;
+      }
+    }
 
-    // -------------------------
-    // CALENDAR
-    // -------------------------
-    fetch(`${API_BASE}/macro/calendar?days_ahead=2`)
-      .then(r => r.json())
-      .then(events => {
-        const container = document.getElementById("calendar");
+    async function loadCalendar() {
+      try {
+        const res = await fetch(`${API_BASE}/calendar?days_ahead=2`);
+        const data = await res.json();
+        const container = document.getElementById("calendar-list");
+
+        if (!Array.isArray(data) || data.length === 0) {
+          container.innerHTML = `<div class="muted" style="padding-top:6px;">
+            Aucune publication majeure enregistrée sur l’horizon sélectionné.
+          </div>`;
+          return;
+        }
+
         container.innerHTML = "";
+        data.forEach(ev => {
+          const impact = (ev.impact || "medium").toLowerCase();
+          const impactClass =
+            impact === "high" ? "impact-high" :
+            impact === "low" ? "impact-low" : "impact-medium";
 
-        events.forEach(e => {
+          const dateStr = ev.date || "";
+          const timeStr = ev.time || "";
+
           container.innerHTML += `
             <div class="calendar-item">
               <div>
-                ${e.date} ${e.time} · ${e.event}
+                <div class="calendar-date">${dateStr} · ${timeStr} UTC</div>
+                <div class="calendar-event">${ev.event || "—"}</div>
               </div>
-              <div class="impact-${e.impact}">
-                ${e.impact.toUpperCase()}
+              <div>${ev.currency || ""} ${ev.country ? "· " + ev.country : ""}</div>
+              <div class="impact-pill ${impactClass}">
+                ${impact.toUpperCase()}
               </div>
             </div>
           `;
         });
-      });
+      } catch (err) {
+        document.getElementById("calendar-list").innerHTML =
+          `<div class="muted" style="padding-top:6px;">Erreur lors du chargement du calendrier économique.</div>`;
+      }
+    }
+
+    async function checkHealth() {
+      try {
+        const res = await fetch("/health");
+        if (!res.ok) throw new Error("bad status");
+        const data = await res.json();
+        document.getElementById("health-status").textContent =
+          data.status === "ok" ? "OK" : "statut inattendu";
+      } catch {
+        document.getElementById("health-status").textContent =
+          "indisponible";
+      }
+    }
+
+    async function refreshAll() {
+      await Promise.all([
+        loadSnapshot(),
+        loadOrientation(),
+        loadIndices(),
+        loadCalendar(),
+        checkHealth()
+      ]);
+    }
+
+    document.getElementById("btn-refresh").addEventListener("click", refreshAll);
+
+    // 1er chargement
+    refreshAll();
+
+    // rafraîchissement auto toutes les 60s (si tu veux)
+    setInterval(refreshAll, 60000);
   </script>
 </body>
 </html>
