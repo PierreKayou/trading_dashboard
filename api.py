@@ -5,10 +5,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
+
 from macro.router import router as macro_router
 from news.router import router as news_router
 from econ_calendar.router import router as econ_router
-
+from compat.router import router as compat_router
 
 # ---------------------------------------------------------
 # App & config de base
@@ -96,3 +97,5 @@ async def health():
     Simple endpoint de santé pour Render / monitoring.
     """
     return {"status": "ok"}
+
+app.include_router(compat_router)
