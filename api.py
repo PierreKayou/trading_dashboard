@@ -28,16 +28,16 @@ app = FastAPI(
 # Création des tables SQLAlchemy
 Base.metadata.create_all(bind=engine)
 
-# CORS large pour pouvoir appeler l'API depuis n'importe où
+# CORS large (OK pour Render + front distant)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # à restreindre si tu veux
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Static (optionnel : si tu as un dossier /static pour des assets)
+# Static files (si présents)
 if os.path.isdir("static"):
     app.mount("/static", StaticFiles(directory="static"), name="static")
 
@@ -52,7 +52,7 @@ INDEX_FILE = os.path.join(os.getcwd(), "index.html")
 @app.get("/", include_in_schema=False)
 async def root():
     """
-    Sert la page principale du dashboard (macro + trading) sur "/".
+    Sert la page principale du dashboard.
     """
     return FileResponse(INDEX_FILE)
 
@@ -60,22 +60,22 @@ async def root():
 @app.get("/index.html", include_in_schema=False)
 async def index_page():
     """
-    Alias pour accéder à la même page via /index.html.
+    Alias vers la page principale.
     """
     return FileResponse(INDEX_FILE)
 
 
 # ---------------------------------------------------------
-# API calendrier économique (simple stub pour le moment)
+# API calendrier économique (stub legacy – peut rester)
 # ---------------------------------------------------------
 
 class CalendarEvent(BaseModel):
-    date: Optional[str] = None   # "2026-02-03"
-    time: Optional[str] = None   # "14:30"
-    country: Optional[str] = None  # "US", "EU", "FR", etc.
-    title: str                   # Nom de l'événement
-    impact: Optional[str] = None        # "high" / "medium" / "low"
-    impact_level: Optional[str] = None  # idem, doublon pour le front
+    date: Optional[str] = None
+    time: Optional[str] = None
+    country: Optional[str] = None
+    title: str
+    impact: Optional[str] = None
+    impact_level: Optional[str] = None
 
 
 class CalendarResponse(BaseModel):
@@ -84,69 +84,36 @@ class CalendarResponse(BaseModel):
 
 @app.get("/api/calendar/today", response_model=CalendarResponse, tags=["calendar"])
 async def calendar_today() -> CalendarResponse:
-    """
-    Calendrier économique du jour (UTC).
-
-    Pour l'instant, renvoie une liste vide.
-    Tu pourras brancher une vraie source (Forexfactory, etc.)
-    en remplissant la liste events.
-    """
-    today = dt.date.today().isoformat()
-    return CalendarResponse(
-        events=[
-            # Exemple de structure si tu veux tester l'affichage :
-            # CalendarEvent(
-            #     date=today,
-            #     time="14:30",
-            #     country="US",
-            #     title="NFP (emplois non agricoles)",
-            #     impact="high",
-            #     impact_level="high",
-            # )
-        ]
-    )
+    return CalendarResponse(events=[])
 
 
 @app.get("/api/calendar/next", response_model=CalendarResponse, tags=["calendar"])
 async def calendar_next() -> CalendarResponse:
-    """
-    Calendrier économique des prochains jours.
-
-    Idem, pour l'instant renvoie une liste vide.
-    """
-    # Exemple si tu veux un prochain événement :
-    # tomorrow = (dt.date.today() + dt.timedelta(days=1)).isoformat()
     return CalendarResponse(events=[])
 
 
 # ---------------------------------------------------------
-# Inclusion des routers fonctionnels
+# Inclusion des routers métier
 # ---------------------------------------------------------
 
-# Flux de ticks / historique (utilisé par le moteur local & paper)
+# Flux marché / ticks
 app.include_router(ticks_router)
 
-# Paper trading (portfolio, positions, historique)
+# Paper trading
 app.include_router(paper_router, prefix="/paper", tags=["paper"])
 
-# Bots & gestion du risque
+# Bots
 app.include_router(bots_router, prefix="/bot", tags=["bots"])
 
-# Module macro / news / indicateurs (toutes les routes sous /api/...)
-#   - /api/macro/week/raw
-#   - /api/week/summary       (ou /api/macro/week/summary, selon ton router)
-#   - /api/macro              (biais global)
-#   - /api/news/analyze       (analyse news IA)
-app.include_router(macro_router, prefix="/api")
+# MACRO / NEWS / INDICES / CALENDAR
+# 👉 TOUT ce qui est dans macro/router.py est exposé sous /api/...
+app.include_router(macro_router, prefix="/api", tags=["macro"])
 
 
 # ---------------------------------------------------------
-# Endpoint de santé (optionnel)
+# Healthcheck Render
 # ---------------------------------------------------------
 
 @app.get("/health", tags=["health"])
 async def health():
-    """
-    Simple endpoint de santé pour ping Render / monitoring.
-    """
     return {"status": "ok"}
