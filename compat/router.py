@@ -29,10 +29,13 @@ def latest_price(symbol: str):
 @router.get("/perf/summary")
 def perf_summary():
     from macro.router import macro_indices
-    data = macro_indices()
+    indices = macro_indices()
     return {
-        "indices": data
+        "indices": indices,
+        "data": indices,
+        "rows": indices,
     }
+
 
 
 
