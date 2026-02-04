@@ -113,6 +113,29 @@ def calendar_next():
     return macro_calendar(days_ahead=2)
 
 
+
+@router.get("/api/macro/state")
+def macro_state():
+    from macro.router import macro_snapshot
+
+    snap = macro_snapshot()
+
+    return {
+        "macro_regime": {
+            "label": "Risk-On" if snap["risk_mode"] == "risk_on" else "Risk-Off",
+            "confidence": 0.72,  # stub propre pour l’instant
+            "stability": "stable" if snap["volatility"] != "high" else "fragile"
+        },
+        "commentary": snap["comment"],
+        "market_bias": {
+            "equities": snap["bias"].get("equities", "neutral"),
+            "indices_us": snap["bias"].get("equities", "neutral"),
+            "commodities": snap["bias"].get("commodities", "neutral"),
+            "crypto": snap["bias"].get("crypto", "neutral"),
+        }
+    }
+
+
 # =====================================================
 # NEWS IA (stub)
 # =====================================================
