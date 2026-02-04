@@ -32,11 +32,37 @@ def perf_summary():
     Ancien endpoint utilisé par le dashboard pour la performance
     des indices.
 
-    On renvoie directement la liste brute renvoyée par macro_indices(),
-    pour être compatible avec le front existant.
+    On transforme la sortie de macro_indices() dans le format
+    attendu par index.html :
+      {
+        "as_of": "YYYY-MM-DD",
+        "assets": [
+          {"symbol", "label", "d", "w", "m"},
+          ...
+        ]
+      }
     """
     from macro.router import macro_indices
-    return macro_indices()
+
+    rows = macro_indices()
+    today_str = date.today().isoformat()
+
+    assets = []
+    for r in rows:
+        assets.append(
+            {
+                "symbol": r.get("symbol"),
+                "label": r.get("name") or r.get("symbol"),
+                "d": r.get("daily"),
+                "w": r.get("weekly"),
+                "m": r.get("monthly"),
+            }
+        )
+
+    return {
+        "as_of": today_str,
+        "assets": assets,
+    }
 
 
 # =====================================================
@@ -63,18 +89,21 @@ def macro_week_summary():
     """
     Compat pour la vue hebdomadaire.
     Donne une période de semaine et un petit résumé.
+    Adapté au format attendu par index.html
+    (start, end, risk_on, risk_comment, top_events, top_moves, upcoming_focus).
     """
     today = date.today()
     monday = today - timedelta(days=today.weekday())
     friday = monday + timedelta(days=4)
 
     return {
-        "status": "ok",
-        "week_start": monday.isoformat(),
-        "week_end": friday.isoformat(),
-        "summary": "Aucun événement macro majeur identifié pour la semaine.",
-        "key_events": [],
-        "notable_moves": [],
+        "start": monday.isoformat(),
+        "end": friday.isoformat(),
+        "risk_on": None,
+        "risk_comment": "Aucun événement macro majeur identifié pour la semaine.",
+        "top_events": [],
+        "top_moves": [],
+        "upcoming_focus": [],
     }
 
 
@@ -82,6 +111,7 @@ def macro_week_summary():
 def macro_week_raw():
     """
     Stub pour un éventuel flux macro brut hebdo.
+    Le front gère le cas où sentiment_grid est absent.
     """
     return {
         "events": [],
@@ -107,9 +137,17 @@ def macro_state():
 
     snap = macro_snapshot()
 
+    risk_mode = snap["risk_mode"]
+    if risk_mode == "risk_on":
+        label = "Risk-On"
+    elif risk_mode == "risk_off":
+        label = "Risk-Off"
+    else:
+        label = "Neutre"
+
     return {
         "macro_regime": {
-            "label": "Risk-On" if snap["risk_mode"] == "risk_on" else "Risk-Off",
+            "label": label,
             "confidence": 0.72,  # stub pour l’instant
             "stability": "stable" if snap["volatility"] != "high" else "fragile",
         },
