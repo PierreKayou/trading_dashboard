@@ -1,18 +1,13 @@
 import os
-import datetime as dt
-from typing import List, Optional
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
 
-from database import Base, engine
-from ticks.router import router as ticks_router
-from paper.router import router as paper_router
-from bots.router import router as bots_router
 from macro.router import router as macro_router
+from news.router import router as news_router
+from econ_calendar.router import router as econ_router
 
 
 # ---------------------------------------------------------
@@ -20,24 +15,21 @@ from macro.router import router as macro_router
 # ---------------------------------------------------------
 
 app = FastAPI(
-    title="Stark Trading Dashboard",
+    title="Stark Macro Dashboard",
     version="0.1.0",
-    description="Backend FastAPI pour le dashboard trading + macro.",
+    description="Backend FastAPI pour le dashboard macro (indices, news, calendrier éco).",
 )
 
-# Création des tables SQLAlchemy
-Base.metadata.create_all(bind=engine)
-
-# CORS large (OK pour Render + front distant)
+# CORS large pour pouvoir appeler l'API depuis n'importe où
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # à restreindre plus tard si besoin
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Static files (si présents)
+# Static (si tu as un dossier /static pour JS / CSS / images)
 if os.path.isdir("static"):
     app.mount("/static", StaticFiles(directory="static"), name="static")
 
@@ -52,7 +44,7 @@ INDEX_FILE = os.path.join(os.getcwd(), "index.html")
 @app.get("/", include_in_schema=False)
 async def root():
     """
-    Sert la page principale du dashboard.
+    Sert la page principale du dashboard macro sur "/".
     """
     return FileResponse(INDEX_FILE)
 
@@ -60,60 +52,47 @@ async def root():
 @app.get("/index.html", include_in_schema=False)
 async def index_page():
     """
-    Alias vers la page principale.
+    Alias pour accéder à la même page via /index.html.
     """
     return FileResponse(INDEX_FILE)
 
 
-# ---------------------------------------------------------
-# API calendrier économique (stub legacy – peut rester)
-# ---------------------------------------------------------
-
-class CalendarEvent(BaseModel):
-    date: Optional[str] = None
-    time: Optional[str] = None
-    country: Optional[str] = None
-    title: str
-    impact: Optional[str] = None
-    impact_level: Optional[str] = None
-
-
-class CalendarResponse(BaseModel):
-    events: List[CalendarEvent]
-
-
-@app.get("/api/calendar/today", response_model=CalendarResponse, tags=["calendar"])
-async def calendar_today() -> CalendarResponse:
-    return CalendarResponse(events=[])
-
-
-@app.get("/api/calendar/next", response_model=CalendarResponse, tags=["calendar"])
-async def calendar_next() -> CalendarResponse:
-    return CalendarResponse(events=[])
+@app.get("/macro.html", include_in_schema=False)
+async def macro_page():
+    """
+    Si tu veux une page dédiée macro.html.
+    """
+    macro_file = os.path.join(os.getcwd(), "macro.html")
+    if os.path.isfile(macro_file):
+        return FileResponse(macro_file)
+    # fallback sur index si macro.html n'existe pas
+    return FileResponse(INDEX_FILE)
 
 
 # ---------------------------------------------------------
-# Inclusion des routers métier
+# Inclusion des routers fonctionnels
 # ---------------------------------------------------------
+# ⚠️ IMPORTANT :
+# - On NE fait PLUS d'import de `database`, `ticks`, `paper` ou `bots` ici.
+# - Ce service Render est dédié à : macro + news + calendrier économique.
 
-# Flux marché / ticks
-app.include_router(ticks_router)
-
-# Paper trading
-app.include_router(paper_router, prefix="/paper", tags=["paper"])
-
-# Bots
-app.include_router(bots_router, prefix="/bot", tags=["bots"])
-
-# MACRO / NEWS / INDICES / CALENDAR
-# 👉 TOUT ce qui est dans macro/router.py est exposé sous /api/...
+# Module macro (inclut /api/macro/snapshot, /api/macro/orientation, etc.)
 app.include_router(macro_router, prefix="/api", tags=["macro"])
 
+# Module news (analyse de news, sentiment, etc.)
+app.include_router(news_router, prefix="/api", tags=["news"])
+
+# Module calendrier économique (source dédiée)
+app.include_router(econ_router, prefix="/api", tags=["calendar"])
+
 
 # ---------------------------------------------------------
-# Healthcheck Render
+# Endpoint de santé (Render healthcheck)
 # ---------------------------------------------------------
 
 @app.get("/health", tags=["health"])
 async def health():
+    """
+    Simple endpoint de santé pour Render / monitoring.
+    """
     return {"status": "ok"}
