@@ -11,6 +11,7 @@ from news.router import router as news_router
 from econ_calendar.router import router as econ_router
 from compat.router import router as compat_router
 
+from news.analysis_v2 import router as news_v2_router
 
 # ---------------------------------------------------------
 # App & config de base
@@ -74,6 +75,8 @@ app.include_router(econ_router, prefix="/api", tags=["calendar"])
 
 # Routes de compatibilité pour l'ancien dashboard (latest, perf/summary, macro/state, etc.)
 app.include_router(compat_router)
+
+
 
 
 # ---------------------------------------------------------
