@@ -5,6 +5,9 @@ from pydantic import BaseModel
 from typing import List, Dict, Any
 import time
 
+from news.service import fetch_raw_news
+
+
 router = APIRouter(prefix="/api/news", tags=["news"])
 
 # ---------------------------------------------------------
