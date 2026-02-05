@@ -1,5 +1,7 @@
+from datetime import date, datetime, time, timedelta
+from typing import Optional, Literal
+
 from fastapi import APIRouter
-from datetime import date, timedelta
 
 router = APIRouter()
 
@@ -32,41 +34,34 @@ def perf_summary():
     Ancien endpoint utilisé par le dashboard pour la performance
     des indices.
 
-    On transforme la sortie de macro_indices() dans le format
-    attendu par index.html :
-      {
-        "as_of": "YYYY-MM-DD",
-        "assets": [
-          {"symbol", "label", "d", "w", "m"},
-          ...
-        ]
-      }
+    On wrappe la sortie de macro_indices() dans un objet
+    { as_of: ..., assets: [...] } au format attendu par index.html.
     """
     from macro.router import macro_indices
 
-    rows = macro_indices()
-    today_str = date.today().isoformat()
+    indices = macro_indices()
+    today = date.today().isoformat()
 
     assets = []
-    for r in rows:
+    for row in indices:
         assets.append(
             {
-                "symbol": r.get("symbol"),
-                "label": r.get("name") or r.get("symbol"),
-                "d": r.get("daily"),
-                "w": r.get("weekly"),
-                "m": r.get("monthly"),
+                "symbol": row.get("symbol"),
+                "label": row.get("name") or row.get("symbol"),
+                "d": row.get("daily"),
+                "w": row.get("weekly"),
+                "m": row.get("monthly"),
             }
         )
 
     return {
-        "as_of": today_str,
+        "as_of": today,
         "assets": assets,
     }
 
 
 # =====================================================
-# MACRO (anciens endpoints)
+# MACRO (anciens endpoints semaine - formaté pour index.html)
 # =====================================================
 
 @router.get("/api/macro/bias")
@@ -76,6 +71,7 @@ def macro_bias():
     Utilisé par certaines parties legacy du front.
     """
     from macro.router import macro_snapshot
+
     snap = macro_snapshot()
     return {
         "bias": snap["risk_mode"],
@@ -87,10 +83,14 @@ def macro_bias():
 @router.get("/api/macro/week/summary")
 def macro_week_summary():
     """
-    Compat pour la vue hebdomadaire.
-    Donne une période de semaine et un petit résumé.
-    Adapté au format attendu par index.html
-    (start, end, risk_on, risk_comment, top_events, top_moves, upcoming_focus).
+    Compat pour la vue hebdomadaire dans index.html.
+
+    Retourne le format attendu par :
+      - setWeekRange(summary)  -> summary.start / summary.end
+      - setRiskPillWeekly()   -> summary.risk_on
+      - renderRiskComment()   -> summary.risk_comment
+      - renderTopEvents()     -> summary.top_events
+      - renderTopMoves()      -> summary.top_moves
     """
     today = date.today()
     monday = today - timedelta(days=today.weekday())
@@ -99,7 +99,7 @@ def macro_week_summary():
     return {
         "start": monday.isoformat(),
         "end": friday.isoformat(),
-        "risk_on": None,
+        "risk_on": None,  # neutre par défaut
         "risk_comment": "Aucun événement macro majeur identifié pour la semaine.",
         "top_events": [],
         "top_moves": [],
@@ -110,23 +110,30 @@ def macro_week_summary():
 @router.get("/api/macro/week/raw")
 def macro_week_raw():
     """
-    Stub pour un éventuel flux macro brut hebdo.
-    Le front gère le cas où sentiment_grid est absent.
+    Stub pour un flux macro brut hebdo, compatible avec renderSentimentGrid().
+    On renvoie une structure vide mais bien typée.
     """
+    today = date.today()
+    monday = today - timedelta(days=today.weekday())
+    friday = monday + timedelta(days=4)
+
     return {
-        "events": [],
-        "note": "Raw macro hebdo non disponible pour le moment.",
+        "start": monday.isoformat(),
+        "end": friday.isoformat(),
+        "created_at": datetime.utcnow().timestamp(),
+        "asset_performances": [],
+        "sentiment_grid": [],
     }
 
 
 # =====================================================
-# ETAT MACRO GLOBAL POUR loadMacro() (front)
+# ETAT MACRO GLOBAL POUR loadMacro() (front simple /static)
 # =====================================================
 
 @router.get("/api/macro/state")
 def macro_state():
     """
-    Endpoint utilisé par la fonction JS loadMacro().
+    Endpoint utilisé par la fonction JS loadMacro() (static/app.js).
 
     Il réemballe la sortie de macro_snapshot() dans une structure :
     - macro_regime { label, confidence, stability }
@@ -137,17 +144,9 @@ def macro_state():
 
     snap = macro_snapshot()
 
-    risk_mode = snap["risk_mode"]
-    if risk_mode == "risk_on":
-        label = "Risk-On"
-    elif risk_mode == "risk_off":
-        label = "Risk-Off"
-    else:
-        label = "Neutre"
-
     return {
         "macro_regime": {
-            "label": label,
+            "label": "Risk-On" if snap["risk_mode"] == "risk_on" else "Risk-Off",
             "confidence": 0.72,  # stub pour l’instant
             "stability": "stable" if snap["volatility"] != "high" else "fragile",
         },
