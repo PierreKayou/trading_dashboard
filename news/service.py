@@ -1,25 +1,33 @@
 # news/service.py
 
 from typing import List, Dict, Any
-import time
 import os
+import time
+
 import yfinance as yf
 import httpx
 
+# ------------------------------------------------------------------
+# CONFIG : NewsAPI (https://newsapi.org) pour compléter yfinance
+# ------------------------------------------------------------------
 NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 NEWS_API_URL = "https://newsapi.org/v2/top-headlines"
 
+# Symbols utilisés pour les news yfinance
 NEWS_SYMBOLS = [
     "^GSPC",    # S&P 500
     "^NDX",     # Nasdaq 100
-    "CL=F",     # Crude Oil
-    "GC=F",     # Gold
+    "CL=F",     # Crude Oil Future
+    "GC=F",     # Gold Future
     "BTC-USD",  # Bitcoin
 ]
 
 
 def fetch_yfinance_news(max_articles: int = 30) -> List[Dict[str, Any]]:
-    articles = []
+    """
+    Récupère les news via yfinance (Ticker.news) sur quelques symboles clés.
+    """
+    articles: List[Dict[str, Any]] = []
     seen_titles = set()
 
     for sym in NEWS_SYMBOLS:
@@ -49,6 +57,10 @@ def fetch_yfinance_news(max_articles: int = 30) -> List[Dict[str, Any]]:
 
 
 def fetch_newsapi_news(max_articles: int = 30) -> List[Dict[str, Any]]:
+    """
+    Récupère des news business / macro via NewsAPI.
+    Si NEWS_API_KEY n'est pas définie, on renvoie une liste vide.
+    """
     if not NEWS_API_KEY:
         return []
 
@@ -59,8 +71,8 @@ def fetch_newsapi_news(max_articles: int = 30) -> List[Dict[str, Any]]:
     }
 
     try:
-        with httpx.Client(timeout=8.0) as client:
-            resp = client.get(
+        with httpx.Client(timeout=8.0) as http_client:
+            resp = http_client.get(
                 NEWS_API_URL,
                 params=params,
                 headers={"X-Api-Key": NEWS_API_KEY},
@@ -72,17 +84,22 @@ def fetch_newsapi_news(max_articles: int = 30) -> List[Dict[str, Any]]:
         return []
 
     data = resp.json()
-    articles = []
+    raw_articles = data.get("articles", []) or []
 
-    for art in data.get("articles", []):
-        if not art.get("title"):
+    articles: List[Dict[str, Any]] = []
+    for art in raw_articles:
+        title = art.get("title")
+        if not title:
             continue
+
+        src = art.get("source") or {}
+        publisher = src.get("name") or "?"
 
         articles.append(
             {
-                "symbol": "global",
-                "title": art["title"],
-                "publisher": art.get("source", {}).get("name"),
+                "symbol": "global",   # NewsAPI ne donne pas de symbole, on marque 'global'
+                "title": title,
+                "publisher": publisher,
                 "link": art.get("url"),
                 "providerPublishTime": None,
             }
@@ -92,19 +109,32 @@ def fetch_newsapi_news(max_articles: int = 30) -> List[Dict[str, Any]]:
 
 
 def fetch_raw_news(max_articles: int = 30) -> Dict[str, Any]:
-    all_articles = []
+    """
+    Agrégateur de news :
+    - yfinance (par symboles)
+    - + NewsAPI (global business)
+    Fusionne, dédoublonne, tronque.
+    """
+    all_articles: List[Dict[str, Any]] = []
     seen_titles = set()
 
-    for src in (
-        fetch_yfinance_news(max_articles * 2),
-        fetch_newsapi_news(max_articles * 2),
-    ):
-        for art in src:
-            title = art.get("title")
-            if not title or title in seen_titles:
-                continue
-            seen_titles.add(title)
-            all_articles.append(art)
+    # 1) yfinance
+    yf_articles = fetch_yfinance_news(max_articles=max_articles * 2)
+    for a in yf_articles:
+        title = a.get("title")
+        if not title or title in seen_titles:
+            continue
+        seen_titles.add(title)
+        all_articles.append(a)
+
+    # 2) NewsAPI (si dispo)
+    api_articles = fetch_newsapi_news(max_articles=max_articles * 2)
+    for a in api_articles:
+        title = a.get("title")
+        if not title or title in seen_titles:
+            continue
+        seen_titles.add(title)
+        all_articles.append(a)
 
     return {
         "source": "yfinance+newsapi",
