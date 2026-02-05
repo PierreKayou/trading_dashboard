@@ -767,6 +767,45 @@
     .calendar-impact-high { color: #f97316; }
     .calendar-impact-medium { color: #eab308; }
     .calendar-impact-low { color: #22c55e; }
+
+    /* TABLE PERF INDICES */
+
+    .table-wrapper {
+      margin-top: 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      background: rgba(15, 23, 42, 0.95);
+      overflow: hidden;
+    }
+
+    .table-wrapper table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .table-wrapper th,
+    .table-wrapper td {
+      padding: 6px 8px;
+      border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+      text-align: left;
+    }
+
+    .table-wrapper th {
+      color: var(--text-muted);
+      font-weight: 500;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .table-wrapper tr:last-child td {
+      border-bottom: none;
+    }
+
+    .perf-positive { color: var(--success); }
+    .perf-negative { color: var(--danger); }
+    .perf-neutral { color: var(--text-muted); }
   </style>
 </head>
 <body>
@@ -1318,7 +1357,9 @@
       const container = document.getElementById("sentiment-body");
       container.innerHTML = "";
 
-      if (!data.sentiment_grid || data.sentiment_grid.length === 0) {
+      const grid = data.sentiment_grid || data.sentiment || [];
+
+      if (!grid || grid.length === 0) {
         const row = document.createElement("div");
         row.className = "sentiment-row";
         const cell = document.createElement("div");
@@ -1332,7 +1373,7 @@
 
       const bucketsOrder = ["macro_us", "macro_europe", "companies", "geopolitics", "tech"];
       const groupedByDay = {};
-      data.sentiment_grid.forEach((cell) => {
+      grid.forEach((cell) => {
         const d = cell.date;
         if (!groupedByDay[d]) groupedByDay[d] = {};
         groupedByDay[d][cell.bucket] = cell;
@@ -1428,13 +1469,17 @@
         const txt = document.getElementById("macro-bias-text");
 
         chip.classList.remove("pill-positive", "pill-negative", "pill-neutral");
-        if (data.risk_on === true) {
+
+        const mode = data.bias || data.risk_mode;
+
+        if (mode === "risk_on") {
           chip.classList.add("pill-positive");
-        } else if (data.risk_on === false) {
+        } else if (mode === "risk_off") {
           chip.classList.add("pill-negative");
         } else {
           chip.classList.add("pill-neutral");
         }
+
         txt.textContent = data.comment || "Lecture macro indisponible pour le moment.";
       } catch (e) {
         console.error("Erreur updateMacroBiasChip:", e);
@@ -1778,37 +1823,21 @@
       return "calendar-impact-low";
     }
 
-    async function fetchCalendarJson(pathOptions) {
-      for (const path of pathOptions) {
-        try {
-          const resp = await fetch(API_BASE + path);
-          if (resp.ok) {
-            return await resp.json();
-          }
-        } catch (e) {
-          console.warn("Erreur fetch calendrier sur", path, e);
-        }
-      }
-      return { events: [] };
-    }
-
     async function refreshCalendar() {
       try {
-        const todayData = await fetchCalendarJson([
-          "/api/calendar/today",
-          "/calendar/today",
-        ]);
-        const nextData = await fetchCalendarJson([
-          "/api/calendar/next",
-          "/calendar/next",
-        ]);
+        const resp = await fetch(API_BASE + "/api/calendar/summary");
+        if (!resp.ok) throw new Error("HTTP " + resp.status);
+        const data = await resp.json();
 
         const todayBody = document.getElementById("calendar-today-body");
         const nextBody = document.getElementById("calendar-next-body");
         todayBody.innerHTML = "";
         nextBody.innerHTML = "";
 
-        const todayEvents = todayData.events || [];
+        const todayEvents = data.today || [];
+        const nextEvents = data.next_days || data.week || [];
+
+        // AUJOURD’HUI
         if (todayEvents.length === 0) {
           const tr = document.createElement("tr");
           const td = document.createElement("td");
@@ -1822,15 +1851,20 @@
         } else {
           todayEvents.forEach((ev) => {
             const tr = document.createElement("tr");
+
             const tdTime = document.createElement("td");
             tdTime.textContent = ev.time || "—";
+
             const tdCountry = document.createElement("td");
             tdCountry.textContent = ev.country || "—";
+
             const tdEvent = document.createElement("td");
-            tdEvent.textContent = ev.title || "Événement";
+            tdEvent.textContent = ev.event || "Événement";
+
             const tdImpact = document.createElement("td");
-            tdImpact.textContent = ev.impact || "—";
-            tdImpact.className = impactClass(ev.impact_level || ev.impact);
+            const impact = ev.impact || ev.impact_level;
+            tdImpact.textContent = impact || "—";
+            tdImpact.className = impactClass(impact);
 
             tr.appendChild(tdTime);
             tr.appendChild(tdCountry);
@@ -1840,7 +1874,7 @@
           });
         }
 
-        const nextEvents = nextData.events || [];
+        // PROCHAINS JOURS
         if (nextEvents.length === 0) {
           const tr = document.createElement("tr");
           const td = document.createElement("td");
@@ -1854,15 +1888,20 @@
         } else {
           nextEvents.forEach((ev) => {
             const tr = document.createElement("tr");
+
             const tdDate = document.createElement("td");
             tdDate.textContent = ev.date || "—";
+
             const tdCountry = document.createElement("td");
             tdCountry.textContent = ev.country || "—";
+
             const tdEvent = document.createElement("td");
-            tdEvent.textContent = ev.title || "Événement";
+            tdEvent.textContent = ev.event || "Événement";
+
             const tdImpact = document.createElement("td");
-            tdImpact.textContent = ev.impact || "—";
-            tdImpact.className = impactClass(ev.impact_level || ev.impact);
+            const impact = ev.impact || ev.impact_level;
+            tdImpact.textContent = impact || "—";
+            tdImpact.className = impactClass(impact);
 
             tr.appendChild(tdDate);
             tr.appendChild(tdCountry);
