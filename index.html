@@ -4,297 +4,1874 @@
   <meta charset="UTF-8" />
   <title>STARK TRADING DASHBOARD</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <!-- =========================
-       STYLE (inchangé sauf layout)
-       ========================= -->
   <style>
-    /* --- variables & base --- */
     :root {
       --bg: #050816;
+      --bg-alt: #0b1020;
       --card: #020617;
-      --border: #1f2937;
+      --card-alt: #111827;
       --accent: #f97316;
-      --text: #f9fafb;
-      --muted: #9ca3af;
-      --success: #22c55e;
+      --accent-soft: rgba(249, 115, 22, 0.15);
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
       --danger: #ef4444;
+      --success: #22c55e;
+      --border: #1f2937;
+      --card-radius: 18px;
+      --transition-fast: 0.15s ease-out;
+      --shadow-soft: 0 18px 35px rgba(0, 0, 0, 0.55);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      min-height: 100%;
+    }
+
     body {
-      background: radial-gradient(circle at top, #1f2937 0, #020617 60%, #000 100%);
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      color: var(--text);
+      background: radial-gradient(circle at top, #1f2937 0, #020617 50%, #000 100%);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+      color: var(--text-main);
     }
 
-    .page { max-width: 1200px; margin: 0 auto; padding: 16px; }
-    header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 18px 16px 32px;
+      width: 100%;
+    }
 
-    .brand { display:flex; gap:10px; align-items:center; }
+    /* HEADER */
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
     .brand-logo {
-      width:34px;height:34px;border-radius:12px;
-      background:radial-gradient(circle at 30% 0,#f97316,#7c2d12 55%,#020617);
-      display:flex;align-items:center;justify-content:center;
-      font-weight:700;
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      background: radial-gradient(circle at 30% 0, #f97316, #7c2d12 55%, #020617);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fef3c7;
+      font-size: 18px;
+      font-weight: 700;
+      box-shadow: 0 12px 25px rgba(248, 113, 22, 0.5);
     }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .brand-title {
+      font-size: 18px;
+      font-weight: 650;
+      letter-spacing: 0.04em;
+    }
+
+    .brand-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .nav-link, .btn-secondary, .btn-primary {
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      text-decoration: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      background: rgba(15, 23, 42, 0.9);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: border-color var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
+    }
+
+    .nav-link span {
+      font-size: 14px;
+    }
+
+    .nav-link--primary, .btn-primary {
+      border-color: rgba(249, 115, 22, 0.7);
+      background: radial-gradient(circle at 0 0, rgba(249, 115, 22, 0.18), #020617);
+      color: #fed7aa;
+    }
+
+    .nav-link:hover, .btn-secondary:hover, .btn-primary:hover {
+      border-color: var(--accent);
+      color: #e5e7eb;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      border-color: rgba(55, 65, 81, 0.9);
+      color: #e5e7eb;
+    }
+
+    /* CARTES GÉNÉRALES */
 
     .card {
-      background: var(--card);
-      border:1px solid var(--border);
-      border-radius:18px;
-      padding:16px;
-      margin-bottom:16px;
+      background: radial-gradient(circle at top left, rgba(148, 163, 184, 0.14), #020617);
+      border-radius: 22px;
+      padding: 18px 16px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      box-shadow: var(--shadow-soft);
+      position: relative;
+      overflow: hidden;
     }
 
-    .card-title { font-weight:600; margin-bottom:4px; }
-    .card-sub { font-size:12px; color:var(--muted); }
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at -10% -10%, rgba(249, 115, 22, 0.18), transparent 55%);
+      opacity: 0.9;
+      pointer-events: none;
+    }
 
-    /* --- layout --- */
+    .card-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title-badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      color: var(--text-muted);
+    }
+
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .section-label {
+      margin-top: 12px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-muted);
+    }
+
+    .summary-text {
+      font-size: 13px;
+      line-height: 1.5;
+      color: #e5e7eb;
+      margin-top: 8px;
+    }
+
+    .summary-text strong {
+      color: #f9fafb;
+    }
+
+    .tagline, .small-note {
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      border: 1px solid rgba(75, 85, 99, 0.9);
+      background: rgba(15, 23, 42, 0.95);
+    }
+
+    .pill-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--text-muted);
+    }
+
+    .pill-positive .pill-dot {
+      background: var(--success);
+    }
+
+    .pill-negative .pill-dot {
+      background: var(--danger);
+    }
+
+    .pill-neutral .pill-dot {
+      background: var(--text-muted);
+    }
+
+    .pill-positive {
+      border-color: rgba(34, 197, 94, 0.5);
+      background: rgba(22, 163, 74, 0.18);
+      color: #bbf7d0;
+    }
+
+    .pill-negative {
+      border-color: rgba(239, 68, 68, 0.55);
+      background: rgba(127, 29, 29, 0.28);
+      color: #fecaca;
+    }
+
+    .pill-neutral {
+      border-color: rgba(55, 65, 81, 0.9);
+      background: rgba(15, 23, 42, 0.95);
+      color: var(--text-muted);
+    }
+
+    /* GRIDS */
+
+    .grid-two {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.1fr);
+      gap: 18px;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 900px) {
+      .grid-two {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
     .grid-main {
-      display:grid;
-      grid-template-columns: 2fr 1fr;
-      gap:16px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.3fr);
+      gap: 18px;
+      margin-top: 10px;
     }
-    @media(max-width:900px){
-      .grid-main { grid-template-columns:1fr; }
+
+    @media (max-width: 1000px) {
+      .grid-main {
+        grid-template-columns: minmax(0, 1fr);
+      }
     }
 
     .grid-bottom {
-      display:grid;
-      grid-template-columns: 2fr 1fr;
-      gap:16px;
-    }
-    @media(max-width:900px){
-      .grid-bottom { grid-template-columns:1fr; }
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.1fr);
+      gap: 18px;
+      margin-top: 16px;
     }
 
-    /* --- prices --- */
-    .price { font-size:28px; font-weight:600; }
-    .pos{color:var(--success)} .neg{color:var(--danger)} .neu{color:var(--muted)}
+    @media (max-width: 1000px) {
+      .grid-bottom {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
 
-    /* --- mini assets --- */
+    /* MACRO HEBDO */
+
+    .events-list {
+      margin: 6px 0 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .event-item {
+      display: flex;
+      flex-direction: column;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.94);
+      border: 1px solid rgba(31, 41, 55, 0.96);
+    }
+
+    .event-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .event-main {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      font-size: 13px;
+    }
+
+    .event-country {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      color: var(--text-muted);
+    }
+
+    .event-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: #e5e7eb;
+    }
+
+    .event-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border: 1px solid rgba(75, 85, 99, 0.9);
+      background: rgba(15, 23, 42, 0.95);
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--text-muted);
+    }
+
+    .badge-high .badge-dot { background: #f97316; }
+    .badge-high { border-color: rgba(249, 115, 22, 0.7); color: #fed7aa; }
+    .badge-medium .badge-dot { background: #eab308; }
+    .badge-medium { border-color: rgba(234, 179, 8, 0.6); color: #fef9c3; }
+    .badge-low .badge-dot { background: #22c55e; }
+    .badge-low { border-color: rgba(34, 197, 94, 0.5); color: #bbf7d0; }
+
+    .event-impact {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .event-impact strong { color: #f9fafb; }
+
+    .sentiment-grid {
+      margin-top: 8px;
+      border-radius: 14px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      overflow: hidden;
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .sentiment-header, .sentiment-row {
+      display: grid;
+      grid-template-columns: 70px repeat(5, minmax(0, 1fr));
+      font-size: 11px;
+    }
+
+    .sentiment-header {
+      background: rgba(15, 23, 42, 0.98);
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .sentiment-cell, .sentiment-head-cell {
+      padding: 4px 6px;
+      border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+      border-right: 1px solid rgba(31, 41, 55, 0.9);
+      min-height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .sentiment-row:last-child .sentiment-cell { border-bottom: none; }
+    .sentiment-head-cell:last-child, .sentiment-row .sentiment-cell:last-child { border-right: none; }
+
+    .sentiment-day {
+      justify-content: flex-start;
+      padding-left: 8px;
+      color: var(--text-muted);
+    }
+
+    .sentiment-pill {
+      padding: 2px 5px;
+      border-radius: 999px;
+      font-size: 10px;
+      min-width: 26px;
+      text-align: center;
+    }
+
+    .sentiment-strong-neg { background: rgba(127, 29, 29, 0.6); color: #fecaca; }
+    .sentiment-neg { background: rgba(127, 29, 29, 0.35); color: #fecaca; }
+    .sentiment-neutral { background: rgba(31, 41, 55, 0.9); color: var(--text-muted); }
+    .sentiment-pos { background: rgba(22, 163, 74, 0.35); color: #bbf7d0; }
+    .sentiment-strong-pos { background: rgba(22, 163, 74, 0.7); color: #ecfdf5; }
+
+    /* DASHBOARD LIVE */
+
+    .top-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .top-line-main {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .top-line-title {
+      font-size: 17px;
+      font-weight: 650;
+      letter-spacing: 0.03em;
+    }
+
+    .top-line-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .macro-bias-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      background: rgba(15, 23, 42, 0.95);
+      color: var(--text-muted);
+    }
+
+    .macro-bias-chip strong { color: #f9fafb; }
+
+    .badge-beta {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(249, 115, 22, 0.7);
+      background: rgba(30, 64, 175, 0.5);
+      color: #e0f2fe;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .contract-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .contract-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .main-price {
+      font-size: 26px;
+      font-weight: 650;
+    }
+
+    .main-change-pos { color: var(--success); font-size: 13px; margin-left: 6px; }
+    .main-change-neg { color: var(--danger); font-size: 13px; margin-left: 6px; }
+    .main-change-neutral { color: var(--text-muted); font-size: 13px; margin-left: 6px; }
+
     .mini-grid {
-      display:grid;
-      grid-template-columns: repeat(3,1fr);
-      gap:8px;
-      margin-top:12px;
-    }
-    .mini {
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:8px;
-      font-size:12px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
     }
 
-    /* --- perf table --- */
-    table { width:100%; border-collapse:collapse; font-size:12px; }
-    th,td { padding:6px; border-bottom:1px solid var(--border); }
-    th { color:var(--muted); text-align:left; }
-
-    /* --- news --- */
-    .pill {
-      display:inline-flex;gap:6px;align-items:center;
-      padding:4px 10px;border-radius:999px;
-      border:1px solid var(--border);font-size:11px;
+    @media (max-width: 700px) {
+      .mini-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
     }
-    .pill-dot{width:6px;height:6px;border-radius:50%}
-    .pill.pos{border-color:var(--success);color:#bbf7d0}
-    .pill.neg{border-color:var(--danger);color:#fecaca}
-    .pill.neu{color:var(--muted)}
+
+    .mini-asset {
+      border-radius: 14px;
+      padding: 10px 10px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      font-size: 12px;
+    }
+
+    .mini-asset-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 4px;
+      gap: 4px;
+    }
+
+    .mini-asset-name {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .mini-asset-change-pos { color: var(--success); font-size: 11px; }
+    .mini-asset-change-neg { color: var(--danger); font-size: 11px; }
+    .mini-asset-change-neutral { color: var(--text-muted); font-size: 11px; }
+
+    .mini-asset-price {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .mini-asset-comment {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .status-line {
+      margin-top: 10px;
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .status-ok {
+      color: #4ade80;
+    }
+
+    .select-asset {
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      background: rgba(15, 23, 42, 0.95);
+      color: var(--text-main);
+      font-size: 12px;
+    }
+
+    /* NEWS IA */
+
+    .news-top-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .news-last-update {
+      margin-left: auto;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
 
     .news-layout {
-      display:grid;
-      grid-template-columns: 1.6fr 1fr;
-      gap:12px;
-      margin-top:8px;
-    }
-    @media(max-width:900px){
-      .news-layout{grid-template-columns:1fr;}
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.1fr);
+      gap: 14px;
+      margin-top: 6px;
     }
 
-    /* --- calendar --- */
-    .calendar-block { margin-top:10px; }
-    .calendar-title { font-size:12px;color:var(--muted);margin-bottom:6px; }
+    @media (max-width: 900px) {
+      .news-layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .news-global { min-height: 120px; }
+
+    .news-keypoints {
+      margin-top: 8px;
+      list-style: disc;
+      padding-left: 16px;
+      font-size: 12px;
+      color: #d1d5db;
+    }
+
+    .news-keypoints li { margin-bottom: 3px; }
+
+    .news-impacts {
+      padding: 10px 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      background: rgba(15, 23, 42, 0.92);
+    }
+
+    .news-impacts-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .news-asset-select {
+      min-width: 150px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      background: rgba(15, 23, 42, 0.95);
+      color: var(--text-main);
+      font-size: 12px;
+    }
+
+    .news-impact-panel { margin-top: 4px; }
+
+    .news-impact-badge {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border: 1px solid rgba(75, 85, 99, 0.9);
+      background: rgba(15, 23, 42, 0.95);
+      margin-bottom: 6px;
+    }
+
+    .news-impact-badge.bullish {
+      border-color: rgba(34, 197, 94, 0.6);
+      color: #bbf7d0;
+    }
+
+    .news-impact-badge.bearish {
+      border-color: rgba(239, 68, 68, 0.6);
+      color: #fecaca;
+    }
+
+    .news-impact-badge.neutral {
+      border-color: rgba(55, 65, 81, 0.9);
+      color: var(--text-muted);
+    }
+
+    .news-impact-comment {
+      font-size: 12px;
+      color: #e5e7eb;
+      line-height: 1.5;
+    }
+
+    .news-asset-helper {
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .news-footer {
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* CALENDRIER ÉCO */
+
+    .calendar-columns {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .calendar-day-block {
+      padding: 8px 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      background: rgba(15, 23, 42, 0.95);
+      font-size: 12px;
+    }
+
+    .calendar-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      margin-top: 6px;
+    }
+
+    .calendar-table th,
+    .calendar-table td {
+      padding: 4px 6px;
+      border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+    }
+
+    .calendar-table th {
+      color: var(--text-muted);
+      font-weight: 500;
+      text-align: left;
+    }
+
+    .calendar-impact-high { color: #f97316; }
+    .calendar-impact-medium { color: #eab308; }
+    .calendar-impact-low { color: #22c55e; }
+
+    /* PERF INDICES */
+
+    .table-wrapper {
+      margin-top: 8px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+
+    th, td {
+      padding: 4px 6px;
+      border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+      text-align: left;
+    }
+
+    th {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .perf-positive { color: #4ade80; }
+    .perf-negative { color: #f97373; }
+    .perf-neutral { color: #9ca3af; }
   </style>
 </head>
-
 <body>
-
-<div class="page">
-
-  <!-- ======================
-       HEADER
-       ====================== -->
-  <header>
-    <div class="brand">
-      <div class="brand-logo">Δ</div>
-      <div>
-        <div style="font-weight:600">STARK TRADING</div>
-        <div style="font-size:12px;color:var(--muted)">Macro · News · Futures</div>
+  <!-- SECTION 1 : MACRO HEBDO -->
+  <div id="macro-weekly" class="page">
+    <header>
+      <div class="brand">
+        <div class="brand-logo">Δ</div>
+        <div class="brand-text">
+          <div class="brand-title">STARK TRADING – MACRO</div>
+          <div class="brand-subtitle">
+            Résumé hebdo &amp; contexte marché
+            <span id="macro-last-update" style="margin-left:6px; color:#6b7280; font-size:11px;"></span>
+          </div>
+        </div>
       </div>
+      <div class="nav-links">
+        <a href="#live-dashboard" class="nav-link">
+          <span>⬇</span> Aller au dashboard trading
+        </a>
+        <button class="nav-link nav-link--primary" type="button" onclick="refreshMacroWeek()">
+          🔄 Rafraîchir la vue
+        </button>
+      </div>
+    </header>
+
+    <div class="grid-two">
+      <!-- Colonne gauche : résumé & events -->
+      <section class="card">
+        <div class="card-inner">
+          <div class="card-header">
+            <div>
+              <div class="card-title">
+                Vue hebdomadaire
+                <span class="card-title-badge" id="week-range">Semaine en cours</span>
+              </div>
+              <div class="card-subtitle">
+                Sentiment global &amp; événements macro qui ont drivé le marché.
+              </div>
+            </div>
+            <div id="risk-pill" class="pill pill-neutral">
+              <span class="pill-dot"></span>
+              <span id="risk-label">Lecture neutre</span>
+            </div>
+          </div>
+
+          <div id="risk-comment" class="summary-text">
+            Récupération de la vue macro en cours…
+          </div>
+
+          <div class="section-label">ÉVÉNEMENTS CLÉS DE LA SEMAINE</div>
+          <ul id="events-list" class="events-list"></ul>
+
+          <div class="section-label">MOUVEMENTS MARQUANTS</div>
+          <ul id="moves-list" class="events-list"></ul>
+
+          <p class="small-note">
+            Synthèse hebdomadaire générée pour ton suivi des marchés.
+          </p>
+        </div>
+      </section>
+
+      <!-- Colonne droite : seulement la grille de sentiment -->
+      <section class="card">
+        <div class="card-inner">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Indices &amp; sentiment news</div>
+              <div class="card-subtitle">
+                Chaleur des news par thème au cours de la semaine.
+              </div>
+            </div>
+          </div>
+
+          <div class="section-label">SENTIMENT NEWS PAR JOUR &amp; THÉMATIQUE</div>
+          <div class="sentiment-grid">
+            <div class="sentiment-header">
+              <div class="sentiment-head-cell sentiment-day">Jour</div>
+              <div class="sentiment-head-cell">Macro US</div>
+              <div class="sentiment-head-cell">Macro Europe</div>
+              <div class="sentiment-head-cell">Entreprises</div>
+              <div class="sentiment-head-cell">Géopolitique</div>
+              <div class="sentiment-head-cell">Tech</div>
+            </div>
+            <div id="sentiment-body"></div>
+          </div>
+
+          <p class="tagline">
+            La grille reflète le sentiment moyen des news captées par thématique, sur la période de la semaine.
+          </p>
+        </div>
+      </section>
     </div>
-  </header>
-
-  <!-- ======================
-       LIVE PRICES
-       ====================== -->
-  <div class="grid-main">
-
-    <section class="card">
-      <div class="card-title">ES – S&P 500 Future</div>
-      <div class="price" id="main-price">0.00</div>
-      <div id="main-change" class="neu">0.00 %</div>
-
-      <div class="mini-grid" id="mini-assets"></div>
-    </section>
-
-    <!-- PERF INDICES (resserré) -->
-    <section class="card">
-      <div class="card-title">Performance indices</div>
-      <table>
-        <thead>
-          <tr><th>Actif</th><th>Jour</th><th>Semaine</th><th>Mois</th></tr>
-        </thead>
-        <tbody id="perf-summary-body"></tbody>
-      </table>
-    </section>
-
   </div>
 
-  <!-- ======================
-       NEWS IA V2
-       ====================== -->
-  <section class="card">
-    <div class="card-title">News & Sentiment IA</div>
-    <div class="card-sub">Sources mondiales (Reuters, FT, WSJ, Crypto)</div>
-
-    <div style="display:flex;gap:8px;margin-top:8px;">
-      <div id="news-tone-pill" class="pill neu">
-        <span class="pill-dot"></span>
-        <span id="news-tone-label">Tonalité…</span>
+  <!-- SECTION 2 : DASHBOARD LIVE -->
+  <div id="live-dashboard" class="page">
+    <header>
+      <div class="brand">
+        <div class="brand-logo">A</div>
+        <div class="brand-text">
+          <div class="brand-title">STARK TRADING DASHBOARD</div>
+          <div class="brand-subtitle">
+            Vue synthétique des marchés — ES, NQ, BTC, CL, GC
+          </div>
+        </div>
       </div>
-      <div id="news-vol-pill" class="pill neu">
-        <span class="pill-dot"></span>
-        <span id="news-vol-label">Volatilité…</span>
+      <div class="nav-links">
+        <span class="badge-beta">BÊTA – BACKEND RENDER</span>
       </div>
-    </div>
+    </header>
 
-    <div class="news-layout">
-      <div>
-        <p id="news-summary-text" style="margin-top:8px;">
-          Chargement analyse IA…
-        </p>
-        <ul id="news-keypoints" style="margin-top:8px;font-size:12px;"></ul>
+    <div class="top-line">
+      <div class="top-line-main">
+        <div class="top-line-title">Contrat principal – <span id="main-symbol-label">ES S&amp;P 500 Future</span></div>
+        <div class="top-line-sub">
+          Lecture globale du marché &amp; biais macro.
+        </div>
       </div>
-
-      <div>
-        <select id="news-asset-select"></select>
-        <div id="news-impact-panel" style="margin-top:8px;font-size:12px;"></div>
+      <div id="macro-bias-chip" class="macro-bias-chip">
+        <strong>Biais MACRO GLOBAL</strong> <span id="macro-bias-text">Lecture neutre pour le moment.</span>
       </div>
     </div>
-  </section>
 
-  <!-- ======================
-       CALENDRIER ÉCO
-       ====================== -->
-  <section class="card">
-    <div class="card-title">Calendrier économique</div>
+    <div class="grid-main">
+      <!-- Bloc gauche : prix & indices -->
+      <section class="card">
+        <div class="card-inner">
+          <div class="contract-title">ES — S&amp;P 500 Future</div>
+          <div class="contract-sub">Prix spot &amp; variation depuis la dernière bougie.</div>
 
-    <div class="calendar-block">
-      <div class="calendar-title">AUJOURD’HUI</div>
-      <table>
-        <tbody id="calendar-today-body"></tbody>
-      </table>
+          <div style="margin-top:10px;">
+            <span id="main-price" class="main-price">0.00</span>
+            <span id="main-change" class="main-change-neutral">0.00 %</span>
+          </div>
+
+          <div class="section-label" style="margin-top:10px;">LECTURE GLOBALE EN COURS…</div>
+
+          <div class="mini-grid" id="mini-assets">
+            <!-- tuiles injectées -->
+          </div>
+
+          <div class="status-line">
+            <span class="status-ok" id="backend-status">
+              ● Backend Render en ligne – actualisation auto toutes les 15 s
+            </span>
+            <span id="market-last-update">Dernière mise à jour : —</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Bloc droit : Performance indices -->
+      <section class="card">
+        <div class="card-inner">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Performance des indices</div>
+              <div class="card-subtitle">
+                Données au <span id="perf-as-of">—</span>.
+              </div>
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Indice</th>
+                  <th>Jour</th>
+                  <th>Semaine</th>
+                  <th>Mois</th>
+                </tr>
+              </thead>
+              <tbody id="perf-summary-body">
+                <!-- lignes -->
+              </tbody>
+            </table>
+          </div>
+
+          <p class="small-note" id="perf-error" style="display:none; color:#fca5a5; margin-top:6px;">
+            Erreur lors du chargement des performances.
+          </p>
+        </div>
+      </section>
     </div>
 
-    <div class="calendar-block">
-      <div class="calendar-title">PROCHAINS JOURS</div>
-      <table>
-        <tbody id="calendar-next-body"></tbody>
-      </table>
+    <!-- Bas : News IA + Calendrier -->
+    <div class="grid-bottom">
+      <!-- NEWS IA -->
+      <section class="card card-news">
+        <div class="card-inner">
+          <div class="card-header">
+            <div>
+              <div class="card-title">News &amp; Sentiment IA</div>
+              <div class="card-subtitle">
+                Lecture synthétique des dernières news macro / marché à partir des flux IA (V2 – stress &amp; drivers).
+              </div>
+            </div>
+            <button id="news-refresh-btn" class="btn-secondary" type="button">
+              🔄 Rafraîchir l'analyse
+            </button>
+          </div>
+
+          <!-- Ligne tonalité / volatilité -->
+          <div class="news-top-row">
+            <span id="news-tone-pill" class="pill pill-neutral">
+              <span class="pill-dot"></span>
+              <span id="news-tone-label">Tonalité en cours…</span>
+            </span>
+            <span id="news-vol-pill" class="pill pill-neutral">
+              <span class="pill-dot"></span>
+              <span id="news-vol-label">Volatilité : —</span>
+            </span>
+            <span id="news-last-update" class="news-last-update">Dernière analyse : —</span>
+          </div>
+
+          <!-- Layout : bloc news + bloc impacts -->
+          <div class="news-layout">
+            <div class="news-global">
+              <h4 class="section-label">RÉSUMÉ MACRO (NEWS)</h4>
+              <p id="news-summary-text" class="summary-text">
+                Impossible de récupérer l'analyse des news pour le moment.
+              </p>
+
+              <ul id="news-keypoints" class="news-keypoints"></ul>
+            </div>
+
+            <div class="news-impacts">
+              <div class="news-impacts-header">
+                <h4 class="section-label">IMPACT PAR INDICE / ACTIF</h4>
+                <select id="news-asset-select" class="news-asset-select"></select>
+              </div>
+
+              <div id="news-impact-panel" class="news-impact-panel">
+                <div class="news-impact-badge neutral" id="news-impact-bias">
+                  Biais : —
+                </div>
+                <p id="news-impact-comment" class="news-impact-comment">
+                  Sélectionne un indice dans la liste pour voir l'interprétation de l'IA.
+                </p>
+              </div>
+
+              <p class="news-asset-helper">
+                Indices suivis : ES (S&amp;P 500), NQ (Nasdaq 100), BTC (Bitcoin), CL (WTI), GC (Gold).
+              </p>
+            </div>
+          </div>
+
+          <div class="news-footer">
+            <span id="news-source-label" class="news-source-label">Source : —</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Calendrier économique -->
+      <section class="card">
+        <div class="card-inner">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Calendrier économique</div>
+              <div class="card-subtitle">
+                Principales publications macro du jour et des prochains jours (UTC).
+              </div>
+            </div>
+          </div>
+
+          <div class="calendar-columns">
+            <div class="calendar-day-block">
+              <div class="section-label">AUJOURD'HUI</div>
+              <table class="calendar-table">
+                <thead>
+                  <tr>
+                    <th>Heure</th>
+                    <th>Pays</th>
+                    <th>Événement</th>
+                    <th>Impact</th>
+                  </tr>
+                </thead>
+                <tbody id="calendar-today-body">
+                  <tr>
+                    <td colspan="4" style="font-size:11px; color:#9ca3af;">
+                      Chargement du calendrier d'aujourd'hui…
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="calendar-day-block">
+              <div class="section-label">PROCHAINS JOURS</div>
+              <table class="calendar-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Pays</th>
+                    <th>Événement</th>
+                    <th>Impact</th>
+                  </tr>
+                </thead>
+                <tbody id="calendar-next-body">
+                  <tr>
+                    <td colspan="4" style="font-size:11px; color:#9ca3af;">
+                      Chargement des publications des prochains jours…
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </section>
     </div>
-  </section>
+  </div>
 
-</div>
+  <script>
+    const API_BASE = "";
 
-<!-- ======================
-     JS
-     ====================== -->
-<script>
-/* ---------- LIVE PRICES ---------- */
-const ASSETS=["ES","NQ","BTC","CL","GC"];
+    /* ---------- UTILITAIRES GÉNÉRAUX ---------- */
 
-async function refreshSnapshots(){
-  const mini=document.getElementById("mini-assets");
-  mini.innerHTML="";
-  for(const s of ASSETS){
-    const r=await fetch(`/latest?symbol=${s}`);
-    if(!r.ok)continue;
-    const d=await r.json();
-    const div=document.createElement("div");
-    div.className="mini";
-    div.innerHTML=`<strong>${s}</strong><br>${(d.price||0).toFixed(2)}<br>${(d.change_pct||0).toFixed(2)} %`;
-    mini.appendChild(div);
-    if(s==="ES"){
-      document.getElementById("main-price").textContent=(d.price||0).toFixed(2);
-      document.getElementById("main-change").textContent=(d.change_pct||0).toFixed(2)+" %";
+    function sentimentClassFromValue(avg) {
+      if (avg === null || avg === undefined || isNaN(avg)) return "sentiment-neutral";
+      if (avg <= -0.5) return "sentiment-strong-neg";
+      if (avg < -0.1) return "sentiment-neg";
+      if (avg > -0.1 && avg < 0.1) return "sentiment-neutral";
+      if (avg < 0.5) return "sentiment-pos";
+      return "sentiment-strong-pos";
     }
-  }
-}
 
-/* ---------- PERF ---------- */
-async function refreshPerf(){
-  const r=await fetch("/perf/summary");
-  if(!r.ok)return;
-  const data=await r.json();
-  const body=document.getElementById("perf-summary-body");
-  body.innerHTML="";
-  data.forEach(a=>{
-    const tr=document.createElement("tr");
-    tr.innerHTML=`<td>${a.symbol}</td><td>${a.daily}</td><td>${a.weekly}</td><td>${a.monthly}</td>`;
-    body.appendChild(tr);
-  });
-}
+    /* ---------- MACRO HEBDO (SECTION HAUT) ---------- */
 
-/* ---------- NEWS IA V2 ---------- */
-async function fetchNewsV2(){
-  const r=await fetch("/api/news/analyze-v2",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({max_articles:25})});
-  if(!r.ok)return;
-  const d=await r.json();
-  document.getElementById("news-summary-text").textContent=d.analysis.macro_sentiment.comment||"—";
-  const ul=document.getElementById("news-keypoints");
-  ul.innerHTML="";
-  (d.analysis.key_points||[]).forEach(p=>{
-    const li=document.createElement("li");li.textContent=p;ul.appendChild(li);
-  });
-}
+    function setRiskPillWeekly(summary) {
+      const pill = document.getElementById("risk-pill");
+      const label = document.getElementById("risk-label");
+      pill.classList.remove("pill-positive", "pill-negative", "pill-neutral");
 
-/* ---------- CALENDAR ---------- */
-async function refreshCalendar(){
-  const r=await fetch("/api/calendar/summary");
-  if(!r.ok)return;
-  const d=await r.json();
-  const t=document.getElementById("calendar-today-body");
-  const n=document.getElementById("calendar-next-body");
-  t.innerHTML="";n.innerHTML="";
-  d.today.forEach(e=>{
-    t.innerHTML+=`<tr><td>${e.time||""}</td><td>${e.country||""}</td><td>${e.event}</td></tr>`;
-  });
-  d.next_days.forEach(e=>{
-    n.innerHTML+=`<tr><td>${e.date}</td><td>${e.country||""}</td><td>${e.event}</td></tr>`;
-  });
-}
+      if (summary.risk_on === true) {
+        pill.classList.add("pill-positive");
+        label.textContent = "Biais risk-on";
+      } else if (summary.risk_on === false) {
+        pill.classList.add("pill-negative");
+        label.textContent = "Biais risk-off";
+      } else {
+        pill.classList.add("pill-neutral");
+        label.textContent = "Lecture neutre";
+      }
+    }
 
-/* ---------- INIT ---------- */
-document.addEventListener("DOMContentLoaded",()=>{
-  refreshSnapshots();
-  refreshPerf();
-  fetchNewsV2();
-  refreshCalendar();
-  setInterval(refreshSnapshots,15000);
-});
-</script>
+    function setWeekRange(summary) {
+      const span = document.getElementById("week-range");
+      const start = new Date(summary.start);
+      const end = new Date(summary.end);
+      const opts = { day: "2-digit", month: "2-digit" };
+      span.textContent =
+        start.toLocaleDateString("fr-FR", opts) +
+        " → " +
+        end.toLocaleDateString("fr-FR", opts);
 
+      const lastUpdate = document.getElementById("macro-last-update");
+      lastUpdate.textContent =
+        "(Semaine " +
+        start.toLocaleDateString("fr-FR", opts) +
+        " → " +
+        end.toLocaleDateString("fr-FR", opts) +
+        ")";
+    }
+
+    function renderRiskComment(summary) {
+      const el = document.getElementById("risk-comment");
+      el.textContent = summary.risk_comment || "Pas de commentaire disponible.";
+    }
+
+    function renderTopEvents(summary) {
+      const list = document.getElementById("events-list");
+      list.innerHTML = "";
+
+      if (!summary.top_events || summary.top_events.length === 0) {
+        const li = document.createElement("li");
+        li.textContent = "Aucun événement majeur identifié pour cette semaine.";
+        li.style.fontSize = "12px";
+        li.style.color = "#9ca3af";
+        list.appendChild(li);
+        return;
+      }
+
+      summary.top_events.forEach((ev) => {
+        const li = document.createElement("li");
+        li.className = "event-item";
+
+        const top = document.createElement("div");
+        top.className = "event-top";
+
+        const main = document.createElement("div");
+        main.className = "event-main";
+
+        const country = document.createElement("span");
+        country.className = "event-country";
+        country.textContent = ev.country || "—";
+
+        const title = document.createElement("span");
+        title.className = "event-title";
+        title.textContent = ev.title || "Événement";
+
+        main.appendChild(country);
+        main.appendChild(title);
+
+        const meta = document.createElement("div");
+        meta.className = "event-meta";
+
+        if (ev.datetime) {
+          const date = new Date(ev.datetime);
+          const txt =
+            date.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }) +
+            " • " +
+            date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+          const dt = document.createElement("span");
+          dt.textContent = txt;
+          meta.appendChild(dt);
+        }
+
+        const badge = document.createElement("span");
+        badge.className = "badge";
+        badge.classList.add(
+          ev.importance === "high"
+            ? "badge-high"
+            : ev.importance === "medium"
+            ? "badge-medium"
+            : "badge-low"
+        );
+
+        const dot = document.createElement("span");
+        dot.className = "badge-dot";
+        badge.appendChild(dot);
+
+        const txt = document.createElement("span");
+        txt.textContent =
+          ev.importance === "high"
+            ? "MAJEUR"
+            : ev.importance === "medium"
+            ? "SIGNIFICATIF"
+            : "SECONDAIRE";
+        badge.appendChild(txt);
+
+        meta.appendChild(badge);
+        top.appendChild(main);
+        top.appendChild(meta);
+
+        const impact = document.createElement("div");
+        impact.className = "event-impact";
+        impact.textContent = ev.impact_comment || "Impact macro / marché non précisé.";
+
+        li.appendChild(top);
+        li.appendChild(impact);
+        list.appendChild(li);
+      });
+    }
+
+    function renderTopMoves(summary) {
+      const list = document.getElementById("moves-list");
+      list.innerHTML = "";
+
+      if (!summary.top_moves || summary.top_moves.length === 0) {
+        const li = document.createElement("li");
+        li.textContent = "Aucun mouvement marquant remonté pour cette semaine.";
+        li.style.fontSize = "12px";
+        li.style.color = "#9ca3af";
+        list.appendChild(li);
+        return;
+      }
+
+      summary.top_moves.forEach((mv) => {
+        const li = document.createElement("li");
+        li.className = "event-item";
+
+        const top = document.createElement("div");
+        top.className = "event-top";
+
+        const desc = document.createElement("div");
+        desc.className = "event-title";
+        desc.textContent = mv.description || "Mouvement";
+
+        const meta = document.createElement("div");
+        meta.className = "event-meta";
+
+        const asset = document.createElement("span");
+        asset.textContent = mv.asset || "—";
+
+        const perf = document.createElement("span");
+        const val = mv.move_pct || 0;
+        const sign = val > 0 ? "+" : "";
+        perf.textContent = sign + val.toFixed(2) + " %";
+        perf.style.color =
+          val > 0
+            ? "var(--success)"
+            : val < 0
+            ? "var(--danger)"
+            : "var(--text-muted)";
+
+        meta.appendChild(asset);
+        meta.appendChild(perf);
+
+        top.appendChild(desc);
+        top.appendChild(meta);
+
+        li.appendChild(top);
+        list.appendChild(li);
+      });
+    }
+
+    function renderSentimentGrid(data) {
+      const container = document.getElementById("sentiment-body");
+      container.innerHTML = "";
+
+      if (!data.sentiment_grid || data.sentiment_grid.length === 0) {
+        const row = document.createElement("div");
+        row.className = "sentiment-row";
+        const cell = document.createElement("div");
+        cell.className = "sentiment-cell sentiment-day";
+        cell.textContent = "Pas de données de sentiment.";
+        cell.style.gridColumn = "1 / -1";
+        row.appendChild(cell);
+        container.appendChild(row);
+        return;
+      }
+
+      const bucketsOrder = ["macro_us", "macro_europe", "companies", "geopolitics", "tech"];
+      const groupedByDay = {};
+      data.sentiment_grid.forEach((cell) => {
+        const d = cell.date;
+        if (!groupedByDay[d]) groupedByDay[d] = {};
+        groupedByDay[d][cell.bucket] = cell;
+      });
+
+      const days = Object.keys(groupedByDay).sort();
+      const dayLabels = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
+
+      days.forEach((d) => {
+        const row = document.createElement("div");
+        row.className = "sentiment-row";
+
+        const dayCell = document.createElement("div");
+        dayCell.className = "sentiment-cell sentiment-day";
+        const dateObj = new Date(d);
+        const dow = dayLabels[dateObj.getDay()] || "";
+        dayCell.textContent =
+          dow +
+          " " +
+          dateObj.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
+        row.appendChild(dayCell);
+
+        bucketsOrder.forEach((bucket) => {
+          const info = groupedByDay[d][bucket];
+          const cellDiv = document.createElement("div");
+          cellDiv.className = "sentiment-cell";
+
+          if (!info) {
+            cellDiv.textContent = "—";
+            cellDiv.classList.add("sentiment-neutral");
+          } else {
+            const avg = info.sentiment;
+            const count = info.news_count || 0;
+            const pill = document.createElement("div");
+            pill.className = "sentiment-pill " + sentimentClassFromValue(avg);
+
+            if (count === 0) {
+              pill.textContent = "—";
+            } else if (avg === null || avg === undefined || isNaN(avg)) {
+              pill.textContent = count;
+            } else {
+              pill.textContent = (avg > 0 ? "+" : "") + avg.toFixed(2);
+            }
+            cellDiv.appendChild(pill);
+          }
+
+          row.appendChild(cellDiv);
+        });
+
+        container.appendChild(row);
+      });
+    }
+
+    async function refreshMacroWeek() {
+      try {
+        const [summaryRes, rawRes] = await Promise.all([
+          fetch(API_BASE + "/api/macro/week/summary"),
+          fetch(API_BASE + "/api/macro/week/raw"),
+        ]);
+
+        if (!summaryRes.ok || !rawRes.ok) {
+          throw new Error("Erreur HTTP sur les endpoints macro");
+        }
+
+        const summary = await summaryRes.json();
+        const raw = await rawRes.json();
+
+        setWeekRange(summary);
+        setRiskPillWeekly(summary);
+        renderRiskComment(summary);
+        renderTopEvents(summary);
+        renderTopMoves(summary);
+        renderSentimentGrid(raw);
+
+        // MAJ chip macro globale pour le dashboard
+        updateMacroBiasChip();
+      } catch (err) {
+        console.error("Erreur refreshMacroWeek:", err);
+        const el = document.getElementById("risk-comment");
+        el.textContent = "Vue macro indisponible pour le moment.";
+      }
+    }
+
+    /* ---------- MACRO BIAS POUR LE BANDEAU HAUT DASH ---------- */
+
+    async function updateMacroBiasChip() {
+      try {
+        const resp = await fetch(API_BASE + "/api/macro/bias");
+        if (!resp.ok) throw new Error("HTTP " + resp.status);
+        const data = await resp.json();
+
+        const chip = document.getElementById("macro-bias-chip");
+        const txt = document.getElementById("macro-bias-text");
+
+        chip.classList.remove("pill-positive", "pill-negative", "pill-neutral");
+        if (data.risk_on === true) {
+          chip.classList.add("pill-positive");
+        } else if (data.risk_on === false) {
+          chip.classList.add("pill-negative");
+        } else {
+          chip.classList.add("pill-neutral");
+        }
+        txt.textContent = data.comment || "Lecture macro indisponible pour le moment.";
+      } catch (e) {
+        console.error("Erreur updateMacroBiasChip:", e);
+      }
+    }
+
+    /* ---------- DASHBOARD LIVE : SNAPSHOTS & PERF ---------- */
+
+    const ASSETS = ["ES", "NQ", "BTC", "CL", "GC"];
+
+    async function fetchSnapshot(symbol) {
+      const resp = await fetch(API_BASE + "/latest?symbol=" + encodeURIComponent(symbol));
+      if (!resp.ok) throw new Error("HTTP " + resp.status);
+      return resp.json();
+    }
+
+    async function refreshSnapshots() {
+      try {
+        const results = await Promise.allSettled(ASSETS.map((s) => fetchSnapshot(s)));
+        const miniContainer = document.getElementById("mini-assets");
+        miniContainer.innerHTML = "";
+
+        let mainSnapshot = null;
+
+        results.forEach((res, idx) => {
+          const sym = ASSETS[idx];
+          if (res.status !== "fulfilled") return;
+          const snap = res.value;
+
+          if (sym === "ES") mainSnapshot = snap;
+
+          const card = document.createElement("div");
+          card.className = "mini-asset";
+
+          const header = document.createElement("div");
+          header.className = "mini-asset-header";
+
+          const name = document.createElement("div");
+          name.className = "mini-asset-name";
+          name.textContent = snap.label || sym;
+
+          const changeEl = document.createElement("div");
+          const ch = snap.change_pct ?? 0;
+          const sign = ch > 0 ? "+" : "";
+          changeEl.textContent = sign + ch.toFixed(2) + " %";
+          changeEl.className =
+            ch > 0
+              ? "mini-asset-change-pos"
+              : ch < 0
+              ? "mini-asset-change-neg"
+              : "mini-asset-change-neutral";
+
+          header.appendChild(name);
+          header.appendChild(changeEl);
+
+          const price = document.createElement("div");
+          price.className = "mini-asset-price";
+          price.textContent = (snap.price ?? 0).toFixed(2);
+
+          const comment = document.createElement("div");
+          comment.className = "mini-asset-comment";
+          comment.textContent = snap.comment || "Pas de commentaire disponible.";
+
+          card.appendChild(header);
+          card.appendChild(price);
+          card.appendChild(comment);
+          miniContainer.appendChild(card);
+        });
+
+        if (mainSnapshot) {
+          const priceEl = document.getElementById("main-price");
+          const changeEl = document.getElementById("main-change");
+          priceEl.textContent = (mainSnapshot.price ?? 0).toFixed(2);
+
+          const ch = mainSnapshot.change_pct ?? 0;
+          const sign = ch > 0 ? "+" : "";
+          changeEl.textContent = sign + ch.toFixed(2) + " %";
+          changeEl.className =
+            ch > 0
+              ? "main-change-pos"
+              : ch < 0
+              ? "main-change-neg"
+              : "main-change-neutral";
+        }
+
+        const ts = new Date();
+        document.getElementById("market-last-update").textContent =
+          "Dernière mise à jour : " +
+          ts.toLocaleTimeString("fr-FR", {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+      } catch (e) {
+        console.error("Erreur refreshSnapshots:", e);
+        document.getElementById("backend-status").textContent =
+          "Impossible de mettre à jour les données marchés pour le moment.";
+        document.getElementById("backend-status").classList.remove("status-ok");
+      }
+    }
+
+    async function refreshPerfSummary() {
+      try {
+        const resp = await fetch(API_BASE + "/perf/summary");
+        if (!resp.ok) throw new Error("HTTP " + resp.status);
+        const data = await resp.json();
+
+        document.getElementById("perf-as-of").textContent = data.as_of || "—";
+
+        const body = document.getElementById("perf-summary-body");
+        body.innerHTML = "";
+
+        (data.assets || []).forEach((a) => {
+          const tr = document.createElement("tr");
+
+          const tdName = document.createElement("td");
+          tdName.textContent = a.label || a.symbol || "—";
+
+          const tdD = document.createElement("td");
+          const tdW = document.createElement("td");
+          const tdM = document.createElement("td");
+
+          const setCell = (td, val) => {
+            if (val === null || val === undefined) {
+              td.textContent = "—";
+              td.className = "perf-neutral";
+            } else {
+              const sign = val > 0 ? "+" : "";
+              td.textContent = sign + val.toFixed(2) + " %";
+              td.className =
+                val > 0 ? "perf-positive" : val < 0 ? "perf-negative" : "perf-neutral";
+            }
+          };
+
+          setCell(tdD, a.d);
+          setCell(tdW, a.w);
+          setCell(tdM, a.m);
+
+          tr.appendChild(tdName);
+          tr.appendChild(tdD);
+          tr.appendChild(tdW);
+          tr.appendChild(tdM);
+          body.appendChild(tr);
+        });
+
+        document.getElementById("perf-error").style.display = "none";
+      } catch (e) {
+        console.error("Erreur refreshPerfSummary:", e);
+        document.getElementById("perf-error").style.display = "block";
+      }
+    }
+
+    /* ---------- NEWS IA V2 (stress) ---------- */
+
+    let NEWS_IMPACT_BY_ASSET = {};
+
+    function applyRiskTonePill(riskTone, stressScore) {
+      const pill = document.getElementById("news-tone-pill");
+      const label = document.getElementById("news-tone-label");
+      pill.classList.remove("pill-positive", "pill-negative", "pill-neutral");
+
+      let baseText;
+      if (riskTone === "risk_on") {
+        pill.classList.add("pill-positive");
+        baseText = "Tonalité risk-on";
+      } else if (riskTone === "risk_off") {
+        pill.classList.add("pill-negative");
+        baseText = "Tonalité risk-off";
+      } else {
+        pill.classList.add("pill-neutral");
+        baseText = "Tonalité neutre / mitigée";
+      }
+
+      if (stressScore !== null && stressScore !== undefined && !isNaN(stressScore)) {
+        label.textContent = `${baseText} · Stress ${Math.round(stressScore)}/100`;
+      } else {
+        label.textContent = baseText;
+      }
+    }
+
+    function applyVolPill(volOutlook) {
+      const pill = document.getElementById("news-vol-pill");
+      const label = document.getElementById("news-vol-label");
+      pill.classList.remove("pill-positive", "pill-negative", "pill-neutral");
+
+      if (volOutlook === "high") {
+        pill.classList.add("pill-negative");
+        label.textContent = "Volatilité : élevée";
+      } else if (volOutlook === "low") {
+        pill.classList.add("pill-positive");
+        label.textContent = "Volatilité : faible";
+      } else {
+        pill.classList.add("pill-neutral");
+        label.textContent = "Volatilité : normale";
+      }
+    }
+
+    function populateImpactSelect(byAsset) {
+      const select = document.getElementById("news-asset-select");
+      select.innerHTML = "";
+
+      const entries = Object.entries(byAsset || {});
+      if (entries.length === 0) {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "Aucun actif disponible";
+        select.appendChild(opt);
+        updateImpactPanel(null);
+        return;
+      }
+
+      const labels = {
+        ES: "ES – S&P 500 Future",
+        NQ: "NQ – Nasdaq 100 Future",
+        BTC: "BTC – Bitcoin",
+        CL: "CL – Crude Oil (WTI)",
+        GC: "GC – Gold",
+      };
+
+      entries.forEach(([sym]) => {
+        const opt = document.createElement("option");
+        opt.value = sym;
+        opt.textContent = labels[sym] || sym;
+        select.appendChild(opt);
+      });
+
+      select.onchange = (e) => updateImpactPanel(e.target.value);
+      updateImpactPanel(entries[0][0]);
+    }
+
+    function updateImpactPanel(symbol) {
+      const info = symbol ? (NEWS_IMPACT_BY_ASSET && NEWS_IMPACT_BY_ASSET[symbol]) : null;
+      const badge = document.getElementById("news-impact-bias");
+      const commentEl = document.getElementById("news-impact-comment");
+
+      badge.classList.remove("bullish", "bearish", "neutral");
+
+      if (!info) {
+        badge.textContent = "Biais : —";
+        badge.classList.add("neutral");
+        commentEl.textContent =
+          "Pas de commentaire spécifique disponible pour cet actif.";
+        return;
+      }
+
+      const bias = (info.bias || "neutral").toLowerCase();
+      if (bias === "bullish") badge.classList.add("bullish");
+      else if (bias === "bearish") badge.classList.add("bearish");
+      else badge.classList.add("neutral");
+
+      let biasLabel =
+        bias === "bullish"
+          ? "Biais haussier"
+          : bias === "bearish"
+          ? "Biais baissier"
+          : "Biais neutre";
+      badge.textContent = `Biais : ${biasLabel}`;
+
+      commentEl.textContent = info.comment || "Pas de détail fourni par l'IA.";
+    }
+
+    function renderNewsAnalysis(data) {
+      // Envelope: { source, news_source, created_at, analysis, ... }
+      const envelope = data || {};
+      const analysis = envelope.analysis || envelope;
+
+      const stressScore =
+        analysis.stress_score ?? analysis.score ?? null;
+
+      const riskTone =
+        analysis.risk_tone ||
+        analysis.risk ||
+        (analysis.macro_sentiment && analysis.macro_sentiment.risk_tone) ||
+        "neutral";
+
+      const volOutlook =
+        analysis.volatility_outlook ||
+        analysis.volatility_regime ||
+        "normal";
+
+      applyRiskTonePill(riskTone, stressScore);
+      applyVolPill(volOutlook);
+
+      const macroSent = analysis.macro_sentiment || {};
+      const summaryEl = document.getElementById("news-summary-text");
+      summaryEl.textContent =
+        macroSent.comment ||
+        analysis.macro_comment ||
+        analysis.comment ||
+        "Pas de commentaire macro disponible dans l'analyse.";
+
+      const keyPoints = analysis.key_points || analysis.drivers || [];
+      const ul = document.getElementById("news-keypoints");
+      ul.innerHTML = "";
+      keyPoints.forEach((p) => {
+        const li = document.createElement("li");
+        li.textContent = p;
+        ul.appendChild(li);
+      });
+
+      const sourceLabel = document.getElementById("news-source-label");
+      sourceLabel.textContent = `Source : ${envelope.news_source || envelope.source || "—"}`;
+
+      const lastUpdate = document.getElementById("news-last-update");
+      const ts = envelope.created_at || envelope.fetched_at;
+      if (ts) {
+        const d = new Date(ts * 1000);
+        lastUpdate.textContent =
+          "Dernière analyse : " +
+          d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+      } else {
+        lastUpdate.textContent = "Dernière analyse : —";
+      }
+
+      const byAsset = analysis.by_asset || {};
+      NEWS_IMPACT_BY_ASSET = byAsset;
+      populateImpactSelect(byAsset);
+    }
+
+    async function fetchNewsAnalysis() {
+      try {
+        const resp = await fetch(API_BASE + "/api/news/stress", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ max_articles: 25 }),
+        });
+        if (!resp.ok) throw new Error("HTTP " + resp.status);
+        const data = await resp.json();
+        renderNewsAnalysis(data);
+      } catch (e) {
+        console.error("Erreur fetchNewsAnalysis:", e);
+        const summaryEl = document.getElementById("news-summary-text");
+        summaryEl.textContent =
+          "Impossible de récupérer l'analyse des news pour le moment.";
+      }
+    }
+
+    /* ---------- CALENDRIER ÉCO ---------- */
+
+    function impactClass(impact) {
+      if (!impact) return "";
+      const lvl = impact.toLowerCase();
+      if (lvl === "high") return "calendar-impact-high";
+      if (lvl === "medium") return "calendar-impact-medium";
+      return "calendar-impact-low";
+    }
+
+    async function fetchCalendarJson(pathOptions) {
+      for (const path of pathOptions) {
+        try {
+          const resp = await fetch(API_BASE + path);
+          if (resp.ok) {
+            return await resp.json();
+          }
+        } catch (e) {
+          console.warn("Erreur fetch calendrier sur", path, e);
+        }
+      }
+      return { events: [] };
+    }
+
+    async function refreshCalendar() {
+      try {
+        const todayData = await fetchCalendarJson([
+          "/api/calendar/today",
+          "/calendar/today",
+        ]);
+        const nextData = await fetchCalendarJson([
+          "/api/calendar/next",
+          "/calendar/next",
+        ]);
+
+        const todayBody = document.getElementById("calendar-today-body");
+        const nextBody = document.getElementById("calendar-next-body");
+        todayBody.innerHTML = "";
+        nextBody.innerHTML = "";
+
+        const todayEvents = todayData.events || [];
+        if (todayEvents.length === 0) {
+          const tr = document.createElement("tr");
+          const td = document.createElement("td");
+          td.colSpan = 4;
+          td.style.fontSize = "11px";
+          td.style.color = "#9ca3af";
+          td.textContent =
+            "Aucune publication macro majeure aujourd'hui ou calendrier non configuré.";
+          tr.appendChild(td);
+          todayBody.appendChild(tr);
+        } else {
+          todayEvents.forEach((ev) => {
+            const tr = document.createElement("tr");
+            const tdTime = document.createElement("td");
+            tdTime.textContent = ev.time || "—";
+            const tdCountry = document.createElement("td");
+            tdCountry.textContent = ev.country || "—";
+            const tdEvent = document.createElement("td");
+            tdEvent.textContent = ev.title || ev.event || "Événement";
+            const tdImpact = document.createElement("td");
+            tdImpact.textContent = ev.impact || "—";
+            tdImpact.className = impactClass(ev.impact_level || ev.impact);
+
+            tr.appendChild(tdTime);
+            tr.appendChild(tdCountry);
+            tr.appendChild(tdEvent);
+            tr.appendChild(tdImpact);
+            todayBody.appendChild(tr);
+          });
+        }
+
+        const nextEvents = nextData.events || [];
+        if (nextEvents.length === 0) {
+          const tr = document.createElement("tr");
+          const td = document.createElement("td");
+          td.colSpan = 4;
+          td.style.fontSize = "11px";
+          td.style.color = "#9ca3af";
+          td.textContent =
+            "Aucune publication significative dans les prochains jours ou calendrier non configuré.";
+          tr.appendChild(td);
+          nextBody.appendChild(tr);
+        } else {
+          nextEvents.forEach((ev) => {
+            const tr = document.createElement("tr");
+            const tdDate = document.createElement("td");
+            tdDate.textContent = ev.date || "—";
+            const tdCountry = document.createElement("td");
+            tdCountry.textContent = ev.country || "—";
+            const tdEvent = document.createElement("td");
+            tdEvent.textContent = ev.title || ev.event || "Événement";
+            const tdImpact = document.createElement("td");
+            tdImpact.textContent = ev.impact || "—";
+            tdImpact.className = impactClass(ev.impact_level || ev.impact);
+
+            tr.appendChild(tdDate);
+            tr.appendChild(tdCountry);
+            tr.appendChild(tdEvent);
+            tr.appendChild(tdImpact);
+            nextBody.appendChild(tr);
+          });
+        }
+      } catch (e) {
+        console.error("Erreur refreshCalendar:", e);
+      }
+    }
+
+    /* ---------- INIT ---------- */
+
+    document.addEventListener("DOMContentLoaded", () => {
+      // Macro hebdo
+      refreshMacroWeek();
+
+      // Snapshots + perf
+      refreshSnapshots();
+      refreshPerfSummary();
+      updateMacroBiasChip();
+
+      // News IA V2
+      const newsBtn = document.getElementById("news-refresh-btn");
+      if (newsBtn) newsBtn.addEventListener("click", fetchNewsAnalysis);
+      fetchNewsAnalysis();
+
+      // Calendrier
+      refreshCalendar();
+
+      // Refresh périodique snapshots
+      setInterval(refreshSnapshots, 15000);
+    });
+  </script>
 </body>
 </html>
