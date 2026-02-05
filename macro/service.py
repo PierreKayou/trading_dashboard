@@ -236,7 +236,7 @@ def _build_sentiment_grid(start: dt.date, end: dt.date) -> List[Dict[str, Any]]:
 
 
 # ------------------------------------------------------------------
-# PUBLIC API (appelée par le router)
+# PUBLIC API : RAW HEBDO
 # ------------------------------------------------------------------
 
 def build_week_raw(start: dt.date, end: dt.date) -> Dict[str, Any]:
@@ -246,4 +246,71 @@ def build_week_raw(start: dt.date, end: dt.date) -> Dict[str, Any]:
         "created_at": time.time(),
         "asset_performances": _build_asset_performances(start, end),
         "sentiment_grid": _build_sentiment_grid(start, end),
+    }
+
+
+# ------------------------------------------------------------------
+# PUBLIC API : SUMMARY HEBDO (pour /api/macro/week/summary)
+# ------------------------------------------------------------------
+
+def build_week_summary(start: dt.date, end: dt.date) -> Dict[str, Any]:
+    """
+    Construit un résumé hebdo simple à partir des perfs d'actifs.
+    - risk_on : True / False / None
+    - risk_comment : texte FR
+    - top_moves : top 3 mouvements (en %)
+    """
+    raw = build_week_raw(start, end)
+    assets = raw.get("asset_performances", []) or []
+
+    # On regarde surtout ES + NQ pour le biais global
+    es = next((a for a in assets if a.get("symbol") == "ES"), None)
+    nq = next((a for a in assets if a.get("symbol") == "NQ"), None)
+
+    risk_on: bool | None = None
+    if es and nq:
+        avg = (es.get("return_pct", 0.0) + nq.get("return_pct", 0.0)) / 2
+        if avg > 0.5:
+            risk_on = True
+        elif avg < -0.5:
+            risk_on = False
+
+    if risk_on is True:
+        risk_comment = (
+            "Biais global plutôt risk-on cette semaine sur les indices US."
+        )
+    elif risk_on is False:
+        risk_comment = (
+            "Biais global plutôt risk-off cette semaine sur les indices US."
+        )
+    else:
+        risk_comment = (
+            "Biais global neutre ou mitigé cette semaine sur les indices US."
+        )
+
+    # Top 3 mouvements absolus
+    moves: List[Dict[str, Any]] = []
+    sorted_assets = sorted(
+        assets, key=lambda a: abs(a.get("return_pct", 0.0)), reverse=True
+    )
+
+    for a in sorted_assets[:3]:
+        ret = float(a.get("return_pct", 0.0))
+        moves.append(
+            {
+                "description": f"Mouvement de {ret:+.2f}% sur {a.get('name', a.get('symbol'))}",
+                "asset": a.get("symbol"),
+                "move_pct": ret,
+                "event_id": None,
+            }
+        )
+
+    return {
+        "start": start.isoformat(),
+        "end": end.isoformat(),
+        "risk_on": risk_on,
+        "risk_comment": risk_comment,
+        "top_events": [],       # à enrichir plus tard avec le calendrier éco
+        "top_moves": moves,
+        "upcoming_focus": [],   # placeholders pour la suite
     }
