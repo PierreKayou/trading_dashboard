@@ -7,7 +7,7 @@ import time
 
 import yfinance as yf
 
-from news.router import fetch_raw_news
+from news.service import fetch_raw_news
 
 
 # ------------------------------------------------------------------
