@@ -1,6 +1,11 @@
+# macro/router.py
+
 from fastapi import APIRouter
 from datetime import datetime, date, time, timedelta
 from typing import Optional, Literal
+
+import datetime as dt
+import yfinance as yf
 
 router = APIRouter(prefix="/macro")
 
@@ -11,6 +16,43 @@ router = APIRouter(prefix="/macro")
 
 RiskMode = Literal["risk_on", "risk_off", "neutral"]
 VolatilityLevel = Literal["low", "medium", "high"]
+
+
+# =====================================================
+# Helpers indices (yfinance)
+# =====================================================
+
+# Mapping indice / ticker Yahoo Finance
+INDEX_SYMBOLS = {
+    "SPX": {"label": "S&P 500", "yf": "^GSPC"},
+    "NDX": {"label": "Nasdaq 100", "yf": "^NDX"},
+    "DAX": {"label": "DAX 40", "yf": "^GDAXI"},
+    "CAC40": {"label": "CAC 40", "yf": "^FCHI"},
+    "EURUSD": {"label": "EUR / USD", "yf": "EURUSD=X"},
+    "USDJPY": {"label": "USD / JPY", "yf": "JPY=X"},
+    "BTCUSD": {"label": "Bitcoin", "yf": "BTC-USD"},
+}
+
+
+def _compute_return_pct(close_series, periods: int) -> Optional[float]:
+    """
+    Calcule la variation en % entre la dernière clôture
+    et la clôture N périodes avant (1 jour, 5 jours, 21 jours, etc.).
+    """
+    if close_series is None:
+        return None
+
+    series = close_series.dropna()
+    if len(series) <= periods:
+        return None
+
+    first = float(series.iloc[-(periods + 1)])
+    last = float(series.iloc[-1])
+
+    if first == 0:
+        return None
+
+    return (last - first) / first * 100.0
 
 
 # =====================================================
@@ -30,6 +72,8 @@ def macro_snapshot():
             "rates": "bearish",
             "usd": "strong",
             "credit": "stable",
+            "commodities": "neutral",
+            "crypto": "neutral",
         },
         "comment": (
             "Momentum positif sur les indices US et EU, "
@@ -61,79 +105,73 @@ def macro_orientation():
 
 # =====================================================
 # /api/macro/indices
+#   → utilisé via /perf/summary (compat.router)
+#   → renvoie { as_of, assets: [...] } pour le front
 # =====================================================
 
 @router.get("/indices")
 def macro_indices():
-    return [
-        {
-            "symbol": "SPX",
-            "name": "S&P 500",
-            "asset_class": "equity",
-            "region": "US",
-            "daily": 0.8,
-            "weekly": 2.1,
-            "monthly": 4.3,
-        },
-        {
-            "symbol": "NDX",
-            "name": "Nasdaq 100",
-            "asset_class": "equity",
-            "region": "US",
-            "daily": 1.3,
-            "weekly": 3.0,
-            "monthly": 6.5,
-        },
-        {
-            "symbol": "DAX",
-            "name": "DAX 40",
-            "asset_class": "equity",
-            "region": "EU",
-            "daily": 0.4,
-            "weekly": 1.2,
-            "monthly": 2.8,
-        },
-        {
-            "symbol": "CAC40",
-            "name": "CAC 40",
-            "asset_class": "equity",
-            "region": "EU",
-            "daily": 0.3,
-            "weekly": 0.9,
-            "monthly": 2.1,
-        },
-        {
-            "symbol": "EURUSD",
-            "name": "EUR / USD",
-            "asset_class": "fx",
-            "region": "FX",
-            "daily": -0.2,
-            "weekly": -0.5,
-            "monthly": -1.1,
-        },
-        {
-            "symbol": "USDJPY",
-            "name": "USD / JPY",
-            "asset_class": "fx",
-            "region": "FX",
-            "daily": 0.1,
-            "weekly": 0.6,
-            "monthly": 1.4,
-        },
-        {
-            "symbol": "BTCUSD",
-            "name": "Bitcoin",
-            "asset_class": "crypto",
-            "region": "Crypto",
-            "daily": 1.9,
-            "weekly": 4.5,
-            "monthly": 10.2,
-        },
-    ]
+    """
+    Performance des grands indices (Jour / Semaine / Mois),
+    calculée directement via yfinance.
+
+    Retour :
+    {
+        "as_of": "YYYY-MM-DD",
+        "assets": [
+            { "symbol": "SPX", "label": "S&P 500", "d": 0.8, "w": 2.1, "m": 4.3 },
+            ...
+        ]
+    }
+    """
+    today = dt.date.today()
+    # On prend ~2 mois d'historique pour être tranquille
+    start = today - dt.timedelta(days=60)
+
+    assets = []
+
+    for sym, cfg in INDEX_SYMBOLS.items():
+        label = cfg["label"]
+        yf_symbol = cfg["yf"]
+
+        d_ret = w_ret = m_ret = None
+
+        try:
+            t = yf.Ticker(yf_symbol)
+            hist = t.history(
+                start=start.isoformat(),
+                end=(today + dt.timedelta(days=1)).isoformat(),
+                interval="1d",
+            )
+            if not hist.empty:
+                close = hist["Close"]
+                # 1 jour / 5 jours / 21 jours ouvrés approximatifs
+                d_ret = _compute_return_pct(close, 1)
+                w_ret = _compute_return_pct(close, 5)
+                m_ret = _compute_return_pct(close, 21)
+        except Exception:
+            # En cas d'erreur réseau/API on laisse les valeurs à None
+            pass
+
+        assets.append(
+            {
+                "symbol": sym,
+                "label": label,
+                "d": d_ret,
+                "w": w_ret,
+                "m": m_ret,
+            }
+        )
+
+    return {
+        "as_of": today.isoformat(),
+        "assets": assets,
+    }
 
 
 # =====================================================
 # /api/macro/calendar
+#   (ancien calendrier simple, conservé pour compat éventuelle)
 # =====================================================
 
 @router.get("/calendar")
