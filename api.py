@@ -77,6 +77,8 @@ app.include_router(econ_router, prefix="/api", tags=["calendar"])
 app.include_router(compat_router)
 
 
+app.include_router(news_v2_router)
+
 
 
 # ---------------------------------------------------------
