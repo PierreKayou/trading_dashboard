@@ -1,206 +1,159 @@
-# news/router.py — V2
-# ---------------------------------------------
-# Agrégation + normalisation des news macro
-# Usage : prop firm / trading discrétionnaire
-# ---------------------------------------------
-
+# news/router.py
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import List, Dict, Optional
+from typing import List, Dict, Any
 import time
-import hashlib
-import datetime as dt
+import os
+import json
 import requests
+import feedparser
+
+from openai import OpenAI
 
 router = APIRouter(prefix="/api/news", tags=["news"])
+client = OpenAI()
 
-# =====================================================
-# CONFIG SOURCES GRATUITES
-# =====================================================
+# ======================================================
+# SOURCES GRATUITES – PRIORITÉ PROP FIRM
+# ======================================================
 
-REUTERS_RSS = [
-    "https://feeds.reuters.com/reuters/businessNews",
-    "https://feeds.reuters.com/reuters/worldNews",
-    "https://feeds.reuters.com/reuters/marketsNews",
-]
-
-YF_NEWS_URL = "https://query1.finance.yahoo.com/v1/finance/news"
-
-HEADERS = {
-    "User-Agent": "StarkMacroBot/1.0"
+RSS_SOURCES = {
+    "reuters": "https://feeds.reuters.com/reuters/businessNews",
+    "wsj": "https://feeds.a.dj.com/rss/RSSMarketsMain.xml",
+    "ft": "https://www.ft.com/?format=rss",
+    "marketwatch": "https://feeds.marketwatch.com/marketwatch/topstories",
+    "coindesk": "https://feeds.feedburner.com/CoinDesk",
 }
 
-# =====================================================
-# TAXONOMIE OFFICIELLE
-# =====================================================
+MAX_ARTICLES_DEFAULT = 25
 
-CATEGORIES = {
-    "monetary_policy": ["fed", "fomc", "ecb", "rates", "interest", "qt"],
-    "inflation": ["cpi", "inflation", "pce", "prices"],
-    "growth": ["gdp", "growth", "pmi", "ism", "recession"],
-    "employment": ["jobs", "employment", "nfp", "unemployment", "wages"],
-    "geopolitics": ["war", "conflict", "sanction", "geopolit"],
-    "tech": ["ai", "chip", "semiconductor", "nvidia", "apple", "microsoft"],
-    "commodities": ["oil", "gold", "energy", "supply"],
-    "crypto": ["bitcoin", "crypto", "etf", "regulation"],
-    "risk_event": ["crisis", "stress", "collapse", "default"],
-}
-
-ASSET_HINTS = {
-    "ES": ["fed", "rates", "inflation", "gdp"],
-    "NQ": ["tech", "ai", "semiconductor"],
-    "BTC": ["bitcoin", "crypto", "etf", "regulation"],
-    "CL": ["oil", "energy", "opec", "supply"],
-    "GC": ["gold", "inflation", "risk", "crisis"],
-}
-
-# =====================================================
+# ======================================================
 # MODELS
-# =====================================================
+# ======================================================
 
-class NormalizedNews(BaseModel):
-    id: str
-    timestamp: int
-    source: str
-    category: str
-    importance: str
-    headline: str
-    summary: Optional[str]
-    assets_hint: List[str]
-    sentiment_hint: Optional[str]
-    time_horizon: str
+class NewsAnalyzeRequest(BaseModel):
+    max_articles: int = MAX_ARTICLES_DEFAULT
 
+# ======================================================
+# FETCH RSS
+# ======================================================
 
-# =====================================================
-# HELPERS
-# =====================================================
-
-def _hash(text: str) -> str:
-    return hashlib.md5(text.encode("utf-8")).hexdigest()
-
-
-def _detect_category(text: str) -> str:
-    t = text.lower()
-    for cat, keys in CATEGORIES.items():
-        if any(k in t for k in keys):
-            return cat
-    return "growth"
-
-
-def _detect_assets(text: str) -> List[str]:
-    t = text.lower()
-    assets = []
-    for asset, keys in ASSET_HINTS.items():
-        if any(k in t for k in keys):
-            assets.append(asset)
-    return assets or ["ES"]
-
-
-def _importance_from_text(text: str) -> str:
-    t = text.lower()
-    if any(k in t for k in ["fed", "rates", "cpi", "war", "crisis"]):
-        return "high"
-    if any(k in t for k in ["earnings", "growth", "jobs"]):
-        return "medium"
-    return "low"
-
-
-def _sentiment_from_text(text: str) -> Optional[str]:
-    t = text.lower()
-    if any(k in t for k in ["fall", "drop", "risk", "stress", "concern"]):
-        return "negative"
-    if any(k in t for k in ["rise", "strong", "optimism", "growth"]):
-        return "positive"
-    return None
-
-
-# =====================================================
-# FETCHERS
-# =====================================================
-
-def fetch_reuters() -> List[Dict]:
-    items = []
-    for feed in REUTERS_RSS:
-        try:
-            resp = requests.get(feed, timeout=6)
-            if resp.ok:
-                items.append(resp.text)
-        except Exception:
-            continue
-    return items
-
-
-def fetch_yahoo_finance(limit: int = 20) -> List[Dict]:
-    try:
-        resp = requests.get(
-            YF_NEWS_URL,
-            params={"category": "general", "count": limit},
-            headers=HEADERS,
-            timeout=6,
-        )
-        if not resp.ok:
-            return []
-        return resp.json().get("items", [])
-    except Exception:
-        return []
-
-
-# =====================================================
-# NORMALIZATION
-# =====================================================
-
-def normalize_news(raw: Dict, source: str) -> NormalizedNews:
-    headline = raw.get("title") or raw.get("headline") or "Untitled"
-    summary = raw.get("summary") or raw.get("description")
-
-    ts = raw.get("pubDate") or raw.get("published_at")
-    timestamp = int(time.time()) if not ts else int(time.time())
-
-    category = _detect_category(headline)
-    importance = _importance_from_text(headline)
-    assets = _detect_assets(headline)
-    sentiment = _sentiment_from_text(headline)
-
-    return NormalizedNews(
-        id=_hash(headline + source),
-        timestamp=timestamp,
-        source=source,
-        category=category,
-        importance=importance,
-        headline=headline,
-        summary=summary,
-        assets_hint=assets,
-        sentiment_hint=sentiment,
-        time_horizon="intraday" if importance == "high" else "short_term",
-    )
-
-
-# =====================================================
-# PUBLIC ENDPOINT
-# =====================================================
-
-@router.get("/normalized", response_model=List[NormalizedNews])
-def get_normalized_news(limit: int = 25):
-    """
-    Endpoint principal NEWS V2
-    Renvoie un flux normalisé prêt pour l'IA.
-    """
-    normalized: List[NormalizedNews] = []
+def fetch_rss_news(max_articles: int) -> List[Dict[str, Any]]:
+    articles = []
     seen = set()
 
-    # Yahoo Finance
-    yf_items = fetch_yahoo_finance(limit=limit)
-    for it in yf_items:
-        n = normalize_news(it, "yahoo_finance")
-        if n.id not in seen:
-            seen.add(n.id)
-            normalized.append(n)
+    for source, url in RSS_SOURCES.items():
+        try:
+            feed = feedparser.parse(url)
+        except Exception:
+            continue
 
-    # Hard cap
-    normalized = sorted(
-        normalized,
-        key=lambda x: (x.importance, x.timestamp),
-        reverse=True,
-    )[:limit]
+        for entry in feed.entries:
+            title = entry.get("title")
+            if not title or title in seen:
+                continue
 
-    return normalized
+            seen.add(title)
+
+            articles.append({
+                "source": source,
+                "title": title,
+                "summary": entry.get("summary", ""),
+                "published": entry.get("published", ""),
+                "link": entry.get("link"),
+            })
+
+            if len(articles) >= max_articles:
+                return articles
+
+    return articles[:max_articles]
+
+# ======================================================
+# IA ANALYSE V2
+# ======================================================
+
+@router.post("/analyze-v2")
+def analyze_news_v2(req: NewsAnalyzeRequest):
+    articles = fetch_rss_news(req.max_articles)
+
+    if not articles:
+        return {
+            "source": "rss",
+            "created_at": time.time(),
+            "article_count": 0,
+            "analysis": {
+                "macro_sentiment": {
+                    "label": "Neutre",
+                    "comment": "Aucune news exploitable disponible via les sources gratuites."
+                },
+                "risk_tone": "neutral",
+                "volatility_outlook": "normal",
+                "key_points": [],
+                "by_asset": {}
+            }
+        }
+
+    # Construction prompt
+    lines = []
+    for a in articles:
+        lines.append(f"- [{a['source']}] {a['title']}")
+
+    news_block = "\n".join(lines)
+
+    system_prompt = (
+        "Tu es un analyste macro-financier professionnel spécialisé prop-firm.\n"
+        "Tu analyses uniquement des TITRES de news (pas les articles complets).\n"
+        "Objectif : aider un trader futures / indices / crypto à comprendre le CONTEXTE.\n"
+        "Réponds STRICTEMENT en JSON."
+    )
+
+    user_prompt = f"""
+Voici des TITRES de news récentes :
+
+{news_block}
+
+Structure JSON OBLIGATOIRE :
+
+{{
+  "macro_sentiment": {{
+    "label": "Risk-On | Risk-Off | Neutre",
+    "comment": "Synthèse macro claire (2-3 phrases)"
+  }},
+  "risk_tone": "risk_on | risk_off | neutral",
+  "volatility_outlook": "high | normal | low",
+  "key_points": [
+    "3 à 6 points clés factuels"
+  ],
+  "by_asset": {{
+    "ES": {{ "bias": "bullish | bearish | neutral", "comment": "Impact S&P500" }},
+    "NQ": {{ "bias": "bullish | bearish | neutral", "comment": "Impact Nasdaq" }},
+    "BTC": {{ "bias": "bullish | bearish | neutral", "comment": "Impact Bitcoin" }},
+    "CL": {{ "bias": "bullish | bearish | neutral", "comment": "Impact pétrole" }},
+    "GC": {{ "bias": "bullish | bearish | neutral", "comment": "Impact or" }}
+  }}
+}}
+"""
+
+    try:
+        resp = client.chat.completions.create(
+            model="gpt-4.1-mini",
+            response_format={"type": "json_object"},
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    try:
+        analysis = json.loads(resp.choices[0].message.content)
+    except Exception:
+        analysis = {"error": "Invalid IA response"}
+
+    return {
+        "source": "rss",
+        "created_at": time.time(),
+        "article_count": len(articles),
+        "analysis": analysis,
+    }
