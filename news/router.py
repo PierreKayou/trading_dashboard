@@ -1,20 +1,286 @@
 # news/router.py
 
-from fastapi import APIRouter
-from news.service import build_stress_report
-from news.schemas import StressResponse
+from __future__ import annotations
+
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel, HttpUrl
+from typing import List, Dict, Any, Optional
+import time
+import json
+
+from openai import OpenAI
+
+# Service interne (yfinance + éventuelles autres sources plus tard)
+from news.service import fetch_raw_news
 
 router = APIRouter(prefix="/api/news", tags=["news"])
 
+client = OpenAI()
 
-@router.post("/stress", response_model=StressResponse)
-def get_news_stress():
-    """
-    Stress macro & news IA – V2
+# ------------------------------------------------------------------
+# Modèles pour la V2 : news normalisées
+# ------------------------------------------------------------------
 
-    Objectif :
-    - mesurer le niveau de stress global
-    - identifier les drivers dominants
-    - donner une lecture par actif (prop-firm compliant)
+
+class NormalizedArticle(BaseModel):
+    symbol: str
+    title: str
+    publisher: Optional[str] = None
+    link: Optional[HttpUrl] = None
+    providerPublishTime: Optional[int] = None
+
+
+class NormalizedNews(BaseModel):
+    source: str
+    fetched_at: float
+    articles: List[NormalizedArticle]
+
+
+def get_normalized_news(limit: int = 50) -> NormalizedNews:
     """
-    return build_stress_report()
+    Fonction utilitaire utilisée par news.analysis_v2.
+
+    Récupère les news brutes via news.service.fetch_raw_news()
+    et les convertit dans un format typé NormalizedNews.
+    """
+    raw = fetch_raw_news(max_articles=limit)
+    source = raw.get("source", "unknown")
+    fetched_at = raw.get("fetched_at", time.time())
+    arts: List[Dict[str, Any]] = raw.get("articles", []) or []
+
+    normalized: List[NormalizedArticle] = []
+
+    for a in arts[:limit]:
+        symbol = (a.get("symbol") or "global").strip()
+        title = (a.get("title") or "").strip()
+        if not title:
+            continue
+
+        publisher = a.get("publisher")
+        link = a.get("link")
+        ts = a.get("providerPublishTime")
+
+        # providerPublishTime doit être un int (timestamp) si possible
+        if isinstance(ts, (int, float)):
+            if ts > 10_000_000_000:
+                ts = int(ts / 1000)
+            else:
+                ts = int(ts)
+        else:
+            ts = None
+
+        try:
+            norm = NormalizedArticle(
+                symbol=symbol,
+                title=title,
+                publisher=publisher,
+                link=link,
+                providerPublishTime=ts,
+            )
+        except Exception:
+            # Si problème de validation (link None ou format chelou), on skip
+            continue
+
+        normalized.append(norm)
+
+    return NormalizedNews(
+        source=source,
+        fetched_at=fetched_at,
+        articles=normalized,
+    )
+
+
+# ------------------------------------------------------------------
+# V1 – Raw news & analyse IA (déjà utilisée par le front)
+# ------------------------------------------------------------------
+
+
+@router.get("/raw")
+def get_raw_news(limit: int = 20) -> Dict[str, Any]:
+    """
+    Récupération brute des news (liste d'articles) depuis le service interne.
+    """
+    if limit <= 0:
+        limit = 10
+
+    data = fetch_raw_news(max_articles=limit)
+    # On renvoie le dict tel quel pour compatibilité avec le front actuel.
+    return data
+
+
+class NewsAnalyzeRequest(BaseModel):
+    """
+    Si articles est fourni, on analyse ceux-ci.
+    Sinon, on va chercher les news brutes côté backend.
+    """
+    max_articles: int = 15
+    articles: List[Dict[str, Any]] | None = None
+
+
+@router.post("/analyze")
+def analyze_news(req: NewsAnalyzeRequest) -> Dict[str, Any]:
+    """
+    Analyse IA structurée du flux de news :
+    - sentiment macro global
+    - tonalité risk-on / risk-off
+    - volatilité attendue
+    - points clés
+    - impacts par actif (ES, NQ, BTC, CL, GC)
+    """
+    # 1) Récup des articles
+    if req.articles:
+        articles = req.articles[: req.max_articles]
+        source = "client"
+    else:
+        raw = fetch_raw_news(max_articles=req.max_articles)
+        articles = raw.get("articles", [])
+        source = raw.get("source", "service")
+
+    # Si aucune news : analyse neutre
+    if not articles:
+        neutral_analysis = {
+            "macro_sentiment": {
+                "label": "Neutre",
+                "comment": (
+                    "Aucune news exploitable remontée par les sources actuelles. "
+                    "On considère le contexte informationnel comme neutre par défaut."
+                ),
+            },
+            "risk_tone": "neutral",
+            "volatility_outlook": "normal",
+            "key_points": [
+                "Pas de news macro/financières majeures détectées via les sources configurées.",
+                "Le flux d'information ne remet pas en cause le biais technique ou macro en place.",
+                "Rester attentif à l'agenda économique et aux prochaines publications.",
+            ],
+            "by_asset": {
+                "ES": {
+                    "bias": "neutral",
+                    "comment": (
+                        "Sans news particulières, aucun biais directionnel spécifique "
+                        "lié au flux d'information pour l'ES."
+                    ),
+                },
+                "NQ": {
+                    "bias": "neutral",
+                    "comment": "Pas de news marquantes orientant clairement le Nasdaq à court terme.",
+                },
+                "BTC": {
+                    "bias": "neutral",
+                    "comment": "Aucune information spécifique ne modifie le biais de fond sur Bitcoin.",
+                },
+                "CL": {
+                    "bias": "neutral",
+                    "comment": (
+                        "Pas de catalyseur d'actualité identifié sur le pétrole WTI via les sources utilisées."
+                    ),
+                },
+                "GC": {
+                    "bias": "neutral",
+                    "comment": "Sans news majeures, l'or conserve un rôle neutre dans le contexte actuel.",
+                },
+            },
+        }
+
+        return {
+            "source": "ia",
+            "news_source": source,
+            "created_at": time.time(),
+            "article_count": 0,
+            "articles_used": [],
+            "analysis": neutral_analysis,
+        }
+
+    # 2) Construction d'un résumé texte pour l'IA
+    lines = []
+    for art in articles:
+        publisher = art.get("publisher") or "?"
+        title = art.get("title") or "Sans titre"
+        sym = art.get("symbol") or "global"
+        lines.append(f"- [{publisher}] ({sym}) {title}")
+
+    news_block = "\n".join(lines)
+
+    # 3) Appel OpenAI pour interprétation macro + par actif
+    system_prompt = (
+        "Tu es un assistant d'analyse macro-financière pour un trader discrétionnaire. "
+        "Tu lis des TITRES de news récentes (sans cliquer sur les articles) et tu en tires :\n"
+        "- un sentiment macro global (plutôt risk-on, risk-off ou neutre),\n"
+        "- une indication de volatilité attendue (élevée, normale, faible),\n"
+        "- quelques points clés à retenir (liste brève),\n"
+        "- une interprétation synthétique par actif : ES (S&P 500 Futures), "
+        "NQ (Nasdaq 100 Futures), BTC (Bitcoin), CL (Crude Oil WTI), GC (Gold).\n\n"
+        "Tu t'exprimes EN FRANÇAIS. "
+        "Réponds STRICTEMENT en JSON, sans texte autour."
+    )
+
+    user_prompt = f"""
+Voici une liste de TITRES de news récentes (macro, indices, matières premières, crypto) :
+
+{news_block}
+
+Produit une sortie JSON avec la structure suivante :
+
+{{
+  "macro_sentiment": {{
+    "label": "Risk-Off Modéré | Neutre | Risk-On", 
+    "comment": "Texte court expliquant le ton global des news."
+  }},
+  "risk_tone": "risk_off | risk_on | neutral",
+  "volatility_outlook": "high | normal | low",
+  "key_points": [
+    "Puces courtes (3 à 6) avec les faits ou thèmes majeurs."
+  ],
+  "by_asset": {{
+    "ES": {{
+      "bias": "bullish | bearish | neutral",
+      "comment": "2-3 phrases max sur l'impact probable sur ES."
+    }},
+    "NQ": {{
+      "bias": "bullish | bearish | neutral",
+      "comment": "2-3 phrases max sur NQ."
+    }},
+    "BTC": {{
+      "bias": "bullish | bearish | neutral",
+      "comment": "Impact probable sur Bitcoin."
+    }},
+    "CL": {{
+      "bias": "bullish | bearish | neutral",
+      "comment": "Impact probable sur le pétrole WTI."
+    }},
+    "GC": {{
+      "bias": "bullish | bearish | neutral",
+      "comment": "Impact probable sur l'or."
+    }}
+  }}
+}}
+
+Respecte cette structure au maximum.
+"""
+
+    try:
+        resp = client.chat.completions.create(
+            model="gpt-4.1-mini",
+            response_format={"type": "json_object"},
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur OpenAI: {e}")
+
+    content = resp.choices[0].message.content
+    try:
+        analysis = json.loads(content)
+    except Exception:
+        analysis = {"raw_text": content}
+
+    return {
+        "source": "ia",
+        "news_source": source,
+        "created_at": time.time(),
+        "article_count": len(articles),
+        "articles_used": articles,
+        "analysis": analysis,
+    }
