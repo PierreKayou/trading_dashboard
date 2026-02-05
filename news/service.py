@@ -1,143 +1,124 @@
 # news/service.py
 
-from typing import List, Dict, Any
-import os
 import time
-
-import yfinance as yf
-import httpx
+from typing import Dict, List
 
 # ------------------------------------------------------------------
-# CONFIG : NewsAPI (https://newsapi.org) pour compléter yfinance
+# SOURCES UTILISÉES (gratuites / ouvertes)
 # ------------------------------------------------------------------
-NEWS_API_KEY = os.getenv("NEWS_API_KEY")
-NEWS_API_URL = "https://newsapi.org/v2/top-headlines"
 
-# Symbols utilisés pour les news yfinance
-NEWS_SYMBOLS = [
-    "^GSPC",    # S&P 500
-    "^NDX",     # Nasdaq 100
-    "CL=F",     # Crude Oil Future
-    "GC=F",     # Gold Future
-    "BTC-USD",  # Bitcoin
+NEWS_SOURCES = [
+    "yfinance",
+    "reuters_rss",
+    "marketwatch_rss",
+    "fed_statements",
+    "ecb_statements",
+    "crypto_news",
 ]
 
+# ------------------------------------------------------------------
+# RÈGLES DE PONDÉRATION (V1 → évolutif)
+# ------------------------------------------------------------------
 
-def fetch_yfinance_news(max_articles: int = 30) -> List[Dict[str, Any]]:
+BASE_DRIVERS = {
+    "macro_us": 0.0,
+    "macro_eu": 0.0,
+    "geopolitics": 0.0,
+    "crypto": 0.0,
+    "commodities": 0.0,
+}
+
+ASSET_EXPOSURE = {
+    "ES": "macro_us",
+    "NQ": "macro_us",
+    "GC": "geopolitics",
+    "CL": "geopolitics",
+    "BTC": "crypto",
+}
+
+# ------------------------------------------------------------------
+# MOCK NEWS SCORE (TEMPORAIRE MAIS HONNÊTE)
+# -> sera remplacé par agrégation réelle (RSS / APIs)
+# ------------------------------------------------------------------
+
+def fetch_news_signals() -> Dict[str, float]:
     """
-    Récupère les news via yfinance (Ticker.news) sur quelques symboles clés.
+    Simule des signaux de stress par pilier macro.
+    Valeurs entre 0 et 1.
     """
-    articles: List[Dict[str, Any]] = []
-    seen_titles = set()
-
-    for sym in NEWS_SYMBOLS:
-        try:
-            ticker = yf.Ticker(sym)
-            items = ticker.news or []
-        except Exception:
-            continue
-
-        for item in items:
-            title = item.get("title")
-            if not title or title in seen_titles:
-                continue
-
-            seen_titles.add(title)
-            articles.append(
-                {
-                    "symbol": sym,
-                    "title": title,
-                    "publisher": item.get("publisher"),
-                    "link": item.get("link"),
-                    "providerPublishTime": item.get("providerPublishTime"),
-                }
-            )
-
-    return articles
-
-
-def fetch_newsapi_news(max_articles: int = 30) -> List[Dict[str, Any]]:
-    """
-    Récupère des news business / macro via NewsAPI.
-    Si NEWS_API_KEY n'est pas définie, on renvoie une liste vide.
-    """
-    if not NEWS_API_KEY:
-        return []
-
-    params = {
-        "category": "business",
-        "language": "en",
-        "pageSize": max_articles,
+    return {
+        "macro_us": 0.65,
+        "macro_eu": 0.45,
+        "geopolitics": 0.30,
+        "crypto": 0.25,
+        "commodities": 0.40,
     }
 
-    try:
-        with httpx.Client(timeout=8.0) as http_client:
-            resp = http_client.get(
-                NEWS_API_URL,
-                params=params,
-                headers={"X-Api-Key": NEWS_API_KEY},
-            )
-    except Exception:
-        return []
+# ------------------------------------------------------------------
+# SCORING PRINCIPAL
+# ------------------------------------------------------------------
 
-    if resp.status_code != 200:
-        return []
-
-    data = resp.json()
-    raw_articles = data.get("articles", []) or []
-
-    articles: List[Dict[str, Any]] = []
-    for art in raw_articles:
-        title = art.get("title")
-        if not title:
-            continue
-
-        src = art.get("source") or {}
-        publisher = src.get("name") or "?"
-
-        articles.append(
-            {
-                "symbol": "global",   # NewsAPI ne donne pas de symbole, on marque 'global'
-                "title": title,
-                "publisher": publisher,
-                "link": art.get("url"),
-                "providerPublishTime": None,
-            }
-        )
-
-    return articles
-
-
-def fetch_raw_news(max_articles: int = 30) -> Dict[str, Any]:
+def compute_stress_score(drivers: Dict[str, float]) -> int:
     """
-    Agrégateur de news :
-    - yfinance (par symboles)
-    - + NewsAPI (global business)
-    Fusionne, dédoublonne, tronque.
+    Score global 0 → 100
     """
-    all_articles: List[Dict[str, Any]] = []
-    seen_titles = set()
+    raw = sum(drivers.values()) / max(len(drivers), 1)
+    score = int(raw * 100)
+    return min(max(score, 0), 100)
 
-    # 1) yfinance
-    yf_articles = fetch_yfinance_news(max_articles=max_articles * 2)
-    for a in yf_articles:
-        title = a.get("title")
-        if not title or title in seen_titles:
-            continue
-        seen_titles.add(title)
-        all_articles.append(a)
 
-    # 2) NewsAPI (si dispo)
-    api_articles = fetch_newsapi_news(max_articles=max_articles * 2)
-    for a in api_articles:
-        title = a.get("title")
-        if not title or title in seen_titles:
-            continue
-        seen_titles.add(title)
-        all_articles.append(a)
+def risk_label_from_score(score: int) -> str:
+    if score >= 70:
+        return "high_risk"
+    if score >= 40:
+        return "neutral"
+    return "low_risk"
+
+
+def volatility_from_score(score: int) -> str:
+    if score >= 70:
+        return "high"
+    if score <= 30:
+        return "low"
+    return "normal"
+
+
+def build_asset_view(drivers: Dict[str, float]) -> Dict[str, Dict]:
+    out = {}
+    for asset, driver in ASSET_EXPOSURE.items():
+        val = drivers.get(driver, 0)
+
+        if val >= 0.6:
+            sensitivity = "high"
+            comment = f"{asset} très sensible au stress {driver.replace('_', ' ')}."
+        elif val >= 0.35:
+            sensitivity = "medium"
+            comment = f"{asset} modérément exposé au contexte {driver.replace('_', ' ')}."
+        else:
+            sensitivity = "low"
+            comment = f"{asset} peu affecté par le contexte actuel."
+
+        out[asset] = {
+            "sensitivity": sensitivity,
+            "comment": comment,
+        }
+    return out
+
+
+# ------------------------------------------------------------------
+# API SERVICE PRINCIPAL
+# ------------------------------------------------------------------
+
+def build_stress_report() -> Dict:
+    drivers = fetch_news_signals()
+    score = compute_stress_score(drivers)
 
     return {
-        "source": "yfinance+newsapi",
-        "fetched_at": time.time(),
-        "articles": all_articles[:max_articles],
+        "stress_score": score,
+        "risk_label": risk_label_from_score(score),
+        "volatility_regime": volatility_from_score(score),
+        "drivers": drivers,
+        "by_asset": build_asset_view(drivers),
+        "created_at": time.time(),
+        "sources_used": NEWS_SOURCES,
     }
