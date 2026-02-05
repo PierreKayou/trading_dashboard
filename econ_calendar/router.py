@@ -7,7 +7,7 @@ import time
 import datetime as dt
 import requests
 
-router = APIRouter(prefix="/api/calendar", tags=["calendar"])
+router = APIRouter(prefix="/calendar", tags=["calendar"])
 
 FMP_API_KEY = os.getenv("FMP_API_KEY")
 
