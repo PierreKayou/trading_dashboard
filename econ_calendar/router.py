@@ -7,8 +7,7 @@ import time
 import datetime as dt
 import requests
 
-# IMPORTANT : plus de "/api" ici, seulement "/calendar"
-router = APIRouter(prefix="/calendar", tags=["calendar"])
+router = APIRouter(prefix="/api/calendar", tags=["calendar"])
 
 FMP_API_KEY = os.getenv("FMP_API_KEY")
 
@@ -140,6 +139,10 @@ def _mock_events(today: dt.date):
     )
 
 
+# =====================================================
+# Vue synthétique /summary (macro.html, API, etc.)
+# =====================================================
+
 @router.get("/summary")
 async def get_calendar_summary():
     """
@@ -162,6 +165,52 @@ async def get_calendar_summary():
         "source": source,
         "fetched_at": time.time(),
         "today": today_events,
-        "next_days": week_events,  # <-- clé alignée avec le front
+        "next_days": week_events,  # <-- clé alignée avec le front macro.html
         "week": week_events,       # optionnel, pour débogage
+    }
+
+
+# =====================================================
+# Endpoints compatibles avec index.html
+#  - /api/calendar/today → { events: [...] }
+#  - /api/calendar/next  → { events: [...] }
+# =====================================================
+
+@router.get("/today")
+async def get_calendar_today():
+    today = dt.date.today()
+    week_end = today + dt.timedelta(days=6)
+
+    if FMP_API_KEY:
+        raw = _fetch_from_fmp(today, week_end)
+        today_events, week_events = _normalize_events(raw, today)
+        source = "fmp"
+    else:
+        today_events, week_events = _mock_events(today)
+        source = "mock"
+
+    return {
+        "source": source,
+        "fetched_at": time.time(),
+        "events": today_events,
+    }
+
+
+@router.get("/next")
+async def get_calendar_next():
+    today = dt.date.today()
+    week_end = today + dt.timedelta(days=6)
+
+    if FMP_API_KEY:
+        raw = _fetch_from_fmp(today, week_end)
+        today_events, week_events = _normalize_events(raw, today)
+        source = "fmp"
+    else:
+        today_events, week_events = _mock_events(today)
+        source = "mock"
+
+    return {
+        "source": source,
+        "fetched_at": time.time(),
+        "events": week_events,
     }
