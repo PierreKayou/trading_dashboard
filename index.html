@@ -282,7 +282,7 @@
 
     .grid-main {
       display: grid;
-      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.3fr);
+      grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); /* prix large, perf resserrée */
       gap: 18px;
       margin-top: 10px;
     }
@@ -295,7 +295,7 @@
 
     .grid-bottom {
       display: grid;
-      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.1fr);
+      grid-template-columns: minmax(0, 1.8fr) minmax(0, 1.1fr); /* news plus large que calendrier */
       gap: 18px;
       margin-top: 16px;
     }
@@ -306,7 +306,7 @@
       }
     }
 
-    /* MACRO WEEKLY */
+    /* MACRO HEBDO */
 
     .events-list {
       margin: 6px 0 0;
@@ -768,44 +768,38 @@
     .calendar-impact-medium { color: #eab308; }
     .calendar-impact-low { color: #22c55e; }
 
-    /* TABLE PERF INDICES */
+    /* TABLE PERF */
 
     .table-wrapper {
-      margin-top: 10px;
+      margin-top: 8px;
       border-radius: 14px;
       border: 1px solid rgba(31, 41, 55, 0.9);
-      background: rgba(15, 23, 42, 0.95);
       overflow: hidden;
+      background: rgba(15, 23, 42, 0.95);
     }
 
     .table-wrapper table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 12px;
+      font-size: 11px;
     }
 
     .table-wrapper th,
     .table-wrapper td {
       padding: 6px 8px;
       border-bottom: 1px solid rgba(31, 41, 55, 0.9);
-      text-align: left;
     }
 
     .table-wrapper th {
       color: var(--text-muted);
       font-weight: 500;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
+      text-align: left;
+      background: rgba(15, 23, 42, 0.98);
     }
 
-    .table-wrapper tr:last-child td {
-      border-bottom: none;
-    }
-
-    .perf-positive { color: var(--success); }
-    .perf-negative { color: var(--danger); }
-    .perf-neutral { color: var(--text-muted); }
+    .perf-positive { color: #4ade80; }
+    .perf-negative { color: #f97373; }
+    .perf-neutral { color: #e5e7eb; }
   </style>
 </head>
 <body>
@@ -832,73 +826,40 @@
       </div>
     </header>
 
-    <div class="grid-two">
-      <!-- Colonne gauche : résumé & events -->
-      <section class="card">
-        <div class="card-inner">
-          <div class="card-header">
-            <div>
-              <div class="card-title">
-                Vue hebdomadaire
-                <span class="card-title-badge" id="week-range">Semaine en cours</span>
-              </div>
-              <div class="card-subtitle">
-                Sentiment global &amp; événements macro qui ont drivé le marché.
-              </div>
+    <!-- On garde uniquement la carte hebdo, le bloc “Indices & sentiment news” est retiré -->
+    <section class="card">
+      <div class="card-inner">
+        <div class="card-header">
+          <div>
+            <div class="card-title">
+              Vue hebdomadaire
+              <span class="card-title-badge" id="week-range">Semaine en cours</span>
             </div>
-            <div id="risk-pill" class="pill pill-neutral">
-              <span class="pill-dot"></span>
-              <span id="risk-label">Lecture neutre</span>
+            <div class="card-subtitle">
+              Sentiment global &amp; événements macro qui ont drivé le marché.
             </div>
           </div>
-
-          <div id="risk-comment" class="summary-text">
-            Récupération de la vue macro en cours…
+          <div id="risk-pill" class="pill pill-neutral">
+            <span class="pill-dot"></span>
+            <span id="risk-label">Lecture neutre</span>
           </div>
-
-          <div class="section-label">ÉVÉNEMENTS CLÉS DE LA SEMAINE</div>
-          <ul id="events-list" class="events-list"></ul>
-
-          <div class="section-label">MOUVEMENTS MARQUANTS</div>
-          <ul id="moves-list" class="events-list"></ul>
-
-          <p class="small-note">
-            Synthèse hebdomadaire générée pour ton suivi des marchés.
-          </p>
         </div>
-      </section>
 
-      <!-- Colonne droite : seulement la grille de sentiment -->
-      <section class="card">
-        <div class="card-inner">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Indices &amp; sentiment news</div>
-              <div class="card-subtitle">
-                Chaleur des news par thème au cours de la semaine.
-              </div>
-            </div>
-          </div>
-
-          <div class="section-label">SENTIMENT NEWS PAR JOUR &amp; THÉMATIQUE</div>
-          <div class="sentiment-grid">
-            <div class="sentiment-header">
-              <div class="sentiment-head-cell sentiment-day">Jour</div>
-              <div class="sentiment-head-cell">Macro US</div>
-              <div class="sentiment-head-cell">Macro Europe</div>
-              <div class="sentiment-head-cell">Entreprises</div>
-              <div class="sentiment-head-cell">Géopolitique</div>
-              <div class="sentiment-head-cell">Tech</div>
-            </div>
-            <div id="sentiment-body"></div>
-          </div>
-
-          <p class="tagline">
-            La grille reflète le sentiment moyen des news captées par thématique, sur la période de la semaine.
-          </p>
+        <div id="risk-comment" class="summary-text">
+          Récupération de la vue macro en cours…
         </div>
-      </section>
-    </div>
+
+        <div class="section-label">ÉVÉNEMENTS CLÉS DE LA SEMAINE</div>
+        <ul id="events-list" class="events-list"></ul>
+
+        <div class="section-label">MOUVEMENTS MARQUANTS</div>
+        <ul id="moves-list" class="events-list"></ul>
+
+        <p class="small-note">
+          Synthèse hebdomadaire générée pour ton suivi des marchés.
+        </p>
+      </div>
+    </section>
   </div>
 
   <!-- SECTION 2 : DASHBOARD LIVE -->
@@ -930,6 +891,7 @@
       </div>
     </div>
 
+    <!-- GRID PRINCIPALE : Prix + Perf compacte -->
     <div class="grid-main">
       <!-- Bloc gauche : prix & indices -->
       <section class="card">
@@ -957,45 +919,7 @@
         </div>
       </section>
 
-      <!-- Bloc droite : Assistant IA -->
-      <section class="card">
-        <div class="card-inner">
-          <div class="card-header">
-            <div>
-              <div class="card-title">
-                Assistant Stark – Analyse IA
-              </div>
-              <div class="card-subtitle">
-                Génère une analyse synthétique pour l'actif sélectionné à partir des données temps réel récupérées par ton backend FastAPI.
-              </div>
-            </div>
-          </div>
-
-          <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-            <select id="ia-asset-select" class="select-asset">
-              <option value="ES">ES – S&amp;P 500 Future</option>
-              <option value="NQ">NQ – Nasdaq 100 Future</option>
-              <option value="BTC">BTC – Bitcoin</option>
-              <option value="CL">CL – Crude Oil (WTI)</option>
-              <option value="GC">GC – Gold</option>
-            </select>
-            <button id="ia-run-btn" class="btn-primary" type="button">⚡ Analyser avec l'IA</button>
-          </div>
-
-          <div id="ia-output" class="ia-output">
-            Sélectionne un actif puis clique sur « Analyser avec l'IA » pour générer une analyse de marché structurée (global, swing, intraday, scénarios).
-          </div>
-
-          <p class="small-note">
-            L'assistant IA combine les données techniques et le contexte global du marché pour générer une synthèse exploitable. Il ne fournit pas de signaux de trade ou de conseils d'investissement.
-          </p>
-        </div>
-      </section>
-    </div>
-
-    <!-- Bas : Performance, News IA, Calendrier -->
-    <div class="grid-bottom">
-      <!-- Performance indices -->
+      <!-- Bloc droit : Performance des indices (compact) -->
       <section class="card">
         <div class="card-inner">
           <div class="card-header">
@@ -1028,134 +952,134 @@
           </p>
         </div>
       </section>
+    </div>
 
-      <!-- News IA + Calendrier -->
-      <div style="display:flex; flex-direction:column; gap:16px;">
-        <!-- NEWS IA -->
-        <section class="card card-news">
-          <div class="card-inner">
-            <div class="card-header">
-              <div>
-                <div class="card-title">News &amp; Sentiment IA</div>
-                <div class="card-subtitle">
-                  Lecture synthétique des dernières news macro / marché à partir des flux IA.
-                </div>
+    <!-- Bas : News IA & Calendrier (news élargi) -->
+    <div class="grid-bottom">
+      <!-- NEWS IA (plus large) -->
+      <section class="card card-news">
+        <div class="card-inner">
+          <div class="card-header">
+            <div>
+              <div class="card-title">News &amp; Sentiment IA</div>
+              <div class="card-subtitle">
+                Lecture synthétique des dernières news macro / marché à partir des flux IA.
               </div>
-              <button id="news-refresh-btn" class="btn-secondary" type="button">
-                🔄 Rafraîchir l'analyse
-              </button>
+            </div>
+            <button id="news-refresh-btn" class="btn-secondary" type="button">
+              🔄 Rafraîchir l'analyse
+            </button>
+          </div>
+
+          <!-- Ligne tonalité / volatilité -->
+          <div class="news-top-row">
+            <span id="news-tone-pill" class="pill pill-neutral">
+              <span class="pill-dot"></span>
+              <span id="news-tone-label">Tonalité en cours…</span>
+            </span>
+            <span id="news-vol-pill" class="pill pill-neutral">
+              <span class="pill-dot"></span>
+              <span id="news-vol-label">Volatilité : —</span>
+            </span>
+            <span id="news-last-update" class="news-last-update">Dernière analyse : —</span>
+          </div>
+
+          <!-- Layout : bloc news + bloc impacts -->
+          <div class="news-layout">
+            <div class="news-global">
+              <h4 class="section-label">RÉSUMÉ MACRO (NEWS)</h4>
+              <p id="news-summary-text" class="summary-text">
+                Impossible de récupérer l'analyse des news pour le moment.
+              </p>
+
+              <ul id="news-keypoints" class="news-keypoints"></ul>
             </div>
 
-            <!-- Ligne tonalité / volatilité -->
-            <div class="news-top-row">
-              <span id="news-tone-pill" class="pill pill-neutral">
-                <span class="pill-dot"></span>
-                <span id="news-tone-label">Tonalité en cours…</span>
-              </span>
-              <span id="news-vol-pill" class="pill pill-neutral">
-                <span class="pill-dot"></span>
-                <span id="news-vol-label">Volatilité : —</span>
-              </span>
-              <span id="news-last-update" class="news-last-update">Dernière analyse : —</span>
-            </div>
-
-            <!-- Layout : bloc news + bloc impacts -->
-            <div class="news-layout">
-              <div class="news-global">
-                <h4 class="section-label">RÉSUMÉ MACRO (NEWS)</h4>
-                <p id="news-summary-text" class="summary-text">
-                  Impossible de récupérer l'analyse des news pour le moment.
-                </p>
-
-                <ul id="news-keypoints" class="news-keypoints"></ul>
+            <div class="news-impacts">
+              <div class="news-impacts-header">
+                <h4 class="section-label">IMPACT PAR INDICE / ACTIF</h4>
+                <select id="news-asset-select" class="news-asset-select"></select>
               </div>
 
-              <div class="news-impacts">
-                <div class="news-impacts-header">
-                  <h4 class="section-label">IMPACT PAR INDICE / ACTIF</h4>
-                  <select id="news-asset-select" class="news-asset-select"></select>
+              <div id="news-impact-panel" class="news-impact-panel">
+                <div class="news-impact-badge neutral" id="news-impact-bias">
+                  Biais : —
                 </div>
-
-                <div id="news-impact-panel" class="news-impact-panel">
-                  <div class="news-impact-badge neutral" id="news-impact-bias">
-                    Biais : —
-                  </div>
-                  <p id="news-impact-comment" class="news-impact-comment">
-                    Sélectionne un indice dans la liste pour voir l'interprétation de l'IA.
-                  </p>
-                </div>
-
-                <p class="news-asset-helper">
-                  Indices suivis : ES (S&amp;P 500), NQ (Nasdaq 100), BTC (Bitcoin), CL (WTI), GC (Gold).
+                <p id="news-impact-comment" class="news-impact-comment">
+                  Sélectionne un indice dans la liste pour voir l'interprétation de l'IA.
                 </p>
               </div>
-            </div>
 
-            <div class="news-footer">
-              <span id="news-source-label" class="news-source-label">Source : —</span>
+              <p class="news-asset-helper">
+                Indices suivis : ES (S&amp;P 500), NQ (Nasdaq 100), BTC (Bitcoin), CL (WTI), GC (Gold).
+              </p>
             </div>
           </div>
-        </section>
 
-        <!-- Calendrier économique -->
-        <section class="card">
-          <div class="card-inner">
-            <div class="card-header">
-              <div>
-                <div class="card-title">Calendrier économique</div>
-                <div class="card-subtitle">
-                  Principales publications macro du jour et des prochains jours (UTC).
-                </div>
-              </div>
-            </div>
-
-            <div class="calendar-columns">
-              <div class="calendar-day-block">
-                <div class="section-label">AUJOURD'HUI</div>
-                <table class="calendar-table">
-                  <thead>
-                    <tr>
-                      <th>Heure</th>
-                      <th>Pays</th>
-                      <th>Événement</th>
-                      <th>Impact</th>
-                    </tr>
-                  </thead>
-                  <tbody id="calendar-today-body">
-                    <tr>
-                      <td colspan="4" style="font-size:11px; color:#9ca3af;">
-                        Chargement du calendrier d'aujourd'hui…
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <div class="calendar-day-block">
-                <div class="section-label">PROCHAINS JOURS</div>
-                <table class="calendar-table">
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Pays</th>
-                      <th>Événement</th>
-                      <th>Impact</th>
-                    </tr>
-                  </thead>
-                  <tbody id="calendar-next-body">
-                    <tr>
-                      <td colspan="4" style="font-size:11px; color:#9ca3af;">
-                        Chargement des publications des prochains jours…
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
+          <div class="news-footer">
+            <span id="news-source-label" class="news-source-label">Source : —</span>
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
+
+      <!-- Calendrier économique (à droite) -->
+      <section class="card">
+        <div class="card-inner">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Calendrier économique</div>
+              <div class="card-subtitle">
+                Principales publications macro du jour et des prochains jours (UTC).
+              </div>
+            </div>
+          </div>
+
+          <div class="calendar-columns">
+            <div class="calendar-day-block">
+              <div class="section-label">AUJOURD'HUI</div>
+              <table class="calendar-table">
+                <thead>
+                  <tr>
+                    <th>Heure</th>
+                    <th>Pays</th>
+                    <th>Événement</th>
+                    <th>Impact</th>
+                  </tr>
+                </thead>
+                <tbody id="calendar-today-body">
+                  <tr>
+                    <td colspan="4" style="font-size:11px; color:#9ca3af;">
+                      Chargement du calendrier d'aujourd'hui…
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="calendar-day-block">
+              <div class="section-label">PROCHAINS JOURS</div>
+              <table class="calendar-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Pays</th>
+                    <th>Événement</th>
+                    <th>Impact</th>
+                  </tr>
+                </thead>
+                <tbody id="calendar-next-body">
+                  <tr>
+                    <td colspan="4" style="font-size:11px; color:#9ca3af;">
+                      Chargement des publications des prochains jours…
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </section>
     </div>
   </div>
 
@@ -1353,100 +1277,20 @@
       });
     }
 
-    function renderSentimentGrid(data) {
-      const container = document.getElementById("sentiment-body");
-      container.innerHTML = "";
-
-      const grid = data.sentiment_grid || data.sentiment || [];
-
-      if (!grid || grid.length === 0) {
-        const row = document.createElement("div");
-        row.className = "sentiment-row";
-        const cell = document.createElement("div");
-        cell.className = "sentiment-cell sentiment-day";
-        cell.textContent = "Pas de données de sentiment.";
-        cell.style.gridColumn = "1 / -1";
-        row.appendChild(cell);
-        container.appendChild(row);
-        return;
-      }
-
-      const bucketsOrder = ["macro_us", "macro_europe", "companies", "geopolitics", "tech"];
-      const groupedByDay = {};
-      grid.forEach((cell) => {
-        const d = cell.date;
-        if (!groupedByDay[d]) groupedByDay[d] = {};
-        groupedByDay[d][cell.bucket] = cell;
-      });
-
-      const days = Object.keys(groupedByDay).sort();
-      const dayLabels = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
-
-      days.forEach((d) => {
-        const row = document.createElement("div");
-        row.className = "sentiment-row";
-
-        const dayCell = document.createElement("div");
-        dayCell.className = "sentiment-cell sentiment-day";
-        const dateObj = new Date(d);
-        const dow = dayLabels[dateObj.getDay()] || "";
-        dayCell.textContent =
-          dow +
-          " " +
-          dateObj.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
-        row.appendChild(dayCell);
-
-        bucketsOrder.forEach((bucket) => {
-          const info = groupedByDay[d][bucket];
-          const cellDiv = document.createElement("div");
-          cellDiv.className = "sentiment-cell";
-
-          if (!info) {
-            cellDiv.textContent = "—";
-            cellDiv.classList.add("sentiment-neutral");
-          } else {
-            const avg = info.sentiment;
-            const count = info.news_count || 0;
-            const pill = document.createElement("div");
-            pill.className = "sentiment-pill " + sentimentClassFromValue(avg);
-
-            if (count === 0) {
-              pill.textContent = "—";
-            } else if (avg === null || avg === undefined || isNaN(avg)) {
-              pill.textContent = count;
-            } else {
-              pill.textContent = (avg > 0 ? "+" : "") + avg.toFixed(2);
-            }
-            cellDiv.appendChild(pill);
-          }
-
-          row.appendChild(cellDiv);
-        });
-
-        container.appendChild(row);
-      });
-    }
-
     async function refreshMacroWeek() {
       try {
-        const [summaryRes, rawRes] = await Promise.all([
-          fetch(API_BASE + "/api/macro/week/summary"),
-          fetch(API_BASE + "/api/macro/week/raw"),
-        ]);
-
-        if (!summaryRes.ok || !rawRes.ok) {
-          throw new Error("Erreur HTTP sur les endpoints macro");
+        const summaryRes = await fetch(API_BASE + "/api/macro/week/summary");
+        if (!summaryRes.ok) {
+          throw new Error("Erreur HTTP sur l'endpoint macro/summary");
         }
 
         const summary = await summaryRes.json();
-        const raw = await rawRes.json();
 
         setWeekRange(summary);
         setRiskPillWeekly(summary);
         renderRiskComment(summary);
         renderTopEvents(summary);
         renderTopMoves(summary);
-        renderSentimentGrid(raw);
 
         // MAJ chip macro globale pour le dashboard
         updateMacroBiasChip();
@@ -1469,17 +1313,13 @@
         const txt = document.getElementById("macro-bias-text");
 
         chip.classList.remove("pill-positive", "pill-negative", "pill-neutral");
-
-        const mode = data.bias || data.risk_mode;
-
-        if (mode === "risk_on") {
+        if (data.risk_on === true) {
           chip.classList.add("pill-positive");
-        } else if (mode === "risk_off") {
+        } else if (data.risk_on === false) {
           chip.classList.add("pill-negative");
         } else {
           chip.classList.add("pill-neutral");
         }
-
         txt.textContent = data.comment || "Lecture macro indisponible pour le moment.";
       } catch (e) {
         console.error("Erreur updateMacroBiasChip:", e);
@@ -1631,12 +1471,14 @@
       }
     }
 
-    /* ---------- ASSISTANT IA ---------- */
+    /* ---------- ASSISTANT IA (désactivé sur le front, mais code conservé) ---------- */
 
     async function runIaAnalysis() {
       const select = document.getElementById("ia-asset-select");
-      const symbol = select.value || "ES";
+      const symbol = select ? (select.value || "ES") : "ES";
       const out = document.getElementById("ia-output");
+      if (!out) return;
+
       out.textContent = "Analyse en cours pour " + symbol + "…";
 
       try {
@@ -1823,21 +1665,37 @@
       return "calendar-impact-low";
     }
 
+    async function fetchCalendarJson(pathOptions) {
+      for (const path of pathOptions) {
+        try {
+          const resp = await fetch(API_BASE + path);
+          if (resp.ok) {
+            return await resp.json();
+          }
+        } catch (e) {
+          console.warn("Erreur fetch calendrier sur", path, e);
+        }
+      }
+      return { events: [] };
+    }
+
     async function refreshCalendar() {
       try {
-        const resp = await fetch(API_BASE + "/api/calendar/summary");
-        if (!resp.ok) throw new Error("HTTP " + resp.status);
-        const data = await resp.json();
+        const todayData = await fetchCalendarJson([
+          "/api/calendar/today",
+          "/calendar/today",
+        ]);
+        const nextData = await fetchCalendarJson([
+          "/api/calendar/next",
+          "/calendar/next",
+        ]);
 
         const todayBody = document.getElementById("calendar-today-body");
         const nextBody = document.getElementById("calendar-next-body");
         todayBody.innerHTML = "";
         nextBody.innerHTML = "";
 
-        const todayEvents = data.today || [];
-        const nextEvents = data.next_days || data.week || [];
-
-        // AUJOURD’HUI
+        const todayEvents = todayData.events || [];
         if (todayEvents.length === 0) {
           const tr = document.createElement("tr");
           const td = document.createElement("td");
@@ -1851,20 +1709,15 @@
         } else {
           todayEvents.forEach((ev) => {
             const tr = document.createElement("tr");
-
             const tdTime = document.createElement("td");
             tdTime.textContent = ev.time || "—";
-
             const tdCountry = document.createElement("td");
             tdCountry.textContent = ev.country || "—";
-
             const tdEvent = document.createElement("td");
-            tdEvent.textContent = ev.event || "Événement";
-
+            tdEvent.textContent = ev.title || "Événement";
             const tdImpact = document.createElement("td");
-            const impact = ev.impact || ev.impact_level;
-            tdImpact.textContent = impact || "—";
-            tdImpact.className = impactClass(impact);
+            tdImpact.textContent = ev.impact || "—";
+            tdImpact.className = impactClass(ev.impact_level || ev.impact);
 
             tr.appendChild(tdTime);
             tr.appendChild(tdCountry);
@@ -1874,7 +1727,7 @@
           });
         }
 
-        // PROCHAINS JOURS
+        const nextEvents = nextData.events || [];
         if (nextEvents.length === 0) {
           const tr = document.createElement("tr");
           const td = document.createElement("td");
@@ -1888,20 +1741,15 @@
         } else {
           nextEvents.forEach((ev) => {
             const tr = document.createElement("tr");
-
             const tdDate = document.createElement("td");
             tdDate.textContent = ev.date || "—";
-
             const tdCountry = document.createElement("td");
             tdCountry.textContent = ev.country || "—";
-
             const tdEvent = document.createElement("td");
-            tdEvent.textContent = ev.event || "Événement";
-
+            tdEvent.textContent = ev.title || "Événement";
             const tdImpact = document.createElement("td");
-            const impact = ev.impact || ev.impact_level;
-            tdImpact.textContent = impact || "—";
-            tdImpact.className = impactClass(impact);
+            tdImpact.textContent = ev.impact || "—";
+            tdImpact.className = impactClass(ev.impact_level || ev.impact);
 
             tr.appendChild(tdDate);
             tr.appendChild(tdCountry);
@@ -1931,7 +1779,7 @@
       if (newsBtn) newsBtn.addEventListener("click", fetchNewsAnalysis);
       fetchNewsAnalysis();
 
-      // IA bouton
+      // IA bouton (même si le bloc est masqué, on garde le wiring si on le remet plus tard)
       const iaBtn = document.getElementById("ia-run-btn");
       if (iaBtn) iaBtn.addEventListener("click", runIaAnalysis);
 
