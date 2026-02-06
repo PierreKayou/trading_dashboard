@@ -12,6 +12,7 @@ from econ_calendar.router import router as econ_router
 from compat.router import router as compat_router
 
 from news.analysis_v2 import router as news_v2_router
+from news.stress_router import router as news_stress_router
 
 # ---------------------------------------------------------
 # App & config de base
@@ -79,7 +80,7 @@ app.include_router(compat_router)
 
 app.include_router(news_v2_router)
 
-
+app.include_router(news_stress_router)
 
 # ---------------------------------------------------------
 # Endpoint de santé (optionnel)
