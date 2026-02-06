@@ -749,26 +749,29 @@
     .calendar-impact-medium { color: #eab308; }
     .calendar-impact-low { color: #22c55e; }
 
-    /* PERF INDICES */
-
+    /* PERF INDICES (petite mise en forme) */
     .table-wrapper {
       margin-top: 8px;
-      overflow-x: auto;
+      border-radius: 14px;
+      border: 1px solid rgba(31,41,55,0.9);
+      overflow: hidden;
+      background: rgba(15,23,42,0.95);
     }
 
-    table {
+    .table-wrapper table {
       width: 100%;
       border-collapse: collapse;
       font-size: 11px;
     }
 
-    th, td {
-      padding: 4px 6px;
-      border-bottom: 1px solid rgba(31, 41, 55, 0.9);
-      text-align: left;
+    .table-wrapper th,
+    .table-wrapper td {
+      padding: 6px 8px;
+      border-bottom: 1px solid rgba(31,41,55,0.9);
     }
 
-    th {
+    .table-wrapper th {
+      text-align: left;
       color: var(--text-muted);
       font-weight: 500;
     }
@@ -838,7 +841,7 @@
         </div>
       </section>
 
-      <!-- Colonne droite : seulement la grille de sentiment -->
+      <!-- Colonne droite : sentiment grid -->
       <section class="card">
         <div class="card-inner">
           <div class="card-header">
@@ -927,7 +930,7 @@
         </div>
       </section>
 
-      <!-- Bloc droit : Performance indices -->
+      <!-- Bloc droite : Performance indices -->
       <section class="card">
         <div class="card-inner">
           <div class="card-header">
@@ -971,7 +974,7 @@
             <div>
               <div class="card-title">News &amp; Sentiment IA</div>
               <div class="card-subtitle">
-                Lecture synthétique des dernières news macro / marché à partir des flux IA (V2 – stress &amp; drivers).
+                Lecture synthétique des dernières news macro / marché à partir des flux IA.
               </div>
             </div>
             <button id="news-refresh-btn" class="btn-secondary" type="button">
@@ -1399,13 +1402,17 @@
         const txt = document.getElementById("macro-bias-text");
 
         chip.classList.remove("pill-positive", "pill-negative", "pill-neutral");
-        if (data.risk_on === true) {
+
+        // compat : certains stubs renvoient risk_mode au lieu de risk_on
+        const bias = data.risk_on;
+        if (bias === true || data.bias === "risk_on") {
           chip.classList.add("pill-positive");
-        } else if (data.risk_on === false) {
+        } else if (bias === false || data.bias === "risk_off") {
           chip.classList.add("pill-negative");
         } else {
           chip.classList.add("pill-neutral");
         }
+
         txt.textContent = data.comment || "Lecture macro indisponible pour le moment.";
       } catch (e) {
         console.error("Erreur updateMacroBiasChip:", e);
@@ -1557,31 +1564,31 @@
       }
     }
 
-    /* ---------- NEWS IA V2 (stress) ---------- */
+    /* ---------- (ANCIEN) ASSISTANT IA LOCALE – DÉSACTIVÉ POUR LE MOMENT ---------- */
+
+    async function runIaAnalysis() {
+      // laissé pour plus tard si on réactive un assistant IA local
+      console.log("Assistant IA local désactivé pour le moment.");
+    }
+
+    /* ---------- NEWS IA (V2 avec /api/news/stress) ---------- */
 
     let NEWS_IMPACT_BY_ASSET = {};
 
-    function applyRiskTonePill(riskTone, stressScore) {
+    function applyRiskTonePill(riskTone) {
       const pill = document.getElementById("news-tone-pill");
       const label = document.getElementById("news-tone-label");
       pill.classList.remove("pill-positive", "pill-negative", "pill-neutral");
 
-      let baseText;
       if (riskTone === "risk_on") {
         pill.classList.add("pill-positive");
-        baseText = "Tonalité risk-on";
+        label.textContent = "Tonalité risk-on";
       } else if (riskTone === "risk_off") {
         pill.classList.add("pill-negative");
-        baseText = "Tonalité risk-off";
+        label.textContent = "Tonalité risk-off";
       } else {
         pill.classList.add("pill-neutral");
-        baseText = "Tonalité neutre / mitigée";
-      }
-
-      if (stressScore !== null && stressScore !== undefined && !isNaN(stressScore)) {
-        label.textContent = `${baseText} · Stress ${Math.round(stressScore)}/100`;
-      } else {
-        label.textContent = baseText;
+        label.textContent = "Tonalité neutre / mitigée";
       }
     }
 
@@ -1667,36 +1674,23 @@
     }
 
     function renderNewsAnalysis(data) {
-      // Envelope: { source, news_source, created_at, analysis, ... }
-      const envelope = data || {};
-      const analysis = envelope.analysis || envelope;
+      // V2 : on garde le même format global (data.analysis)
+      const analysis = data.analysis || {};
+      const macroSent = analysis.macro_sentiment || {};
+      const keyPoints = analysis.key_points || [];
+      const byAsset = analysis.by_asset || {};
+      const riskTone = analysis.risk_tone || "neutral";
+      const volOutlook = analysis.volatility_outlook || analysis.volatility || "normal";
 
-      const stressScore =
-        analysis.stress_score ?? analysis.score ?? null;
-
-      const riskTone =
-        analysis.risk_tone ||
-        analysis.risk ||
-        (analysis.macro_sentiment && analysis.macro_sentiment.risk_tone) ||
-        "neutral";
-
-      const volOutlook =
-        analysis.volatility_outlook ||
-        analysis.volatility_regime ||
-        "normal";
-
-      applyRiskTonePill(riskTone, stressScore);
+      applyRiskTonePill(riskTone);
       applyVolPill(volOutlook);
 
-      const macroSent = analysis.macro_sentiment || {};
       const summaryEl = document.getElementById("news-summary-text");
       summaryEl.textContent =
         macroSent.comment ||
-        analysis.macro_comment ||
         analysis.comment ||
         "Pas de commentaire macro disponible dans l'analyse.";
 
-      const keyPoints = analysis.key_points || analysis.drivers || [];
       const ul = document.getElementById("news-keypoints");
       ul.innerHTML = "";
       keyPoints.forEach((p) => {
@@ -1706,10 +1700,10 @@
       });
 
       const sourceLabel = document.getElementById("news-source-label");
-      sourceLabel.textContent = `Source : ${envelope.news_source || envelope.source || "—"}`;
+      sourceLabel.textContent = `Source : ${data.news_source || data.source || "—"}`;
 
       const lastUpdate = document.getElementById("news-last-update");
-      const ts = envelope.created_at || envelope.fetched_at;
+      const ts = data.created_at || data.fetched_at;
       if (ts) {
         const d = new Date(ts * 1000);
         lastUpdate.textContent =
@@ -1719,7 +1713,6 @@
         lastUpdate.textContent = "Dernière analyse : —";
       }
 
-      const byAsset = analysis.by_asset || {};
       NEWS_IMPACT_BY_ASSET = byAsset;
       populateImpactSelect(byAsset);
     }
@@ -1742,7 +1735,7 @@
       }
     }
 
-    /* ---------- CALENDRIER ÉCO ---------- */
+    /* ---------- CALENDRIER ÉCO (basé sur /api/calendar/summary) ---------- */
 
     function impactClass(impact) {
       if (!impact) return "";
@@ -1752,37 +1745,21 @@
       return "calendar-impact-low";
     }
 
-    async function fetchCalendarJson(pathOptions) {
-      for (const path of pathOptions) {
-        try {
-          const resp = await fetch(API_BASE + path);
-          if (resp.ok) {
-            return await resp.json();
-          }
-        } catch (e) {
-          console.warn("Erreur fetch calendrier sur", path, e);
-        }
-      }
-      return { events: [] };
-    }
-
     async function refreshCalendar() {
       try {
-        const todayData = await fetchCalendarJson([
-          "/api/calendar/today",
-          "/calendar/today",
-        ]);
-        const nextData = await fetchCalendarJson([
-          "/api/calendar/next",
-          "/calendar/next",
-        ]);
+        const resp = await fetch(API_BASE + "/api/calendar/summary");
+        if (!resp.ok) throw new Error("HTTP " + resp.status);
+        const data = await resp.json();
 
         const todayBody = document.getElementById("calendar-today-body");
         const nextBody = document.getElementById("calendar-next-body");
         todayBody.innerHTML = "";
         nextBody.innerHTML = "";
 
-        const todayEvents = todayData.events || [];
+        const todayEvents = data.today || [];
+        const nextEvents = data.next_days || data.week || [];
+
+        // AUJOURD'HUI
         if (todayEvents.length === 0) {
           const tr = document.createElement("tr");
           const td = document.createElement("td");
@@ -1801,10 +1778,10 @@
             const tdCountry = document.createElement("td");
             tdCountry.textContent = ev.country || "—";
             const tdEvent = document.createElement("td");
-            tdEvent.textContent = ev.title || ev.event || "Événement";
+            tdEvent.textContent = ev.event || ev.title || "Événement";
             const tdImpact = document.createElement("td");
             tdImpact.textContent = ev.impact || "—";
-            tdImpact.className = impactClass(ev.impact_level || ev.impact);
+            tdImpact.className = impactClass(ev.impact);
 
             tr.appendChild(tdTime);
             tr.appendChild(tdCountry);
@@ -1814,7 +1791,7 @@
           });
         }
 
-        const nextEvents = nextData.events || [];
+        // PROCHAINS JOURS
         if (nextEvents.length === 0) {
           const tr = document.createElement("tr");
           const td = document.createElement("td");
@@ -1833,10 +1810,10 @@
             const tdCountry = document.createElement("td");
             tdCountry.textContent = ev.country || "—";
             const tdEvent = document.createElement("td");
-            tdEvent.textContent = ev.title || ev.event || "Événement";
+            tdEvent.textContent = ev.event || ev.title || "Événement";
             const tdImpact = document.createElement("td");
             tdImpact.textContent = ev.impact || "—";
-            tdImpact.className = impactClass(ev.impact_level || ev.impact);
+            tdImpact.className = impactClass(ev.impact);
 
             tr.appendChild(tdDate);
             tr.appendChild(tdCountry);
@@ -1861,10 +1838,14 @@
       refreshPerfSummary();
       updateMacroBiasChip();
 
-      // News IA V2
+      // News IA
       const newsBtn = document.getElementById("news-refresh-btn");
       if (newsBtn) newsBtn.addEventListener("click", fetchNewsAnalysis);
       fetchNewsAnalysis();
+
+      // IA bouton (placeholder pour plus tard)
+      const iaBtn = document.getElementById("ia-run-btn");
+      if (iaBtn) iaBtn.addEventListener("click", runIaAnalysis);
 
       // Calendrier
       refreshCalendar();
