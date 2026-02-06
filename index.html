@@ -306,7 +306,7 @@
       }
     }
 
-    /* MACRO HEBDO */
+    /* MACRO WEEKLY */
 
     .events-list {
       margin: 6px 0 0;
@@ -587,16 +587,7 @@
       color: #4ade80;
     }
 
-    .select-asset {
-      padding: 5px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(55, 65, 81, 0.9);
-      background: rgba(15, 23, 42, 0.95);
-      color: var(--text-main);
-      font-size: 12px;
-    }
-
-    /* NEWS IA */
+    /* NEWS IA V2 */
 
     .news-top-row {
       display: flex;
@@ -636,6 +627,24 @@
     }
 
     .news-keypoints li { margin-bottom: 3px; }
+
+    .news-headlines {
+      margin-top: 8px;
+      list-style: none;
+      padding-left: 0;
+      font-size: 12px;
+      color: #d1d5db;
+    }
+
+    .news-headlines li {
+      margin-bottom: 4px;
+    }
+
+    .news-headline-publisher {
+      color: #9ca3af;
+      font-size: 11px;
+      margin-left: 4px;
+    }
 
     .news-impacts {
       padding: 10px 10px;
@@ -712,8 +721,8 @@
     /* CALENDRIER ÉCO */
 
     .calendar-columns {
-      display: flex;
-      flex-direction: column;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
       gap: 10px;
       margin-top: 6px;
     }
@@ -749,36 +758,11 @@
     .calendar-impact-medium { color: #eab308; }
     .calendar-impact-low { color: #22c55e; }
 
-    /* PERF INDICES (petite mise en forme) */
-    .table-wrapper {
-      margin-top: 8px;
-      border-radius: 14px;
-      border: 1px solid rgba(31,41,55,0.9);
-      overflow: hidden;
-      background: rgba(15,23,42,0.95);
-    }
-
-    .table-wrapper table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 11px;
-    }
-
-    .table-wrapper th,
-    .table-wrapper td {
-      padding: 6px 8px;
-      border-bottom: 1px solid rgba(31,41,55,0.9);
-    }
-
-    .table-wrapper th {
-      text-align: left;
-      color: var(--text-muted);
-      font-weight: 500;
-    }
+    /* PERF TABLE COLORS */
 
     .perf-positive { color: #4ade80; }
     .perf-negative { color: #f97373; }
-    .perf-neutral { color: #9ca3af; }
+    .perf-neutral  { color: #e5e7eb; }
   </style>
 </head>
 <body>
@@ -841,7 +825,7 @@
         </div>
       </section>
 
-      <!-- Colonne droite : sentiment grid -->
+      <!-- Colonne droite : grille sentiment news -->
       <section class="card">
         <div class="card-inner">
           <div class="card-header">
@@ -930,7 +914,7 @@
         </div>
       </section>
 
-      <!-- Bloc droite : Performance indices -->
+      <!-- Bloc droit : Performance indices -->
       <section class="card">
         <div class="card-inner">
           <div class="card-header">
@@ -967,14 +951,14 @@
 
     <!-- Bas : News IA + Calendrier -->
     <div class="grid-bottom">
-      <!-- NEWS IA -->
+      <!-- News IA V2 -->
       <section class="card card-news">
         <div class="card-inner">
           <div class="card-header">
             <div>
               <div class="card-title">News &amp; Sentiment IA</div>
               <div class="card-subtitle">
-                Lecture synthétique des dernières news macro / marché à partir des flux IA.
+                Lecture synthétique des dernières news macro / marché à partir des flux IA (V2 – stress &amp; drivers).
               </div>
             </div>
             <button id="news-refresh-btn" class="btn-secondary" type="button">
@@ -982,11 +966,15 @@
             </button>
           </div>
 
-          <!-- Ligne tonalité / volatilité -->
+          <!-- Ligne tonalité / stress / volatilité -->
           <div class="news-top-row">
             <span id="news-tone-pill" class="pill pill-neutral">
               <span class="pill-dot"></span>
               <span id="news-tone-label">Tonalité en cours…</span>
+            </span>
+            <span id="news-stress-pill" class="pill pill-neutral">
+              <span class="pill-dot"></span>
+              <span id="news-stress-label">Stress : —</span>
             </span>
             <span id="news-vol-pill" class="pill pill-neutral">
               <span class="pill-dot"></span>
@@ -1003,7 +991,10 @@
                 Impossible de récupérer l'analyse des news pour le moment.
               </p>
 
-              <ul id="news-keypoints" class="news-keypoints"></ul>
+              <h4 class="section-label" style="margin-top:10px;">TITRES SURVOLÉS PAR L'IA</h4>
+              <ul id="news-headlines" class="news-headlines">
+                <li style="font-size:11px; color:#9ca3af;">Aucun titre disponible.</li>
+              </ul>
             </div>
 
             <div class="news-impacts">
@@ -1108,7 +1099,7 @@
       return "sentiment-strong-pos";
     }
 
-    /* ---------- MACRO HEBDO (SECTION HAUT) ---------- */
+    /* ---------- MACRO HEBDO ---------- */
 
     function setRiskPillWeekly(summary) {
       const pill = document.getElementById("risk-pill");
@@ -1380,9 +1371,6 @@
         renderTopEvents(summary);
         renderTopMoves(summary);
         renderSentimentGrid(raw);
-
-        // MAJ chip macro globale pour le dashboard
-        updateMacroBiasChip();
       } catch (err) {
         console.error("Erreur refreshMacroWeek:", err);
         const el = document.getElementById("risk-comment");
@@ -1390,7 +1378,7 @@
       }
     }
 
-    /* ---------- MACRO BIAS POUR LE BANDEAU HAUT DASH ---------- */
+    /* ---------- MACRO BIAIS BANDEAU ---------- */
 
     async function updateMacroBiasChip() {
       try {
@@ -1402,21 +1390,49 @@
         const txt = document.getElementById("macro-bias-text");
 
         chip.classList.remove("pill-positive", "pill-negative", "pill-neutral");
-
-        // compat : certains stubs renvoient risk_mode au lieu de risk_on
-        const bias = data.risk_on;
-        if (bias === true || data.bias === "risk_on") {
+        // data.bias = "risk_on" | "risk_off" | "neutral" (compat)
+        if (data.bias === "risk_on") {
           chip.classList.add("pill-positive");
-        } else if (bias === false || data.bias === "risk_off") {
+        } else if (data.bias === "risk_off") {
           chip.classList.add("pill-negative");
         } else {
           chip.classList.add("pill-neutral");
         }
-
         txt.textContent = data.comment || "Lecture macro indisponible pour le moment.";
       } catch (e) {
         console.error("Erreur updateMacroBiasChip:", e);
       }
+    }
+
+    function updateMacroBiasChipFromStress(macro) {
+      if (!macro) return;
+      const chip = document.getElementById("macro-bias-chip");
+      const txt = document.getElementById("macro-bias-text");
+      const tone = (macro.tone || "neutral").toLowerCase();
+      const stress = typeof macro.stress_score === "number" ? macro.stress_score : null;
+
+      chip.classList.remove("pill-positive", "pill-negative", "pill-neutral");
+
+      if (tone === "risk_on") chip.classList.add("pill-positive");
+      else if (tone === "risk_off") chip.classList.add("pill-negative");
+      else chip.classList.add("pill-neutral");
+
+      let stressLabel = "";
+      if (stress !== null) {
+        const s = Math.round(stress);
+        if (s >= 70) stressLabel = `contexte tendu (stress ${s}/100)`;
+        else if (s >= 40) stressLabel = `contexte mitigé (stress ${s}/100)`;
+        else stressLabel = `contexte calme (stress ${s}/100)`;
+      } else {
+        stressLabel =
+          tone === "risk_on"
+            ? "biais plutôt risk-on"
+            : tone === "risk_off"
+            ? "biais plutôt risk-off"
+            : "biais neutre";
+      }
+
+      txt.textContent = `Lecture IA news : ${stressLabel}`;
     }
 
     /* ---------- DASHBOARD LIVE : SNAPSHOTS & PERF ---------- */
@@ -1564,14 +1580,7 @@
       }
     }
 
-    /* ---------- (ANCIEN) ASSISTANT IA LOCALE – DÉSACTIVÉ POUR LE MOMENT ---------- */
-
-    async function runIaAnalysis() {
-      // laissé pour plus tard si on réactive un assistant IA local
-      console.log("Assistant IA local désactivé pour le moment.");
-    }
-
-    /* ---------- NEWS IA (V2 avec /api/news/stress) ---------- */
+    /* ---------- NEWS IA V2 ---------- */
 
     let NEWS_IMPACT_BY_ASSET = {};
 
@@ -1606,6 +1615,30 @@
       } else {
         pill.classList.add("pill-neutral");
         label.textContent = "Volatilité : normale";
+      }
+    }
+
+    function applyStressPill(stressScore) {
+      const pill = document.getElementById("news-stress-pill");
+      const label = document.getElementById("news-stress-label");
+      pill.classList.remove("pill-positive", "pill-negative", "pill-neutral");
+
+      if (typeof stressScore !== "number" || isNaN(stressScore)) {
+        pill.classList.add("pill-neutral");
+        label.textContent = "Stress : —";
+        return;
+      }
+
+      const s = Math.round(stressScore);
+      if (s >= 70) {
+        pill.classList.add("pill-negative");
+        label.textContent = `Stress marché : élevé (${s}/100)`;
+      } else if (s >= 40) {
+        pill.classList.add("pill-neutral");
+        label.textContent = `Stress marché : modéré (${s}/100)`;
+      } else {
+        pill.classList.add("pill-positive");
+        label.textContent = `Stress marché : faible (${s}/100)`;
       }
     }
 
@@ -1673,39 +1706,65 @@
       commentEl.textContent = info.comment || "Pas de détail fourni par l'IA.";
     }
 
-    function renderNewsAnalysis(data) {
-      // V2 : on garde le même format global (data.analysis)
-      const analysis = data.analysis || {};
-      const macroSent = analysis.macro_sentiment || {};
-      const keyPoints = analysis.key_points || [];
-      const byAsset = analysis.by_asset || {};
-      const riskTone = analysis.risk_tone || "neutral";
-      const volOutlook = analysis.volatility_outlook || analysis.volatility || "normal";
+    function renderNewsHeadlines(headlines) {
+      const ul = document.getElementById("news-headlines");
+      ul.innerHTML = "";
+
+      const list = (headlines || []).slice(0, 3);
+      if (list.length === 0) {
+        const li = document.createElement("li");
+        li.style.fontSize = "11px";
+        li.style.color = "#9ca3af";
+        li.textContent = "Aucun titre disponible.";
+        ul.appendChild(li);
+        return;
+      }
+
+      list.forEach((h) => {
+        const li = document.createElement("li");
+        const title = h.title || "Titre indisponible";
+        const publisher = h.publisher || h.source || "?";
+
+        const strong = document.createElement("span");
+        strong.textContent = title;
+        li.appendChild(strong);
+
+        const pub = document.createElement("span");
+        pub.className = "news-headline-publisher";
+        pub.textContent = `(${publisher})`;
+        li.appendChild(pub);
+
+        ul.appendChild(li);
+      });
+    }
+
+    function renderNewsAnalysisV2(data) {
+      const macro = data.macro || {};
+      const byAsset = data.by_asset || {};
+      const headlines = data.headlines || [];
+
+      const riskTone = macro.tone || "neutral";
+      const volOutlook = macro.volatility || "normal";
+      const stressScore = macro.stress_score;
 
       applyRiskTonePill(riskTone);
       applyVolPill(volOutlook);
+      applyStressPill(stressScore);
+      updateMacroBiasChipFromStress(macro);
 
       const summaryEl = document.getElementById("news-summary-text");
       summaryEl.textContent =
-        macroSent.comment ||
-        analysis.comment ||
-        "Pas de commentaire macro disponible dans l'analyse.";
+        macro.summary ||
+        "Aucune news exploitable remontée par les sources actuelles. On considère le contexte informationnel comme neutre.";
 
-      const ul = document.getElementById("news-keypoints");
-      ul.innerHTML = "";
-      keyPoints.forEach((p) => {
-        const li = document.createElement("li");
-        li.textContent = p;
-        ul.appendChild(li);
-      });
+      renderNewsHeadlines(headlines);
 
       const sourceLabel = document.getElementById("news-source-label");
-      sourceLabel.textContent = `Source : ${data.news_source || data.source || "—"}`;
+      sourceLabel.textContent = `Source : ${data.source || "—"}`;
 
       const lastUpdate = document.getElementById("news-last-update");
-      const ts = data.created_at || data.fetched_at;
-      if (ts) {
-        const d = new Date(ts * 1000);
+      if (data.created_at) {
+        const d = new Date(data.created_at * 1000);
         lastUpdate.textContent =
           "Dernière analyse : " +
           d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
@@ -1717,7 +1776,7 @@
       populateImpactSelect(byAsset);
     }
 
-    async function fetchNewsAnalysis() {
+    async function fetchNewsAnalysisV2() {
       try {
         const resp = await fetch(API_BASE + "/api/news/stress", {
           method: "POST",
@@ -1726,16 +1785,16 @@
         });
         if (!resp.ok) throw new Error("HTTP " + resp.status);
         const data = await resp.json();
-        renderNewsAnalysis(data);
+        renderNewsAnalysisV2(data);
       } catch (e) {
-        console.error("Erreur fetchNewsAnalysis:", e);
+        console.error("Erreur fetchNewsAnalysisV2:", e);
         const summaryEl = document.getElementById("news-summary-text");
         summaryEl.textContent =
           "Impossible de récupérer l'analyse des news pour le moment.";
       }
     }
 
-    /* ---------- CALENDRIER ÉCO (basé sur /api/calendar/summary) ---------- */
+    /* ---------- CALENDRIER ÉCO ---------- */
 
     function impactClass(impact) {
       if (!impact) return "";
@@ -1757,9 +1816,6 @@
         nextBody.innerHTML = "";
 
         const todayEvents = data.today || [];
-        const nextEvents = data.next_days || data.week || [];
-
-        // AUJOURD'HUI
         if (todayEvents.length === 0) {
           const tr = document.createElement("tr");
           const td = document.createElement("td");
@@ -1778,7 +1834,7 @@
             const tdCountry = document.createElement("td");
             tdCountry.textContent = ev.country || "—";
             const tdEvent = document.createElement("td");
-            tdEvent.textContent = ev.event || ev.title || "Événement";
+            tdEvent.textContent = ev.event || "Événement";
             const tdImpact = document.createElement("td");
             tdImpact.textContent = ev.impact || "—";
             tdImpact.className = impactClass(ev.impact);
@@ -1791,7 +1847,7 @@
           });
         }
 
-        // PROCHAINS JOURS
+        const nextEvents = data.next_days || [];
         if (nextEvents.length === 0) {
           const tr = document.createElement("tr");
           const td = document.createElement("td");
@@ -1810,7 +1866,7 @@
             const tdCountry = document.createElement("td");
             tdCountry.textContent = ev.country || "—";
             const tdEvent = document.createElement("td");
-            tdEvent.textContent = ev.event || ev.title || "Événement";
+            tdEvent.textContent = ev.event || "Événement";
             const tdImpact = document.createElement("td");
             tdImpact.textContent = ev.impact || "—";
             tdImpact.className = impactClass(ev.impact);
@@ -1838,14 +1894,10 @@
       refreshPerfSummary();
       updateMacroBiasChip();
 
-      // News IA
+      // News IA V2
       const newsBtn = document.getElementById("news-refresh-btn");
-      if (newsBtn) newsBtn.addEventListener("click", fetchNewsAnalysis);
-      fetchNewsAnalysis();
-
-      // IA bouton (placeholder pour plus tard)
-      const iaBtn = document.getElementById("ia-run-btn");
-      if (iaBtn) iaBtn.addEventListener("click", runIaAnalysis);
+      if (newsBtn) newsBtn.addEventListener("click", fetchNewsAnalysisV2);
+      fetchNewsAnalysisV2();
 
       // Calendrier
       refreshCalendar();
