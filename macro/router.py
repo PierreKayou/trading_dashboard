@@ -441,3 +441,26 @@ def macro_calendar(
     )
 
     return events
+
+# =====================================================
+# /api/macro/sentiment_grid
+# =====================================================
+
+@router.get("/sentiment_grid")
+def macro_sentiment_grid():
+    """
+    Grille de sentiment news par jour et par thématique
+    utilisée par la page MACRO (tableau hebdomadaire).
+    """
+    today = dt.date.today()
+    start = today - dt.timedelta(days=4)  # 5 jours ouvrés
+    end = today
+
+    raw = build_week_raw(start, end)
+    grid = raw.get("sentiment_grid", [])
+
+    return {
+        "start": start.isoformat(),
+        "end": end.isoformat(),
+        "grid": grid,
+    }
