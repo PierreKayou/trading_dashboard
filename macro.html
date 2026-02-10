@@ -2,139 +2,133 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Stark Trading – Macro Dashboard</title>
+  <title>Stark Trading – Macro</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- CSS principal -->
+  <!-- CSS -->
   <link rel="stylesheet" href="/static/macro.css" />
 </head>
 
 <body>
-  <div class="page">
+<div class="page">
 
-    <!-- ================= HEADER ================= -->
-    <div class="page-header">
-      <div>
-        <div class="page-title">
-          <span class="badge-main">Macro</span>
-          STARK TRADING – CONTEXTE MARCHÉ
-        </div>
-        <div class="page-subtitle">
-          Synthèse macro hebdomadaire · Indices · Sentiment news · Calendrier économique
-        </div>
+  <!-- HEADER -->
+  <div class="page-header">
+    <div>
+      <div class="page-title">
+        <span class="badge-main">Macro</span>
+        STARK TRADING – CONTEXTE MARCHÉ
       </div>
-      <button class="btn-refresh" id="btn-refresh">
-        ↻ Rafraîchir la vue
-      </button>
+      <div class="page-subtitle">
+        Résumé hebdo & contexte marché
+      </div>
     </div>
 
-    <!-- ================= GRID PRINCIPALE ================= -->
-    <div class="grid">
+    <button id="btn-refresh" class="btn-refresh">
+      ↻ Rafraîchir la vue
+    </button>
+  </div>
 
-      <!-- ===== COLONNE GAUCHE ===== -->
-      <div class="col-left">
+  <!-- GRID -->
+  <div class="grid">
 
-        <!-- SNAPSHOT MACRO -->
-        <section class="card card-main">
-          <header class="card-header">
-            <div>
-              <div class="card-title">Vue macro globale</div>
-              <div class="card-subtitle">
-                Régime de marché & synthèse hebdomadaire
-              </div>
-            </div>
-            <div class="pill" id="snapshot-pill">
-              <span class="badge-risk">—</span>
-            </div>
-          </header>
+    <!-- COL GAUCHE -->
+    <div class="col-left">
 
-          <div class="card-body">
-            <div class="snapshot-layout">
-              <div class="snapshot-bias">
-                <div class="bias-row">
-                  <span class="bias-label">Actions</span>
-                  <span class="bias-value" id="bias-equities">—</span>
-                </div>
-                <div class="bias-row">
-                  <span class="bias-label">Taux</span>
-                  <span class="bias-value" id="bias-rates">—</span>
-                </div>
-                <div class="bias-row">
-                  <span class="bias-label">USD</span>
-                  <span class="bias-value" id="bias-usd">—</span>
-                </div>
-                <div class="bias-row">
-                  <span class="bias-label">Crédit</span>
-                  <span class="bias-value" id="bias-credit">—</span>
-                </div>
-                <div class="bias-row">
-                  <span class="bias-label">Commodities</span>
-                  <span class="bias-value" id="bias-commodities">—</span>
-                </div>
-                <div class="bias-row">
-                  <span class="bias-label">Crypto</span>
-                  <span class="bias-value" id="bias-crypto">—</span>
-                </div>
-              </div>
+      <!-- SNAPSHOT -->
+      <section class="card">
+        <header class="card-header">
+          <div>
+            <div class="card-title">Vue hebdomadaire</div>
+            <div class="card-subtitle">Sentiment global & événements macro</div>
+          </div>
+          <div id="snapshot-pill"></div>
+        </header>
 
-              <div class="snapshot-comment">
-                <p id="snapshot-comment" class="snapshot-comment-text">
-                  Chargement de la lecture macro globale…
-                </p>
-                <p id="snapshot-meta" class="snapshot-meta">
-                  Volatilité : — · Dernière mise à jour : —
-                </p>
-              </div>
+        <div class="card-body">
+          <p id="snapshot-comment">Chargement…</p>
+          <p id="snapshot-meta" class="muted"></p>
+        </div>
+      </section>
+
+      <!-- SENTIMENT GRID -->
+      <section class="card">
+        <header class="card-header">
+          <div>
+            <div class="card-title">Indices & sentiment news</div>
+            <div class="card-subtitle">
+              Sentiment news par jour & thématique
             </div>
           </div>
-        </section>
+        </header>
 
-        <!-- ===== GRILLE SENTIMENT NEWS ===== -->
-        <section class="card">
-          <header class="card-header">
-            <div>
-              <div class="card-title">Indices & sentiment news</div>
-              <div class="card-subtitle">
-                Chaleur des news par thème au cours de la semaine
-              </div>
-            </div>
-          </header>
+        <div class="card-body">
 
-          <div class="card-body">
-            <table class="table sentiment-table">
-              <thead>
-                <tr>
-                  <th>Jour</th>
-                  <th>Macro US</th>
-                  <th>Macro Europe</th>
-                  <th>Entreprises</th>
-                  <th>Géopolitique</th>
-                  <th>Tech</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td colspan="6" class="muted">
-                    Chargement du sentiment news…
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <!-- ⚠️ CLASSE CRITIQUE -->
+          <table class="table sentiment-table">
+            <thead>
+              <tr>
+                <th>Jour</th>
+                <th>Macro US</th>
+                <th>Macro Europe</th>
+                <th>Entreprises</th>
+                <th>Géopolitique</th>
+                <th>Tech</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="6" class="muted">
+                  Chargement du sentiment…
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+        </div>
+      </section>
+
+    </div>
+
+    <!-- COL DROITE -->
+    <div class="col-right">
+
+      <section class="card">
+        <header class="card-header">
+          <div>
+            <div class="card-title">Orientation de marché</div>
+            <div class="card-subtitle">Lecture synthétique du risque</div>
           </div>
-        </section>
+        </header>
+        <div class="card-body" id="orientation-content">
+          Chargement…
+        </div>
+      </section>
 
-      </div>
+      <section class="card">
+        <header class="card-header">
+          <div>
+            <div class="card-title">Calendrier économique</div>
+            <div class="card-subtitle">Publications clés (UTC)</div>
+          </div>
+        </header>
+        <div class="card-body" id="calendar-list">
+          Chargement…
+        </div>
+      </section>
 
-      <!-- ===== COLONNE DROITE ===== -->
-      <div class="col-right">
+    </div>
 
-        <!-- ORIENTATION -->
-        <section class="card">
-          <header class="card-header">
-            <div>
-              <div class="card-title">Orientation de marché</div>
-              <div class="card-subtitle">
-                Lecture synthétique pour la gestion du risque
-              </div>
-            </div>
-          </header>
+  </div>
+
+  <footer>
+    Stark Macro Engine · backend :
+    <span id="health-status">check…</span>
+  </footer>
+
+</div>
+
+<!-- JS -->
+<script src="/static/macro.js"></script>
+</body>
+</html>
