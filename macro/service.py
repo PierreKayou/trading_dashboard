@@ -25,10 +25,6 @@ ASSETS = {
 BUCKETS = ["macro_us", "macro_europe", "companies", "geopolitics", "tech"]
 
 
-# ------------------------------------------------------------------
-# PERFORMANCE HEBDO
-# ------------------------------------------------------------------
-
 def _build_asset_performances(start: dt.date, end: dt.date) -> List[Dict[str, Any]]:
     out = []
 
@@ -79,50 +75,53 @@ def _infer_bucket(article: Dict[str, Any]) -> str:
     if any(
         k in title
         for k in [
-            "war",
-            "conflict",
-            "tension",
-            "sanction",
-            "gaza",
-            "ukraine",
-            "geopolit",
+            "earnings",
+            "guidance",
+            "quarter",
+            "profit",
+            "revenue",
+            "results",
         ]
     ):
-        return "geopolitics"
+        return "companies"
 
     if any(
         k in title
         for k in [
-            "ai",
-            "artificial intelligence",
-            "semiconductor",
-            "chip",
-            "nvidia",
-            "apple",
-            "tesla",
-            "microsoft",
-            "google",
-            "amazon",
-            "meta",
+            "war",
+            "geopolitics",
+            "tensions",
+            "taiwan",
+            "ukraine",
+            "middle east",
         ]
     ):
+        return "geopolitics"
+
+    if any(k in title for k in ["ai", "chip", "semiconductor", "cloud", "saas"]):
         return "tech"
 
-    return "companies"
+    return "macro_us"
 
 
 def _score_title(title: str) -> float | None:
-    t = title.lower()
-
+    """
+    Score très simple :
+    +1 pour mot positif, -1 pour mot négatif
+    Retourne None si rien de significatif.
+    """
     positives = [
-        "rally",
-        "surge",
-        "jumps",
         "beats",
-        "strong",
-        "optimism",
-        "gain",
+        "beat",
+        "rally",
         "soars",
+        "soar",
+        "jumps",
+        "jump",
+        "surge",
+        "strong",
+        "improves",
+        "improvement",
     ]
     negatives = [
         "falls",
@@ -139,12 +138,16 @@ def _score_title(title: str) -> float | None:
     score = 0
     hit = False
 
-    if any(w in t for w in positives):
-        score += 1
-        hit = True
-    if any(w in t for w in negatives):
-        score -= 1
-        hit = True
+    low = title.lower()
+    for w in positives:
+        if w in low:
+            score += 1
+            hit = True
+
+    for w in negatives:
+        if w in low:
+            score -= 1
+            hit = True
 
     return score if hit else None
 
@@ -185,18 +188,20 @@ def _build_sentiment_grid(start: dt.date, end: dt.date) -> List[Dict[str, Any]]:
         if d < start or d > end:
             continue
 
-        date_str = d.isoformat()
         bucket = _infer_bucket(art)
-
-        day = daily.setdefault(date_str, {})
-        cell = day.setdefault(bucket, {"sum": 0.0, "scored": 0, "count": 0})
-
         score = _score_title(title)
-        if score is not None:
-            cell["sum"] += score
-            cell["scored"] += 1
+        date_key = d.isoformat()
 
-        cell["count"] += 1
+        if date_key not in daily:
+            daily[date_key] = {}
+
+        if bucket not in daily[date_key]:
+            daily[date_key][bucket] = {"sum": 0.0, "scored": 0.0, "count": 0.0}
+
+        daily[date_key][bucket]["count"] += 1
+        if score is not None:
+            daily[date_key][bucket]["sum"] += score
+            daily[date_key][bucket]["scored"] += 1
 
     grid: List[Dict[str, Any]] = []
     cur = start
@@ -236,7 +241,7 @@ def _build_sentiment_grid(start: dt.date, end: dt.date) -> List[Dict[str, Any]]:
 
 
 # ------------------------------------------------------------------
-# PUBLIC API : RAW HEBDO
+# PUBLIC API : RAW (pour /api/macro/week/raw)
 # ------------------------------------------------------------------
 
 def build_week_raw(start: dt.date, end: dt.date) -> Dict[str, Any]:
@@ -314,3 +319,41 @@ def build_week_summary(start: dt.date, end: dt.date) -> Dict[str, Any]:
         "top_moves": moves,
         "upcoming_focus": [],   # placeholders pour la suite
     }
+
+
+# ------------------------------------------------------------------
+# CACHE DÉDIÉ POUR LE RÉSUMÉ HEBDO
+# ------------------------------------------------------------------
+
+_SUMMARY_CACHE_DATA: Dict[str, Any] | None = None
+_SUMMARY_CACHE_KEY: tuple[dt.date, dt.date] | None = None
+_SUMMARY_CACHE_TS: float = 0.0
+_SUMMARY_CACHE_TTL_SECONDS = 300  # 5 minutes
+
+
+def get_week_summary_cached(
+    start: dt.date,
+    end: dt.date,
+    ttl_seconds: int = _SUMMARY_CACHE_TTL_SECONDS,
+) -> Dict[str, Any]:
+    """
+    Version mise en cache de build_week_summary pour éviter
+    de frapper yfinance et les news externes à chaque appel.
+    """
+    global _SUMMARY_CACHE_DATA, _SUMMARY_CACHE_KEY, _SUMMARY_CACHE_TS
+
+    now = time.time()
+    key = (start, end)
+
+    if (
+        _SUMMARY_CACHE_DATA is not None
+        and _SUMMARY_CACHE_KEY == key
+        and now - _SUMMARY_CACHE_TS < ttl_seconds
+    ):
+        return _SUMMARY_CACHE_DATA
+
+    summary = build_week_summary(start, end)
+    _SUMMARY_CACHE_DATA = summary
+    _SUMMARY_CACHE_KEY = key
+    _SUMMARY_CACHE_TS = now
+    return summary
