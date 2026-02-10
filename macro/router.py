@@ -1,5 +1,3 @@
-# macro/router.py
-
 from fastapi import APIRouter
 from datetime import datetime, date, time, timedelta
 from typing import Optional, Literal
@@ -12,19 +10,18 @@ from macro.service import build_week_raw, get_week_summary_cached
 router = APIRouter(prefix="/macro")
 
 
-# =====================================================
+# ==============================
 # Types
-# =====================================================
+# ==============================
 
 RiskMode = Literal["risk_on", "risk_off", "neutral"]
 VolatilityLevel = Literal["low", "medium", "high"]
 
 
-# =====================================================
+# ==============================
 # Helpers indices (yfinance)
-# =====================================================
+# ==============================
 
-# Mapping indice / ticker Yahoo Finance
 INDEX_SYMBOLS = {
     "SPX": {"label": "S&P 500", "yf": "^GSPC"},
     "NDX": {"label": "Nasdaq 100", "yf": "^NDX"},
@@ -35,18 +32,12 @@ INDEX_SYMBOLS = {
     "BTCUSD": {"label": "Bitcoin", "yf": "BTC-USD"},
 }
 
-# Cache simple pour les performances d'indices afin d'éviter
-# d'appeler yfinance à chaque rafraîchissement du front.
 _INDICES_CACHE_DATA: dict | None = None
 _INDICES_CACHE_TS: datetime | None = None
 _INDICES_CACHE_TTL_SECONDS = 300  # 5 minutes
 
 
 def _compute_return_pct(close_series, periods: int) -> Optional[float]:
-    """
-    Calcule la variation en % entre la dernière clôture
-    et la clôture N périodes avant (1 jour, 5 jours, 21 jours, etc.).
-    """
     if close_series is None:
         return None
 
@@ -56,39 +47,30 @@ def _compute_return_pct(close_series, periods: int) -> Optional[float]:
 
     first = float(series.iloc[-(periods + 1)])
     last = float(series.iloc[-1])
-
     if first == 0:
         return None
 
     return (last - first) / first * 100.0
 
 
-# =====================================================
+# ==============================
 # /api/macro/snapshot
-# =====================================================
+# ==============================
 
 @router.get("/snapshot")
 def macro_snapshot():
     """
-    Vue macro globale utilisée par la carte principale de macro.html.
-
-    On s'appuie sur la logique de macro.service :
-    - build_week_raw : perfs hebdo des actifs (ES, NQ, BTC, CL, GC)
-    - get_week_summary_cached : biais global risk_on / risk_off / neutre
-
-    On regarde la dernière semaine calendaire (J-7 → aujourd'hui).
+    Vue macro globale utilisée par la carte principale.
+    Basée sur le résumé hebdo (ES, NQ, BTC, CL, GC + news).
     """
     today = date.today()
     start = today - timedelta(days=7)
 
-    # Résumé hebdo (avec cache interne dans macro.service)
     summary = get_week_summary_cached(start, today)
     raw = build_week_raw(start, today)
     assets = raw.get("asset_performances", []) or []
 
-    # --------------------------------------------------
-    # Risk mode
-    # --------------------------------------------------
+    # ---- risk mode ----
     risk_flag = summary.get("risk_on")
     if risk_flag is True:
         risk_mode: RiskMode = "risk_on"
@@ -97,17 +79,14 @@ def macro_snapshot():
     else:
         risk_mode = "neutral"
 
-    # --------------------------------------------------
-    # Volatilité (simple : max mouvement absolu sur la semaine)
-    # --------------------------------------------------
+    # ---- volatilité (max move hebdo) ----
     max_abs_move = 0.0
     for a in assets:
         try:
             v = float(a.get("return_pct", 0.0) or 0.0)
         except (TypeError, ValueError):
             v = 0.0
-        if abs(v) > max_abs_move:
-            max_abs_move = abs(v)
+        max_abs_move = max(max_abs_move, abs(v))
 
     if max_abs_move < 1.0:
         volatility: VolatilityLevel = "low"
@@ -116,10 +95,9 @@ def macro_snapshot():
     else:
         volatility = "high"
 
-    # --------------------------------------------------
-    # Biais par grande classe d'actifs
-    # --------------------------------------------------
-    def _get_ret(symbol: str) -> float | None:
+    # ---- biais par classe d’actifs ----
+
+    def _get_ret(symbol: str) -> Optional[float]:
         for a in assets:
             if a.get("symbol") == symbol:
                 try:
@@ -134,7 +112,7 @@ def macro_snapshot():
     cl_ret = _get_ret("CL")
     gc_ret = _get_ret("GC")
 
-    def _classify_bias(v: float | None, up: float = 0.5, down: float = -0.5) -> str:
+    def _classify_bias(v: Optional[float], up: float = 0.5, down: float = -0.5) -> str:
         if v is None:
             return "neutral"
         if v > up:
@@ -143,13 +121,11 @@ def macro_snapshot():
             return "bearish"
         return "neutral"
 
-    # Actions : moyenne ES + NQ quand possible
     if es_ret is not None and nq_ret is not None:
         equities_bias = _classify_bias((es_ret + nq_ret) / 2.0)
     else:
         equities_bias = _classify_bias(es_ret or nq_ret)
 
-    # Matières premières : moyenne CL + GC
     commodity_vals = [v for v in (cl_ret, gc_ret) if v is not None]
     if commodity_vals:
         commodities_bias = _classify_bias(sum(commodity_vals) / len(commodity_vals))
@@ -160,20 +136,17 @@ def macro_snapshot():
 
     bias = {
         "equities": equities_bias,
-        "rates": "neutral",   # à affiner plus tard avec un proxy taux
-        "usd": "neutral",     # idem (DXY, etc.)
+        "rates": "neutral",
+        "usd": "neutral",
         "credit": "neutral",
         "commodities": commodities_bias,
         "crypto": crypto_bias,
     }
 
-    # --------------------------------------------------
-    # Commentaire
-    # --------------------------------------------------
+    # ---- commentaire ----
     comment = summary.get("risk_comment") or (
         "Pas assez de données récentes pour établir un biais macro clair."
     )
-
     top_moves = summary.get("top_moves") or []
     if top_moves:
         first = top_moves[0]
@@ -190,15 +163,14 @@ def macro_snapshot():
     }
 
 
-# =====================================================
+# ==============================
 # /api/macro/orientation
-# =====================================================
+# ==============================
 
 @router.get("/orientation")
 def macro_orientation():
     """
     Orientation de marché plus narrative pour la carte "Orientation globale".
-    On réutilise la même fenêtre (J-7 → aujourd'hui) que pour le snapshot.
     """
     today = date.today()
     start = today - timedelta(days=7)
@@ -207,7 +179,6 @@ def macro_orientation():
     raw = build_week_raw(start, today)
     assets = raw.get("asset_performances", []) or []
 
-    # Risk on/off/neutre
     risk_flag = summary.get("risk_on")
     if risk_flag is True:
         risk = "on"
@@ -216,8 +187,7 @@ def macro_orientation():
     else:
         risk = "neutral"
 
-    # Confiance : basée sur l'amplitude moyenne ES + NQ
-    def _get_ret(symbol: str) -> float | None:
+    def _get_ret(symbol: str) -> Optional[float]:
         for a in assets:
             if a.get("symbol") == symbol:
                 try:
@@ -279,36 +249,28 @@ def macro_orientation():
     }
 
 
-# =====================================================
+# ==============================
 # /api/macro/indices
-#   → appelé par macro.html (loadIndices)
-# =====================================================
+# ==============================
 
 @router.get("/indices")
 def macro_indices():
     """
-    Performance des grands indices (Jour / Semaine / Mois),
-    calculée directement via yfinance.
-
-    Retour (aligné avec macro.html) :
-    [
-        { "symbol": "SPX", "name": "S&P 500", "daily": 0.8, "weekly": 2.1, "monthly": 4.3 },
-        ...
-    ]
+    Performance des grands indices (Jour / Semaine / Mois).
     """
     today = dt.date.today()
-    start = today - dt.timedelta(days=60)  # ~2 mois d'historique
+    start = today - dt.timedelta(days=60)
 
     global _INDICES_CACHE_DATA, _INDICES_CACHE_TS
     now = datetime.utcnow()
+
     if (
         _INDICES_CACHE_DATA is not None
         and _INDICES_CACHE_TS is not None
         and (now - _INDICES_CACHE_TS).total_seconds() < _INDICES_CACHE_TTL_SECONDS
         and _INDICES_CACHE_DATA.get("as_of") == today.isoformat()
     ):
-        # On renvoie directement le cache, mais sous forme de liste
-        cached_assets = _INDICES_CACHE_DATA.get("assets") or []
+        assets = _INDICES_CACHE_DATA.get("assets") or []
         return [
             {
                 "symbol": a.get("symbol"),
@@ -317,17 +279,15 @@ def macro_indices():
                 "weekly": a.get("w"),
                 "monthly": a.get("m"),
             }
-            for a in cached_assets
+            for a in assets
         ]
 
     assets = []
-
     for sym, cfg in INDEX_SYMBOLS.items():
         label = cfg["label"]
         yf_symbol = cfg["yf"]
 
         d_ret = w_ret = m_ret = None
-
         try:
             t = yf.Ticker(yf_symbol)
             hist = t.history(
@@ -337,12 +297,10 @@ def macro_indices():
             )
             if not hist.empty:
                 close = hist["Close"]
-                # 1 jour / 5 jours / 21 jours ouvrés approximatifs
                 d_ret = _compute_return_pct(close, 1)
                 w_ret = _compute_return_pct(close, 5)
                 m_ret = _compute_return_pct(close, 21)
         except Exception:
-            # En cas d'erreur réseau/API on laisse les valeurs à None
             pass
 
         assets.append(
@@ -355,15 +313,9 @@ def macro_indices():
             }
         )
 
-    # Mise à jour du cache brut
-    result_raw = {
-        "as_of": today.isoformat(),
-        "assets": assets,
-    }
-    _INDICES_CACHE_DATA = result_raw
+    _INDICES_CACHE_DATA = {"as_of": today.isoformat(), "assets": assets}
     _INDICES_CACHE_TS = now
 
-    # Transformation au format attendu par le front
     return [
         {
             "symbol": a.get("symbol"),
@@ -376,10 +328,9 @@ def macro_indices():
     ]
 
 
-# =====================================================
-# /api/macro/calendar
-#   (ancien calendrier simple, conservé pour compat éventuelle)
-# =====================================================
+# ==============================
+# /api/macro/calendar (simple)
+# ==============================
 
 @router.get("/calendar")
 def macro_calendar(
@@ -442,18 +393,19 @@ def macro_calendar(
 
     return events
 
-# =====================================================
+
+# ==============================
 # /api/macro/sentiment_grid
-# =====================================================
+# ==============================
 
 @router.get("/sentiment_grid")
 def macro_sentiment_grid():
     """
     Grille de sentiment news par jour et par thématique
-    utilisée par la page MACRO (tableau hebdomadaire).
+    utilisée par la page MACRO (tableau hebdo).
     """
     today = dt.date.today()
-    start = today - dt.timedelta(days=4)  # 5 jours ouvrés
+    start = today - dt.timedelta(days=4)  # 5 jours
     end = today
 
     raw = build_week_raw(start, end)
