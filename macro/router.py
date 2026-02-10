@@ -7,6 +7,8 @@ from typing import Optional, Literal
 import datetime as dt
 import yfinance as yf
 
+from macro.service import build_week_raw, get_week_summary_cached
+
 router = APIRouter(prefix="/macro")
 
 
@@ -32,6 +34,12 @@ INDEX_SYMBOLS = {
     "USDJPY": {"label": "USD / JPY", "yf": "JPY=X"},
     "BTCUSD": {"label": "Bitcoin", "yf": "BTC-USD"},
 }
+
+# Cache simple pour les performances d'indices afin d'éviter
+# d'appeler yfinance à chaque rafraîchissement du front.
+_INDICES_CACHE_DATA: dict | None = None
+_INDICES_CACHE_TS: datetime | None = None
+_INDICES_CACHE_TTL_SECONDS = 300  # 5 minutes
 
 
 def _compute_return_pct(close_series, periods: int) -> Optional[float]:
@@ -61,24 +69,124 @@ def _compute_return_pct(close_series, periods: int) -> Optional[float]:
 
 @router.get("/snapshot")
 def macro_snapshot():
-    now = datetime.utcnow()
+    """
+    Vue macro globale utilisée par la carte principale de macro.html.
+
+    On s'appuie sur la logique de macro.service :
+    - build_week_raw : perfs hebdo des actifs (ES, NQ, BTC, CL, GC)
+    - get_week_summary_cached : biais global risk_on / risk_off / neutre
+
+    On regarde la dernière semaine calendaire (J-7 → aujourd'hui).
+    """
+    today = date.today()
+    start = today - timedelta(days=7)
+
+    # Résumé hebdo (avec cache interne dans macro.service)
+    summary = get_week_summary_cached(start, today)
+    raw = build_week_raw(start, today)
+    assets = raw.get("asset_performances", []) or []
+
+    # --------------------------------------------------
+    # Risk mode
+    # --------------------------------------------------
+    risk_flag = summary.get("risk_on")
+    if risk_flag is True:
+        risk_mode: RiskMode = "risk_on"
+    elif risk_flag is False:
+        risk_mode = "risk_off"
+    else:
+        risk_mode = "neutral"
+
+    # --------------------------------------------------
+    # Volatilité (simple : max mouvement absolu sur la semaine)
+    # --------------------------------------------------
+    max_abs_move = 0.0
+    for a in assets:
+        try:
+            v = float(a.get("return_pct", 0.0) or 0.0)
+        except (TypeError, ValueError):
+            v = 0.0
+        if abs(v) > max_abs_move:
+            max_abs_move = abs(v)
+
+    if max_abs_move < 1.0:
+        volatility: VolatilityLevel = "low"
+    elif max_abs_move < 3.0:
+        volatility = "medium"
+    else:
+        volatility = "high"
+
+    # --------------------------------------------------
+    # Biais par grande classe d'actifs
+    # --------------------------------------------------
+    def _get_ret(symbol: str) -> float | None:
+        for a in assets:
+            if a.get("symbol") == symbol:
+                try:
+                    return float(a.get("return_pct", 0.0))
+                except (TypeError, ValueError):
+                    return None
+        return None
+
+    es_ret = _get_ret("ES")
+    nq_ret = _get_ret("NQ")
+    btc_ret = _get_ret("BTC")
+    cl_ret = _get_ret("CL")
+    gc_ret = _get_ret("GC")
+
+    def _classify_bias(v: float | None, up: float = 0.5, down: float = -0.5) -> str:
+        if v is None:
+            return "neutral"
+        if v > up:
+            return "bullish"
+        if v < down:
+            return "bearish"
+        return "neutral"
+
+    # Actions : moyenne ES + NQ quand possible
+    if es_ret is not None and nq_ret is not None:
+        equities_bias = _classify_bias((es_ret + nq_ret) / 2.0)
+    else:
+        equities_bias = _classify_bias(es_ret or nq_ret)
+
+    # Matières premières : moyenne CL + GC
+    commodity_vals = [v for v in (cl_ret, gc_ret) if v is not None]
+    if commodity_vals:
+        commodities_bias = _classify_bias(sum(commodity_vals) / len(commodity_vals))
+    else:
+        commodities_bias = "neutral"
+
+    crypto_bias = _classify_bias(btc_ret)
+
+    bias = {
+        "equities": equities_bias,
+        "rates": "neutral",   # à affiner plus tard avec un proxy taux
+        "usd": "neutral",     # idem (DXY, etc.)
+        "credit": "neutral",
+        "commodities": commodities_bias,
+        "crypto": crypto_bias,
+    }
+
+    # --------------------------------------------------
+    # Commentaire
+    # --------------------------------------------------
+    comment = summary.get("risk_comment") or (
+        "Pas assez de données récentes pour établir un biais macro clair."
+    )
+
+    top_moves = summary.get("top_moves") or []
+    if top_moves:
+        first = top_moves[0]
+        desc = first.get("description")
+        if desc:
+            comment = f"{comment} {desc}"
 
     return {
-        "timestamp": now.isoformat(),
-        "risk_mode": "risk_on",
-        "volatility": "medium",
-        "bias": {
-            "equities": "bullish",
-            "rates": "bearish",
-            "usd": "strong",
-            "credit": "stable",
-            "commodities": "neutral",
-            "crypto": "neutral",
-        },
-        "comment": (
-            "Momentum positif sur les indices US et EU, "
-            "volatilité contenue, dollar toujours ferme."
-        ),
+        "timestamp": datetime.utcnow().isoformat(),
+        "risk_mode": risk_mode,
+        "volatility": volatility,
+        "bias": bias,
+        "comment": comment,
     }
 
 
@@ -88,25 +196,92 @@ def macro_snapshot():
 
 @router.get("/orientation")
 def macro_orientation():
-    now = datetime.utcnow()
+    """
+    Orientation de marché plus narrative pour la carte "Orientation globale".
+    On réutilise la même fenêtre (J-7 → aujourd'hui) que pour le snapshot.
+    """
+    today = date.today()
+    start = today - timedelta(days=7)
+
+    summary = get_week_summary_cached(start, today)
+    raw = build_week_raw(start, today)
+    assets = raw.get("asset_performances", []) or []
+
+    # Risk on/off/neutre
+    risk_flag = summary.get("risk_on")
+    if risk_flag is True:
+        risk = "on"
+    elif risk_flag is False:
+        risk = "off"
+    else:
+        risk = "neutral"
+
+    # Confiance : basée sur l'amplitude moyenne ES + NQ
+    def _get_ret(symbol: str) -> float | None:
+        for a in assets:
+            if a.get("symbol") == symbol:
+                try:
+                    return float(a.get("return_pct", 0.0))
+                except (TypeError, ValueError):
+                    return None
+        return None
+
+    es_ret = _get_ret("ES")
+    nq_ret = _get_ret("NQ")
+
+    avg = None
+    if es_ret is not None and nq_ret is not None:
+        avg = (es_ret + nq_ret) / 2.0
+    elif es_ret is not None:
+        avg = es_ret
+    elif nq_ret is not None:
+        avg = nq_ret
+
+    confidence = 0.5
+    if avg is not None:
+        mag = abs(avg)
+        if mag < 0.5:
+            confidence = 0.4
+        elif mag < 1.5:
+            confidence = 0.65
+        elif mag < 3.0:
+            confidence = 0.8
+        else:
+            confidence = 0.9
+
+    notes: list[str] = []
+
+    risk_comment = summary.get("risk_comment")
+    if risk_comment:
+        notes.append(risk_comment)
+
+    top_moves = summary.get("top_moves") or []
+    if top_moves:
+        desc = top_moves[0].get("description")
+        if desc:
+            notes.append(desc)
+
+    upcoming = summary.get("upcoming_focus") or []
+    for u in upcoming[:2]:
+        if isinstance(u, str):
+            notes.append(u)
+        elif isinstance(u, dict):
+            label = u.get("label") or u.get("description")
+            if label:
+                notes.append(label)
 
     return {
-        "timestamp": now.isoformat(),
-        "risk": "on",
-        "confidence": 0.78,
-        "comment": "Contexte global risk-on confirmé.",
-        "notes": [
-            "VIX < 20",
-            "Aucun stress crédit visible",
-            "USD fort mais stable",
-        ],
+        "timestamp": datetime.utcnow().isoformat(),
+        "risk": risk,
+        "confidence": confidence,
+        "comment": risk_comment or "",
+        "notes": notes,
     }
 
 
 # =====================================================
 # /api/macro/indices
-#   → utilisé via /perf/summary (compat.router)
-#   → renvoie { as_of, assets: [...] } pour le front
+#   → appelé par macro.html (loadIndices)
 # =====================================================
 
 @router.get("/indices")
@@ -115,18 +290,35 @@ def macro_indices():
     Performance des grands indices (Jour / Semaine / Mois),
     calculée directement via yfinance.
 
-    Retour :
-    {
-        "as_of": "YYYY-MM-DD",
-        "assets": [
-            { "symbol": "SPX", "label": "S&P 500", "d": 0.8, "w": 2.1, "m": 4.3 },
-            ...
-        ]
-    }
+    Retour (aligné avec macro.html) :
+    [
+        { "symbol": "SPX", "name": "S&P 500", "daily": 0.8, "weekly": 2.1, "monthly": 4.3 },
+        ...
+    ]
     """
     today = dt.date.today()
-    # On prend ~2 mois d'historique pour être tranquille
-    start = today - dt.timedelta(days=60)
+    start = today - dt.timedelta(days=60)  # ~2 mois d'historique
+
+    global _INDICES_CACHE_DATA, _INDICES_CACHE_TS
+    now = datetime.utcnow()
+    if (
+        _INDICES_CACHE_DATA is not None
+        and _INDICES_CACHE_TS is not None
+        and (now - _INDICES_CACHE_TS).total_seconds() < _INDICES_CACHE_TTL_SECONDS
+        and _INDICES_CACHE_DATA.get("as_of") == today.isoformat()
+    ):
+        # On renvoie directement le cache, mais sous forme de liste
+        cached_assets = _INDICES_CACHE_DATA.get("assets") or []
+        return [
+            {
+                "symbol": a.get("symbol"),
+                "name": a.get("label"),
+                "daily": a.get("d"),
+                "weekly": a.get("w"),
+                "monthly": a.get("m"),
+            }
+            for a in cached_assets
+        ]
 
     assets = []
 
@@ -163,10 +355,25 @@ def macro_indices():
             }
         )
 
-    return {
+    # Mise à jour du cache brut
+    result_raw = {
         "as_of": today.isoformat(),
         "assets": assets,
     }
+    _INDICES_CACHE_DATA = result_raw
+    _INDICES_CACHE_TS = now
+
+    # Transformation au format attendu par le front
+    return [
+        {
+            "symbol": a.get("symbol"),
+            "name": a.get("label"),
+            "daily": a.get("d"),
+            "weekly": a.get("w"),
+            "monthly": a.get("m"),
+        }
+        for a in assets
+    ]
 
 
 # =====================================================
@@ -200,8 +407,16 @@ def macro_calendar(
         },
         {
             "date": (today + timedelta(days=1)).isoformat(),
-            "time": "11:00",
-            "event": "Décision BCE",
+            "time": "20:00",
+            "event": "Minutes FOMC",
+            "impact": "high",
+            "currency": "USD",
+            "country": "US",
+        },
+        {
+            "date": (today + timedelta(days=2)).isoformat(),
+            "time": "10:00",
+            "event": "CPI Zone Euro",
             "impact": "high",
             "currency": "EUR",
             "country": "EU",
@@ -209,9 +424,9 @@ def macro_calendar(
     ]
 
     max_date = today + timedelta(days=days_ahead)
-
     events = [
-        e for e in events
+        e
+        for e in events
         if date.fromisoformat(e["date"]) <= max_date
     ]
 
