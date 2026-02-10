@@ -443,3 +443,41 @@
     footer span {
       color: #e5e7eb;
     }
+
+/* =========================
+   Sentiment grid
+========================= */
+
+.sentiment-dot {
+  display: inline-flex;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.sentiment-pos {
+  background: rgba(34,197,94,0.15);
+  color: #22c55e;
+  border: 1px solid rgba(34,197,94,0.6);
+}
+
+.sentiment-neg {
+  background: rgba(239,68,68,0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239,68,68,0.6);
+}
+
+.sentiment-neutral {
+  background: rgba(148,163,184,0.15);
+  color: #94a3b8;
+  border: 1px solid rgba(148,163,184,0.5);
+}
+
+.sentiment-day {
+  font-size: 12px;
+  color: var(--muted);
+}
