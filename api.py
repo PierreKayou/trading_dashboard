@@ -13,6 +13,7 @@ from compat.router import router as compat_router
 
 from news.analysis_v2 import router as news_v2_router
 from news.stress_router import router as news_stress_router
+from macro.trading_rules_router import router as macro_trading_rules_router
 
 # ---------------------------------------------------------
 # App & config de base
@@ -81,6 +82,7 @@ app.include_router(compat_router)
 app.include_router(news_v2_router)
 
 app.include_router(news_stress_router)
+app.include_router(macro_trading_rules_router, prefix="/api")
 
 # ---------------------------------------------------------
 # Endpoint de santé (optionnel)
